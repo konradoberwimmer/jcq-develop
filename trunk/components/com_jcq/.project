@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>JCQ</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.wst.validation.validationbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.dltk.core.scriptbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.php.core.PHPNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>com_jcq</name>
+			<type>2</type>
+			<location>/home/konrad/Dokumente/JCQinstalled/administrator/components/com_jcq</location>
+		</link>
+	</linkedResources>
+</projectDescription>
