@@ -13,7 +13,7 @@ class JCQProjects
 	
 	public static function getProjectIDs(&$db)
 	{
-		$db->SetQuery("SELECT ID FROM jcq_Project ORDER BY name;");
+		$db->SetQuery("SELECT ID FROM jcq_project ORDER BY name;");
 		return $db->loadAssocList();
 	}
 }
