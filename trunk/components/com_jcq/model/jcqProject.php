@@ -1,5 +1,5 @@
 <?php
-require_once("JCQPage.php");
+require_once(JPATH_COMPONENT_SITE.DS.'model'.DS.'jcqPage.php');
 class JCQProject
 {
 	private $id;
