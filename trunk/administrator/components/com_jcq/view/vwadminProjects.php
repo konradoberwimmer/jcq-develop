@@ -25,7 +25,7 @@ class vwadminProjects extends vwadmin
 		{
 			echo("<form>");
 			echo("<p>The JCQ component contains ".count($projects)." project(s).</p>");
-			echo("<table style='border-collapse: collapse;'>");
+			echo("<table class='list' style='border-collapse: collapse;'>");
 			echo("<tr style='border-bottom: 1px solid grey;'><th>Select</th><th>Name</th><th>URL</th><th>Class file</th><th>Class name</th><th>Options</th><th>Pages</th></tr>");
 			foreach ($projects as $id)
 			{
@@ -34,9 +34,12 @@ class vwadminProjects extends vwadmin
 				$project->loadFromDatabase(JFactory::getDBO(),$id,false);
 				echo("<tr>");
 				echo("<td><input type='checkbox' name='project_$id' value=''/></td>"); //checkbox
-				echo("<td>".$project->getName()."</td>"); //name
+				echo("<td><a href='".JURI::root()."administrator".DS."index.php?option=com_jcq&view=vwadminProject&pjid=$id'>".$project->getName()."</a></td>"); //name
 				echo("<td><a href='".JURI::root()."index.php?option=com_jcq&pjid=$id' target='_blank'>".JURI::root()."index.php?option=com_jcq&pjid=$id</a></td>"); //URL
 				echo("<td>".$project->getClassfileStr()."</td>"); //classfile
+				echo("<td>".$project->getClassname()."</td>"); //class name
+				echo("<td>".$project->getOptionsStr()."</td>"); //options as string
+				echo("<td>".$project->numPages()."</td>"); //number of pages
 				echo("</tr>");
 			}
 			echo("</table>");
