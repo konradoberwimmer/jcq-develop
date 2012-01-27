@@ -22,7 +22,7 @@ class JCQProject
 	 */
 	public function loadFromDatabase (&$db, $ID, $recursive=true)
 	{
-		$db->SetQuery("SELECT * FROM jcq_Project WHERE ID=$ID;");
+		$db->SetQuery("SELECT * FROM jcq_project WHERE ID=$ID;");
 		$project=$db->loadAssoc();
 		if (isset($project))
 		{
@@ -54,5 +54,8 @@ class JCQProject
 			return true;
 		} else return false;
 	}
+	
+	public function getName() { return $this->name; }
+	public function getClassfileStr() { return $this->classfile; }
 }
 ?>
