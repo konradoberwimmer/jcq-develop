@@ -57,5 +57,8 @@ class JCQProject
 	
 	public function getName() { return $this->name; }
 	public function getClassfileStr() { return $this->classfile; }
+	public function getClassname() { return $this->classname; }
+	public function getOptionsStr() { return ($this->anonymousanswers==0?'identified users':'anonymous users').', '.($this->multipleanswers==0?'single reply':'multiple replies'); } //prints the options as text
+	public function numPages() { return count($this->pages); }
 }
 ?>
