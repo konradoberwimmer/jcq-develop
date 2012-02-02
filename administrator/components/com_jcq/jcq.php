@@ -3,7 +3,7 @@
 	
 	//set component style sheet
 	$document = JFactory::getDocument();
-	$document->addStyleSheet(JPATH_COMPONENT_ADMINISTRATOR.DS.'jcq.css');
+	$document->addStyleSheet(JURI::root().'administrator/components/com_jcq/jcq.css');
 	
 	//if not specified in GET, assume the standard administrator view
 	$view = JRequest::getVar('view','vwadminProjects','get');
@@ -17,7 +17,8 @@
 	{
 		die('Fatal Internal Error');
 	}	
-		
+	
+	$viewobject->showBreadcrumbs();
 	$viewobject->doTask();
 	$viewobject->show();
 	
