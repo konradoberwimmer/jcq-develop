@@ -5,16 +5,16 @@ require_once(JPATH_COMPONENT_SITE.DS.'model'.DS.'jcqProject.php');
 
 class vwadminProjects extends vwadmin
 {
-	private $id;
-	
-	function __construct($id) 
-	{
-		if (isset($id)) $this->id=$id;
-	}
+	function __construct($id) { } //for this view, id is not used
 	
 	public function doTask()
 	{
 		#TODO doTask in vwadminProjects
+	}
+	
+	protected function breadcrumb()
+	{
+		return "<a href='".JURI::root()."administrator".DS."index.php?option=com_jcq'>JCQ</a>";
 	}
 	
 	public function show()
@@ -23,6 +23,7 @@ class vwadminProjects extends vwadmin
 		if (!isset($projects) || count($projects)==0) echo("<p>Currently there are no projects.</p>");
 		else
 		{
+			echo("<h3>Joomla Complex Questionnaires</h3>");
 			echo("<form>");
 			echo("<p>The JCQ component contains ".count($projects)." project(s).</p>");
 			echo("<table class='list' style='border-collapse: collapse;'>");
@@ -34,7 +35,7 @@ class vwadminProjects extends vwadmin
 				$project->loadFromDatabase(JFactory::getDBO(),$id,false);
 				echo("<tr>");
 				echo("<td><input type='checkbox' name='project_$id' value=''/></td>"); //checkbox
-				echo("<td><a href='".JURI::root()."administrator".DS."index.php?option=com_jcq&view=vwadminProject&pjid=$id'>".$project->getName()."</a></td>"); //name
+				echo("<td><a href='".JURI::root()."administrator".DS."index.php?option=com_jcq&view=vwadminProject&id=$id'>".$project->getName()."</a></td>"); //name
 				echo("<td><a href='".JURI::root()."index.php?option=com_jcq&pjid=$id' target='_blank'>".JURI::root()."index.php?option=com_jcq&pjid=$id</a></td>"); //URL
 				echo("<td>".$project->getClassfileStr()."</td>"); //classfile
 				echo("<td>".$project->getClassname()."</td>"); //class name
