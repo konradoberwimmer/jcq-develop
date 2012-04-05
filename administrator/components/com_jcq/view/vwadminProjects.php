@@ -26,7 +26,7 @@ class vwadminProjects extends vwadmin
 			echo("<h3>Joomla Complex Questionnaires</h3>");
 			echo("<form>");
 			echo("<p>The JCQ component contains ".count($projects)." project(s).</p>");
-			echo("<table class='list' style='border-collapse: collapse;'>");
+			echo("<table class='list'>");
 			echo("<tr style='border-bottom: 1px solid grey;'><th>Select</th><th>Name</th><th>URL</th><th>Class file</th><th>Class name</th><th>Options</th><th>Pages</th></tr>");
 			foreach ($projects as $id)
 			{
