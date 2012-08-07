@@ -27,8 +27,8 @@ CREATE TABLE jcq_project(
 		classfile VARCHAR(255) NOT NULL,
 		classname VARCHAR(255) NOT NULL,
 		description TEXT,
-		anonymous SMALLINT NOT NULL DEFAULT 0,
-		multiple SMALLINT NOT NULL DEFAULT 0
+		anonymous BOOLEAN NOT NULL DEFAULT 0,
+		multiple BOOLEAN NOT NULL DEFAULT 0
 );
 
 CREATE TABLE jcq_page(
