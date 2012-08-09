@@ -11,8 +11,14 @@ class JcqViewPageform extends JView
 		$project = $model->getProjectFromPage($pageID);
 		$this->assignRef('page', $page);
 		$this->assignRef('project', $project);
-	
+		$questions = $model->getQuestions($pageID);
+		$this->assignRef('questions', $questions);
+		
 		JToolBarHelper::title('JCQ: Edit page');
+		if ($model->getQuestionCount($pageID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected questions?",'removeQuestion','Remove question(s)');
+		if ($model->getQuestionCount($pageID) > 0) JToolBarHelper::editList('editQuestion','Edit question');
+		JToolBarHelper::addNewX('addQuestion','New question');
+		JToolBarHelper::divider();
 		JToolBarHelper::save("savePage","Save");
 		JToolBarHelper::cancel("cancelAddPage","Cancel");
 		parent::display();

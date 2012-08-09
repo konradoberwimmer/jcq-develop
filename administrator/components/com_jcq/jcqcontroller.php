@@ -159,4 +159,34 @@ class JcqController extends JController
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
+	
+	function addQuestion()
+	{
+		$pageID = JRequest::getVar('ID');
+		if($pageID === null) JError::raiseError(500, 'page id parameter missing');
+		$view = & $this->getView('questionform');
+		$model = & $this->getModel('questions');
+		if (!$model) JError::raiseError(500, 'Model not found');
+		$view->setModel($model, true);
+		$view->setLayout('questionformlayout');
+		$view->displayAdd($pageID);
+	}
+	
+	function saveQuestion()
+	{
+		$question = JRequest::get( 'POST' );
+			
+		$model = & $this->getModel('questions');
+		$model->saveQuestion($question);
+			
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
+		$this->setRedirect($redirectTo, 'Question added!');
+	}
+	
+	function cancelAddQuestion()
+	{
+		$question = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
 }

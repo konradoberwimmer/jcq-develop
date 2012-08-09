@@ -19,4 +19,42 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <input type="hidden" name="ID" value="<?php echo $this->page->ID; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->page->projectID; ?>"/>
        <input type="hidden" name="task" value=""/>
+<?php if ($this->page->ID > 0 && $this->questions != null) { ?>
+Page has <?php echo count($this->questions); ?> question(s).
+       <table class="list">
+             <thead>
+                    <tr>
+                           <th width="10"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->questions); ?>)" /></th>
+                           <th>Order</th>
+                           <th>Name</th>
+                           <th>Type</th>
+                    </tr>               
+             </thead>
+             <tbody>
+                    <?php
+                    $k = 0;
+                    $i = 0;
+                    foreach ($this->questions as $row){
+                           $checked = JHTML::_('grid.id', $i, $row->ID);
+                           $link = JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='. $row->ID,false);
+                    ?>
+                    <tr>
+                            <td><?php echo $checked; ?></td>
+                            <td><input type="text" id="<?php echo("question".$row->ID."ord"); ?>" name="questionord[]" value="<?php echo $row->ord; ?>"/>
+                            <input type="hidden" name="questionids[]" value="<?php echo $row->ID; ?>"/></td>
+                            <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
+                            <td><?php echo $row->questtype;?></td>
+                    </tr>
+                    <?php
+                    	$k = 1 - $k;
+                    	$i++;
+                    }
+                    ?>
+             </tbody>
+       </table>
+       <input type="hidden" name="boxchecked" value="0"/>    
+       <input type="hidden" name="hidemainmenu" value="0"/>  
+<?php } else if ($this->page->ID > 0) { ?>
+Page has no questions.
+<?php } ?>
 </form>

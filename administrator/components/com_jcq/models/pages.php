@@ -16,6 +16,17 @@ class JcqModelPages extends JModel {
 		else return $page;
 	}
 	
+	function getQuestionCount($pageID)
+	{
+		$query = 'SELECT ID FROM jcq_question WHERE pageID = '.$pageID;
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		$questions = $db->loadResultArray();
+			
+		if ($questions == null) return 0;
+		else return count($questions);
+	}
+	
 	function getProjectFromPage($pageID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$pageID;
@@ -86,5 +97,16 @@ class JcqModelPages extends JModel {
 				JError::raiseError(500, 'Error setting page order: '.$errorMessage);
 			}
 		}
+	}
+	
+	function getQuestions($pageID)
+	{
+		$db = $this->getDBO();
+			
+		$db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$pageID.' ORDER BY ord');
+		$questions = $db->loadObjectList();
+	
+		if ($questions === null) JError::raiseError(500, 'Error reading db');
+		else return $questions;
 	}
 }
