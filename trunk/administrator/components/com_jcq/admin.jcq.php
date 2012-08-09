@@ -6,7 +6,7 @@ $document = JFactory::getDocument();
 $document->addStyleSheet(JURI::root().'administrator/components/com_jcq/jcq.css');
 
 // Require the controller
-require_once( JPATH_COMPONENT.DS.'jcqController.php' );
+require_once( JPATH_COMPONENT.DS.'jcqcontroller.php' );
 
 // Create the controller
 $controller   = new JcqController();
