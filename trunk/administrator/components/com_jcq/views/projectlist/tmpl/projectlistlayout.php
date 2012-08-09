@@ -1,5 +1,6 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); ?>
+<p class="breadcrumbs"><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a></p>
 <?php 
 if ($this->projects != null) { ?>
 JCQ component has <?php echo count($this->projects); ?> project(s).
@@ -23,7 +24,7 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
                     $i = 0;
                     foreach ($this->projects as $row){
                            $checked = JHTML::_('grid.id', $i, $row->ID);
-                           $link = JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='. $row->ID.'&hidemainmenu=1' );
+                           $link = JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='. $row->ID,false);
                     ?>
                     <tr>
                             <td><?php echo $checked; ?></td>

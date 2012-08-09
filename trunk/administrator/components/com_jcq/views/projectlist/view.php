@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewProjectlist extends JView
 {
-
+	
 	function display()
 	{
 		$model = $this->getModel();
@@ -23,8 +23,10 @@ class JcqViewProjectlist extends JView
 		 
 		JToolBarHelper::title('JCQ: Projects', 'generic.png');
 		if ($projects != null) JToolBarHelper::deleteList("Do you really want to delete the selected projects?",'removeProject','Remove');
-		if ($projects != null) JToolBarHelper::editListX('editProject','Edit');
+		if ($projects != null) JToolBarHelper::editList('editProject','Edit');
 		JToolBarHelper::addNewX('addProject','New project');
+		
 		parent::display();
 	}
+	
 }

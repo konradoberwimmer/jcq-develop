@@ -25,7 +25,6 @@ class JcqController extends JController
 		
 		$view->setLayout($viewLayout);
 		$view->display();
-
 	}
 	
 	function addProject()
@@ -65,8 +64,15 @@ class JcqController extends JController
 		 
 		$model = & $this->getModel('projects');
 		$model->saveProject($project);
-		 
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display');
+
+		if (isset($project['pageord']))
+		{
+			$pagemodel = & $this->getModel('pages');
+			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
+		}
+		
+		if ($project['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
+		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
 		$this->setRedirect($redirectTo, 'Project saved!');
 	}
 	
@@ -89,6 +95,27 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
+	function editPage(){
+			
+		$pageids = JRequest::getVar('cid', null, 'default', 'array' );
+			
+		if($pageids === null) JError::raiseError(500, 'cid parameter missing');
+			
+		$pageID = (int)$pageids[0]; //get the first id from the list (we can only edit one greeting at a time)
+	
+		$view = & $this->getView('pageform');
+			
+		if ($model = & $this->getModel('pages')) {
+			//Push the model into the view (as default)
+			//Second parameter indicates that it is the default model for the view
+			$view->setModel($model, true);
+		}
+		else JError::raiseError(500, 'Model not found');
+			
+		$view->setLayout('pageformlayout');
+		$view->displayEdit($pageID);
+	}
+	
 	function addPage()
 	{
 		$projectID = JRequest::getVar('ID');
@@ -99,5 +126,37 @@ class JcqController extends JController
 		$view->setModel($model, true);
 		$view->setLayout('pageformlayout');
 		$view->displayAdd($projectID);
+	}
+	
+	function savePage()
+	{
+		$page = JRequest::get( 'POST' );
+			
+		$model = & $this->getModel('pages');
+		$model->savePage($page);
+			
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
+		$this->setRedirect($redirectTo, 'Page added!');
+	}
+	
+	function removePage()
+	{
+		$project = JRequest::get( 'POST' );
+		$arrayIDs = JRequest::getVar('cid', null, 'default', 'array' ); //Reads cid as an array
+			
+		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
+			
+		$model = & $this->getModel('pages');
+		$model->deletePages($arrayIDs);
+			
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
+		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' page(s)');
+	}
+	
+	function cancelAddPage()
+	{
+		$page = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 }
