@@ -88,4 +88,16 @@ class JcqController extends JController
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
+	
+	function addPage()
+	{
+		$projectID = JRequest::getVar('ID');
+		if($projectID === null) JError::raiseError(500, 'project id parameter missing');
+		$view = & $this->getView('pageform');
+		$model = & $this->getModel('pages');
+		if (!$model) JError::raiseError(500, 'Model not found');
+		$view->setModel($model, true);
+		$view->setLayout('pageformlayout');
+		$view->displayAdd($projectID);
+	}
 }
