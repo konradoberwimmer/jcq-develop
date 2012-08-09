@@ -1,6 +1,11 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); ?>
-
+<?php if ($this->project->ID > 0) { ?>
+<p class="breadcrumbs">
+<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a>&nbsp;&gt;&nbsp;
+<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$this->project->ID,false);?>">Project &quot;<?php echo $this->project->name; ?>&quot;</a>
+</p>
+<?php } ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Project definition:</legend>
@@ -33,11 +38,12 @@ Project has <?php echo count($this->pages); ?> page(s).
                     $i = 0;
                     foreach ($this->pages as $row){
                            $checked = JHTML::_('grid.id', $i, $row->ID);
-                           $link = JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='. $row->ID.'&hidemainmenu=1' );
+                           $link = JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='. $row->ID,false);
                     ?>
                     <tr>
                             <td><?php echo $checked; ?></td>
-                            <td><input type="text" id="<?php echo("page".$row->ID."ord"); ?>" value="<?php echo $row->ord; ?>"/></td>
+                            <td><input type="text" id="<?php echo("page".$row->ID."ord"); ?>" name="pageord[]" value="<?php echo $row->ord; ?>"/>
+                            <input type="hidden" name="pageids[]" value="<?php echo $row->ID; ?>"/></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
                     </tr>
                     <?php

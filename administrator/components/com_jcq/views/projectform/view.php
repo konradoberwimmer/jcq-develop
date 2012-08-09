@@ -15,8 +15,9 @@ class JcqViewProjectform extends JView
 		
 		JToolBarHelper::title('JCQ: Edit project');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected pages?",'removePage','Remove page(s)');
-		if ($model->getPageCount($projectID) > 0) JToolBarHelper::editListX('editPage','Edit page');
+		if ($model->getPageCount($projectID) > 0) JToolBarHelper::editList('editPage','Edit page');
 		JToolBarHelper::addNewX('addPage','New page');
+		JToolBarHelper::divider();
 		JToolBarHelper::save("saveProject","Save");
 		JToolBarHelper::cancel();
 		parent::display();
