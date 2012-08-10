@@ -3,6 +3,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <p class="breadcrumbs"><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a></p>
 <?php 
 if ($this->projects != null) { ?>
+<fieldset>
+             <legend>Projects:</legend>
 JCQ component has <?php echo count($this->projects); ?> project(s).
 <form action="index.php" method="POST" name="adminForm">
        <table class="list">
@@ -49,11 +51,15 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
        <input type="hidden" name="boxchecked" value="0"/>    
        <input type="hidden" name="hidemainmenu" value="0"/>  
 </form>
+</fieldset>
 <?php } else { ?>
+<fieldset>
+<legend>Projects:</legend>
 JCQ component has no projects.
 <form action="index.php" method="POST" name="adminForm">   
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="task" value=""/>
 </form>
+</fieldset>
 <?php } ?>
 

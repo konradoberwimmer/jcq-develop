@@ -13,6 +13,16 @@ class JcqViewProjectform extends JView
 		$pages = $model->getPages($projectID);
 		$this->assignRef('pages', $pages);
 		
+		$questioncounts = array();
+		$i=0;
+		foreach ($pages as $page)
+		{
+			$questioncount = $model->getQuestionCount($page->ID);
+			$questioncounts[$i] = $questioncount;
+			$i++;
+		}
+		$this->assignRef('questioncounts', $questioncounts);
+		
 		JToolBarHelper::title('JCQ: Edit project');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected pages?",'removePage','Remove page(s)');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::editList('editPage','Edit page');
