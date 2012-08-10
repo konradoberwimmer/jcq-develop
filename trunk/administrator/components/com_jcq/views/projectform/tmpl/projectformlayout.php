@@ -23,6 +23,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <input type="hidden" name="ID" value="<?php echo $this->project->ID; ?>"/>      
        <input type="hidden" name="task" value=""/>
 <?php if ($this->project->ID > 0 && $this->pages != null) { ?>
+<fieldset>
+             <legend>Pages:</legend>
 Project has <?php echo count($this->pages); ?> page(s).
        <table class="list">
              <thead>
@@ -30,6 +32,7 @@ Project has <?php echo count($this->pages); ?> page(s).
                            <th width="10"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->pages); ?>)" /></th>
                            <th>Order</th>
                            <th>Name</th>
+                           <th>Questions</th>
                     </tr>               
              </thead>
              <tbody>
@@ -45,6 +48,7 @@ Project has <?php echo count($this->pages); ?> page(s).
                             <td><input type="text" id="<?php echo("page".$row->ID."ord"); ?>" name="pageord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="pageids[]" value="<?php echo $row->ID; ?>"/></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
+                            <td><?php echo $this->questioncounts[$i]; ?></td>
                     </tr>
                     <?php
                     	$k = 1 - $k;
@@ -55,7 +59,11 @@ Project has <?php echo count($this->pages); ?> page(s).
        </table>
        <input type="hidden" name="boxchecked" value="0"/>    
        <input type="hidden" name="hidemainmenu" value="0"/>  
+       </fieldset>
 <?php } else if ($this->project->ID > 0) { ?>
+<fieldset>
+             <legend>Pages:</legend>
 Project has no pages.
+</fieldset>
 <?php } ?>
 </form>

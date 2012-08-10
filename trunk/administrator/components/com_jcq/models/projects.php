@@ -41,6 +41,17 @@ class JcqModelProjects extends JModel {
 		else return count($pages);
 	}
 	 
+	function getQuestionCount($pageID)
+	{
+		$query = 'SELECT ID FROM jcq_question WHERE pageID = '.$pageID;
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		$questions = $db->loadResultArray();
+			
+		if ($questions == null) return 0;
+		else return count($questions);
+	}
+	
 	function getNewProject()
 	{
 		$projectTableRow =& $this->getTable('projects');

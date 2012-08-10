@@ -6,7 +6,17 @@ defined('_JEXEC') or die('Restricted access'); ?>
              <legend>Question definition:</legend>
              <table>
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
-                    <tr><td>Type</td><td><input type="text" name="questtype" id="questtype" size="32" maxlength="250" value="<?php echo $this->question->questtype; ?>" /></td></tr>
+                    <tr><td>Type</td>
+                    <td><select name="questtype" id="questtype">
+                    <?php 
+                    	$questtypes = $this->getModel()->getQuestionTypes();
+                    	foreach ($questtypes as $typeid=>$typename)
+                    	{
+                    		echo '<option value="'.$typeid.'">'.$typename.'</option>';
+                    	}
+                    ?>
+                    </select>
+                    </td></tr>
              </table>
        </fieldset>
 

@@ -105,10 +105,11 @@ class JcqController extends JController
 	
 		$view = & $this->getView('pageform');
 			
-		if ($model = & $this->getModel('pages')) {
+		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions')) {
 			//Push the model into the view (as default)
 			//Second parameter indicates that it is the default model for the view
 			$view->setModel($model, true);
+			$view->setModel($modelquestions, false);
 		}
 		else JError::raiseError(500, 'Model not found');
 			
@@ -134,9 +135,16 @@ class JcqController extends JController
 			
 		$model = & $this->getModel('pages');
 		$model->savePage($page);
-			
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
-		$this->setRedirect($redirectTo, 'Page added!');
+		
+		if (isset($page['questionord']))
+		{
+			$questionmodel = & $this->getModel('questions');
+			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
+		}
+				
+		if ($page['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
+		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
+		$this->setRedirect($redirectTo, 'Page saved!');
 	}
 	
 	function removePage()
@@ -160,6 +168,24 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
+	function editQuestion(){
+			
+		$questionids = JRequest::getVar('cid', null, 'default', 'array' );
+			
+		if($questionids === null) JError::raiseError(500, 'cid parameter missing');
+			
+		$questionID = (int)$questionids[0]; //get the first id from the list (we can only edit one greeting at a time)
+	
+		$view = & $this->getView('questionform');
+			
+		if ($model = & $this->getModel('questions')) $view->setModel($model, true);
+		else JError::raiseError(500, 'Model not found');
+			
+		$questtype = $model->getTypeFromQuestion($questionID);
+		$view->setLayout('questionformlayout'.$questtype);
+		$view->displayEdit($questionID);
+	}
+	
 	function addQuestion()
 	{
 		$pageID = JRequest::getVar('ID');
@@ -179,9 +205,25 @@ class JcqController extends JController
 		$model = & $this->getModel('questions');
 		$model->saveQuestion($question);
 			
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
-		$this->setRedirect($redirectTo, 'Question added!');
+		if ($question['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$question['ID'],false);
+		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
+		$this->setRedirect($redirectTo, 'Question saved!');
 	}
+	
+	function removeQuestion()
+	{
+		$page = JRequest::get( 'POST' );
+		$arrayIDs = JRequest::getVar('cid', null, 'default', 'array' );
+			
+		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
+			
+		$model = & $this->getModel('questions');
+		$model->deleteQuestions($arrayIDs);
+			
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
+		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' question(s)');
+	}
+	
 	
 	function cancelAddQuestion()
 	{
