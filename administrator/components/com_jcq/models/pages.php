@@ -5,6 +5,8 @@ jimport('joomla.application.component.model');
 
 class JcqModelPages extends JModel {
 	
+	//TODO: secure against insertion
+	
 	function getPage($ID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$ID;

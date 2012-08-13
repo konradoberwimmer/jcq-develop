@@ -27,7 +27,40 @@ class JcqViewQuestionform extends JView
 		<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$this->question->ID,false);?>">Question &quot;<?php echo $this->question->name; ?>&quot;</a>
 		</p>
 		<?php }
-				
+		
+		//attach scale(s) according to questiontype
+		switch ($this->question->questtype)
+		{
+			case 111:
+				{
+					$scale = $this->getModel('scales')->getScales($this->question->ID);
+					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111');
+					else
+					{
+						$scale=$scale[0]; //only one scale for this type of question
+						$this->assignRef('scale', $scale);
+						$codes = $this->getModel('scales')->getCodes($this->scale->ID);
+						if ($codes===null) JError::raiseError(500, 'Error: No scale for question of type 111');
+						else $this->assignRef('codes', $codes);
+					}
+					break;
+				}
+			default: break;
+		}
+		
+		//add javascript functionality according to questtype
+		$path = 'administrator/components/com_jcq/js/';
+		switch ($this->question->questtype)
+		{
+			case 111:
+				{
+					$filename = 'addcodes.js';
+					break;
+				}
+			default: break;
+		}
+		if (isset($filename)) JHTML::script($filename, $path, true);
+		
 		parent::display();
 	}
 	

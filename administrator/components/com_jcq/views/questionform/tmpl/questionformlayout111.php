@@ -6,7 +6,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
              <legend>Question definition:</legend>
              <table>
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
-                    <tr><td>Variable name</td><td><input type="text" name="varname" id="varname" size="32" maxlength="250" value="<?php echo strlen($this->question->varname)>0?$this->question->varname:('question'.$this->question->ID); ?>" /></td></tr>
+                    <tr><td>Variable name</td><td><input type="text" name="varname" id="varname" size="32" maxlength="250" value="<?php echo $this->question->varname; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>
                     <?php 
@@ -37,6 +37,50 @@ defined('_JEXEC') or die('Restricted access'); ?>
              </table>
        </fieldset>
 
+       <fieldset>
+             <legend>Layout:</legend>
+             <table>
+                    <tr><td>Alternate background</td><td><input type="checkbox" name="alternate_bg" id="alternate_bg" value="1" <?php if ($this->question->alternate_bg > 0) echo("checked"); ?>/></td></tr>
+             </table>
+       </fieldset>
+       
+       <fieldset>
+             <legend>Scale:</legend>
+             <input type="hidden" name="scaleID" value="<?php echo $this->scale->ID; ?>"/>
+             <table class="list">
+                    <thead>
+                    <tr>
+                           <th>Order</th>
+                           <th>Value</th>
+                           <th>Label</th>
+                           <th>Missing value</th>
+                           <th>Delete</th>
+                    </tr>               
+             </thead>
+             <tbody id="listscalebody">
+                    <?php
+                    $k = 0;
+                    $i = 0;
+                    foreach ($this->codes as $row){
+                    ?>
+                    <tr>
+						<td><input type="text" id="<?php echo("code".$row->ID."ord"); ?>" name="codeord[]" value="<?php echo $row->ord; ?>"/>
+                            <input type="hidden" name="codeids[]" value="<?php echo $row->ID; ?>"/></td>
+                        <td><input type="text" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/></td>       
+                        <td><input type="text" id="<?php echo("code".$row->ID."label"); ?>" name="codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
+                        <td><input type="checkbox" id="<?php echo("code".$row->ID."missval"); ?>" name="codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
+                        <td><input type="checkbox" id="<?php echo("code".$row->ID."delete"); ?>" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
+                    </tr>
+                    <?php
+                    	$k = 1 - $k;
+                    	$i++;
+                    }
+                    ?>
+             </tbody>
+             </table>
+             <input type="button" value="Add Code" onclick="addCode()">
+       </fieldset>
+       
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->question->ID; ?>"/>
        <input type="hidden" name="questtype" value="<?php echo $this->question->questtype; ?>"/>
