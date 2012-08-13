@@ -5,13 +5,15 @@ jimport('joomla.application.component.model');
 
 class JcqModelQuestions extends JModel {
 
+	//TODO: secure against insertion
+	
 	static function getQuestionTypes()
 	{
 		$questtypes = array();
-		$questtypes[111]='111 - Einfachauswahl untereinander';
-		$questtypes[141]='141 - Textfeld einzeilig';
-		$questtypes[311]='311 - Standard-Matrix 1';
-		$questtypes[340]='340 - Semantisches Differential';
+		$questtypes[111]='111 - Single selection (vertical)';
+		$questtypes[141]='141 - Text field (single row)';
+		$questtypes[311]='311 - Matrix (standard 1)';
+		$questtypes[340]='340 - Matrix (semantical difference)';
 		return $questtypes;
 	}
 	
@@ -79,6 +81,23 @@ class JcqModelQuestions extends JModel {
 			$errorMessage = $questionTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
+		
+		// Add default values, items and scales for different question types
+		// Explanation: object question has ID=0 if new question, the questionTableRow is updated with the new ID after store()
+		if ($question['ID']==0)
+		{
+			switch ($questionTableRow->questtype)
+			{
+				case 111:
+					{
+						$questionTableRow->varname = 'question'.$questionTableRow->ID;
+						$questionTableRow->store();
+						$this->buildScalePrototype($questionTableRow->ID);
+						break;
+					}
+				default: break;
+			}
+		}
 	}
 	
 	function deleteQuestions($arrayIDs)
@@ -143,6 +162,36 @@ class JcqModelQuestions extends JModel {
 				
 			if ($project === null) JError::raiseError(500, 'Project with ID: '.$page->projectID.' not found.');
 			else return $project;
+		}
+	}
+	
+	function buildScalePrototype($questionID)
+	{
+		$newscale =& $this->getTable('scales');
+		$newscale->name = 'question'.$questionID.'scale';
+		if (!$newscale->store())
+		{
+			$errorMessage = $newscale->getError();
+			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
+		}
+		for ($i=1;$i<=5;$i++)
+		{
+			$newcode =& $this->getTable('codes');
+			$newcode->scaleID = $newscale->ID;
+			$newcode->ord = $i;
+			$newcode->code = $i;
+			if (!$newcode->store())
+			{
+				$errorMessage = $newcode->getError();
+				JError::raiseError(500, 'Error inserting data: '.$errorMessage);
+			}
+		}
+		$query = "INSERT INTO jcq_questionscales (questionID, scaleID) VALUES (".$questionID.",".$newscale->ID.")";
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		if (!$db->query()){
+			$errorMessage = $this->getDBO()->getErrorMsg();
+			JError::raiseError(500, 'Error inserting scale: '.$errorMessage);
 		}
 	}
 }

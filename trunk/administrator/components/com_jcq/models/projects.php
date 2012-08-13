@@ -5,7 +5,8 @@ jimport('joomla.application.component.model');
 
 class JcqModelProjects extends JModel {
 	 
-	 
+	//TODO: secure against insertion
+	
 	function getProjects()
 	{
 		$db = $this->getDBO();

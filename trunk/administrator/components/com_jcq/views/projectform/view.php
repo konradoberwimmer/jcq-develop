@@ -23,12 +23,17 @@ class JcqViewProjectform extends JView
 		}
 		$this->assignRef('questioncounts', $questioncounts);
 		
+		//add javascript functionality for checking correctness of input
+		$path = 'administrator/components/com_jcq/js/';
+		$filename = 'overridesubmit.js';
+		JHTML::script($filename, $path, true);
+		
 		JToolBarHelper::title('JCQ: Edit project');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected pages?",'removePage','Remove page(s)');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::editList('editPage','Edit page');
 		JToolBarHelper::addNewX('addPage','New page');
 		JToolBarHelper::divider();
-		JToolBarHelper::save("saveProject","Save");
+		JToolBarHelper::custom("saveProject","save.png",".png","Save",false);
 		JToolBarHelper::cancel();
 		parent::display();
 	}
@@ -38,8 +43,13 @@ class JcqViewProjectform extends JView
 		$project = $model->getNewProject();
 		$this->assignRef('project', $project);
 
+		//add javascript functionality for checking correctness of input
+		$path = 'administrator/components/com_jcq/js/';
+		$filename = 'overridesubmit.js';
+		JHTML::script($filename, $path, true);
+		
 		JToolBarHelper::title('JCQ: New Project');
-		JToolBarHelper::save("saveProject","Save");
+		JToolBarHelper::custom("saveProject","save.png",".png","Save",false);
 		JToolBarHelper::cancel();
 		parent::display();
 	}
