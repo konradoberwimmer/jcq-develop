@@ -74,10 +74,42 @@ class JcqModelPages extends JModel {
 			$errorMessage = $pageTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
+		
+		// if a new page is created, also create the timestamp in the user data table
+		if ($page['ID']==0)
+		{
+			$query = "ALTER TABLE jcq_proj".$pageTableRow->projectID." ADD COLUMN p".$pageTableRow->ID."timestamp BIGINT";
+			$db = $this->getDBO();
+			$db->setQuery($query);
+			if (!$db->query()){
+				$errorMessage = $this->getDBO()->getErrorMsg();
+				JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+			}
+		}
 	}
 	
 	function deletePages($arrayIDs)
 	{
+		// drop timestamp as well as columns of questions and items of this page in the user data table by naming convention
+		// now this is really neat, the database will create the ALTER TABLE statement :-)
+		foreach ($arrayIDs as $oneID)
+		{
+			$project = $this->getProjectFromPage($oneID);
+			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$oneID."%';";
+			$db = $this->getDBO();
+			$db->setQuery($statementquery);
+			$sqlresult = $db->loadResult();
+			if ($sqlresult===null) JError::raiseError(500, 'Cannot create sql statement');
+			else
+			{
+				$db->setQuery($sqlresult);
+				if (!$db->query()){
+					$errorMessage = $this->getDBO()->getErrorMsg();
+					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+				}
+			}
+		}
+		// delete the page itself		
 		$query = "DELETE FROM jcq_page WHERE ID IN (".implode(',', $arrayIDs).")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
@@ -85,6 +117,7 @@ class JcqModelPages extends JModel {
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting pages: '.$errorMessage);
 		}
+		
 	}
 	
 	function setPageOrder(array $pageids,array $pageord)

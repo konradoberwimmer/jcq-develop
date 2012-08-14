@@ -45,7 +45,7 @@ class JcqViewQuestionform extends JView
 					}
 					break;
 				}
-			default: break;
+			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
 		//add javascript functionality according to questtype
@@ -57,7 +57,7 @@ class JcqViewQuestionform extends JView
 					$filename = 'addcodes.js';
 					break;
 				}
-			default: break;
+			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		if (isset($filename)) JHTML::script($filename, $path, true);
 		
