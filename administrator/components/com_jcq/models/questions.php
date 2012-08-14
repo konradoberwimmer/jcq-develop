@@ -83,6 +83,7 @@ class JcqModelQuestions extends JModel {
 		}
 		
 		// Add default values, items and scales for different question types
+		// Alter the user data table if question is new
 		// Explanation: object question has ID=0 if new question, the questionTableRow is updated with the new ID after store()
 		if ($question['ID']==0)
 		{
@@ -93,15 +94,40 @@ class JcqModelQuestions extends JModel {
 						$questionTableRow->varname = 'question'.$questionTableRow->ID;
 						$questionTableRow->store();
 						$this->buildScalePrototype($questionTableRow->ID);
+						$this->addColumnUserDataINT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				default: break;
+				default: JError::raiseError(500, 'FATAL: Code for creating question of type '.$questionTableRow->questtype.' is missing!!!');
 			}
 		}
 	}
 	
 	function deleteQuestions($arrayIDs)
 	{
+		// beforehand delete the user data columns if necessary (otherwise page ID is unknown)
+		foreach ($arrayIDs as $oneID)
+		{
+			$question = $this->getQuestion($oneID);
+			$page = $this->getPageFromQuestion($oneID);
+			$project = $this->getProjectFromPage($page->ID);
+			
+			switch ($question->questtype)
+			{
+				case 111:
+					{
+						$query = "ALTER TABLE jcq_proj".$project->ID." DROP COLUMN p".$page->ID."q".$oneID;
+						$db = $this->getDBO();
+						$db->setQuery($query);
+						if (!$db->query()){
+							$errorMessage = $this->getDBO()->getErrorMsg();
+							JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+						}
+						break;
+					}
+				default: JError::raiseError(500, 'FATAL: Code for deleting question of type '.$question->questtype.' is missing!!!');
+			}
+		}
+		
 		$query = "DELETE FROM jcq_question WHERE ID IN (".implode(',', $arrayIDs).")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
@@ -109,6 +135,7 @@ class JcqModelQuestions extends JModel {
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting questions: '.$errorMessage);
 		}
+		//TODO with more question types it will be necessary to delete user data columns from items!
 	}
 	
 	function setQuestionOrder(array $questionids,array $questionord)
@@ -192,6 +219,18 @@ class JcqModelQuestions extends JModel {
 		if (!$db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error inserting scale: '.$errorMessage);
+		}
+	}
+	
+	function addColumnUserDataINT($pageID,$questionID)
+	{
+		$project = $this->getProjectFromPage($pageID);
+		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID." INT";
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		if (!$db->query()){
+			$errorMessage = $this->getDBO()->getErrorMsg();
+			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 		}
 	}
 }

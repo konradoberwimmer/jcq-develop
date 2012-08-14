@@ -76,6 +76,18 @@ class JcqModelProjects extends JModel {
 			$errorMessage = $projectTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
+		
+		// if the project is new, build the user data table (using once again the trick of updated id after the store operation)
+		if ($project['ID']==0)
+		{
+			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampEnd BIGINT, PRIMARY KEY (sessionID))";
+			$db = $this->getDBO();
+			$db->setQuery($query);
+			if (!$db->query()){
+				$errorMessage = $this->getDBO()->getErrorMsg();
+				JError::raiseError(500, 'Error creating user data database: '.$errorMessage);
+			}
+		}
 	}
 
 	function deleteProjects($arrayIDs)
@@ -86,6 +98,18 @@ class JcqModelProjects extends JModel {
 		if (!$db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting projects: '.$errorMessage);
+		}
+		// delete the answer tables too ...
+		// FIXME User should definitely by reminded to store before that ;-)
+		foreach ($arrayIDs as $oneID)
+		{
+			$query = "DROP TABLE jcq_proj".$oneID;
+			$db = $this->getDBO();
+			$db->setQuery($query);
+			if (!$db->query()){
+				$errorMessage = $this->getDBO()->getErrorMsg();
+				JError::raiseError(500, 'Error deleting projects: '.$errorMessage);
+			}
 		}
 	}
 
