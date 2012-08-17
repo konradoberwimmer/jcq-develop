@@ -12,9 +12,13 @@ class JcqViewPage extends JView
 		$filename = 'submitinputform.js';
 		JHTML::script($filename, $path, true);
 		
+		$modelpage = $this->getModel();
+		$modelpage->setPage($pageID);
+		$this->assignRef('page', $modelpage);
 		$modeluserdata = $this->getModel('userdata');
 		$this->assignRef('userdata', $modeluserdata);
 		
+		$this->assignRef('markmissing',$markmissing);
 		$this->assignRef('pageID',$pageID);
 		parent::display();
 	}
