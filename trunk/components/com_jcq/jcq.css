@@ -1,0 +1,6 @@
+@CHARSET "UTF-8";
+div.question111 { margin-top: 5px; margin-bottom: 10px; }
+div.question111alertmissing { margin-top: 5px; margin-bottom: 20px; border: 1px solid red; color: red; padding: 5px;}
+p.question111text { font-weight: bold; }
+p.question111missing { font-weight: bold; color: red; }
+p.question111advise { color: grey; }

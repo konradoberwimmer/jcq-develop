@@ -1,6 +1,10 @@
 <?php
 defined('_JEXEC') or die('Restricted Access');
 
+// Set component style sheet
+$document = JFactory::getDocument();
+$document->addStyleSheet(JURI::root().'components/com_jcq/jcq.css');
+
 // Require the controller
 require_once( JPATH_COMPONENT.DS.'jcqcontroller.php' );
 

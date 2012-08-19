@@ -120,9 +120,6 @@ class JcqModelUserdata extends JModel
 		$db->setQuery($sqlsession);
 		$session = $db->loadObject();
 		
-		//TODO actually store data
-		
-		//set current page to next page
 		$sqlpages = "SELECT * FROM jcq_page WHERE projectID=".$this->projectID." ORDER BY ord";
 		$db->setQuery($sqlpages);
 		$pages = $db->loadObjectList();
@@ -132,26 +129,91 @@ class JcqModelUserdata extends JModel
 			if ($pages[$i]->ID==$session->curpage)
 			{
 				$foundpage = true;
-				//next page exists in project
-				if ($i<count($pages)-1) $nextpage = $pages[$i+1]->ID;
-				//no next page --> user code has to be invoked
-				else $nextpage = -1; //TODO set to finished
-				$sqlnextpage = "UPDATE jcq_proj".$this->projectID." SET curpage=".$nextpage." WHERE sessionID='".$this->sessionID."'";
-				$db->setQuery($sqlnextpage);
-				if (!$db->query())
+				$hasmissings = false;
+				
+				$page = $pages[$i];
+				
+				//store (TODO: should be in a separate function)
+				$sqlquestions = "SELECT * FROM jcq_question WHERE pageID=".$page->ID;
+				$db->setQuery($sqlquestions);
+				$questions = $db->loadObjectList();
+				foreach ($questions as $question)
 				{
-					$errorMessage = $this->getDBO()->getErrorMsg();
-					JError::raiseError(500, 'Error going next page: '.$errorMessage);
+					//handle questions according to questiontype
+					switch ($question->questtype)
+					{
+						case 111:
+							{
+								if (JRequest::getVar('p'.$page->ID.'q'.$question->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID)))
+								{
+									//numeric value is posted --> store
+									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."=".JRequest::getVar('p'.$page->ID.'q'.$question->ID)." WHERE sessionID='".$this->sessionID."'";
+									$db->setQuery($sqlstore);
+									if (!$db->query())
+									{
+										$errorMessage = $this->getDBO()->getErrorMsg();
+										JError::raiseError(500, 'Error saving value: '.$errorMessage);
+									}
+								}
+								else
+								{
+									//if mandatory and no value stored so far --> set missing
+									if ($question->mandatory==1)
+									{
+										$sqlgetvalue = "SELECT p".$page->ID."q".$question->ID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+										$db->setQuery($sqlgetvalue);
+										$answer = $db->loadResult();
+										if ($answer["p".$page->ID."q".$question->ID]==null) $hasmissings=true;
+									}
+								}
+								break;
+							}
+						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
+					}
+				}
+				
+				//go to next page if all mandatory questions/items answered				
+				if (!$hasmissings)
+				{
+					//next page exists in project
+					if ($i<count($pages)-1) $nextpage = $pages[$i+1]->ID;
+					//no next page --> user code has to be invoked
+					else $nextpage = -1; //TODO set to finished
+					$sqlnextpage = "UPDATE jcq_proj".$this->projectID." SET curpage=".$nextpage." WHERE sessionID='".$this->sessionID."'";
+					$db->setQuery($sqlnextpage);
+					if (!$db->query())
+					{
+						$errorMessage = $this->getDBO()->getErrorMsg();
+						JError::raiseError(500, 'Error going next page: '.$errorMessage);
+					}
 				}
 				break;
 			}
 		}	
 		if (!foundpage) JError::raiseError(500, 'Error: could not find page with ID'.$session->curpage);
-		return true;
+		return !$hasmissings;
 	}
 	
 	function getSessionID()
 	{
 		return $this->sessionID;
+	}
+	
+	function hasStoredValueQuestion($pageID,$questionID)
+	{
+		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$db = $this->getDBO();
+		$db->setQuery($sqlgetvalue);
+		$answer = $db->loadResult();
+		return ($answer["p".$pageID."q".$questionID]!=null);
+	}
+	
+	function getStoredValueQuestion($pageID,$questionID)
+	{
+		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$db = $this->getDBO();
+		$db->setQuery($sqlgetvalue);
+		$answer = $db->loadResult();
+		return $answer["p".$pageID."q".$questionID];
 	}
 }
