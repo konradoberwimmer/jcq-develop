@@ -16,6 +16,7 @@ function addCode()
 	newINPUTcodeordNAME.nodeValue = "codeord[]";
 	newINPUTcodeord.setAttributeNode(newINPUTcodeordNAME);
 	var newINPUTcodeordVALUE = document.createAttribute("value");
+	//TODO find lowest available value > 0
 	newINPUTcodeordVALUE.nodeValue = "0";
 	newINPUTcodeord.setAttributeNode(newINPUTcodeordVALUE);
 	//create hidden field with id
