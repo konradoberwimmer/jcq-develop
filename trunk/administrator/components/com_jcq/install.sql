@@ -67,7 +67,7 @@ CREATE TABLE jcq_item(
 		ID BIGINT NOT NULL AUTO_INCREMENT,
 		ord INTEGER NOT NULL,
 		varname VARCHAR(255) NOT NULL,
-		mandatory SMALLINT NOT NULL DEFAULT 1,
+		mandatory BOOLEAN NOT NULL DEFAULT 1,
 		textleft TEXT,
 		textright TEXT,
 		questionID BIGINT NOT NULL,

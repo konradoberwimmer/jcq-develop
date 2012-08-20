@@ -23,7 +23,7 @@ class JcqViewPage extends JView
 		
 		if ($this->markmissing)
 		{
-			echo '<div class="question111alertmissing">Bitte beantworten Sie noch die rot markierten Fragen!</div>';
+			echo '<div class="questionalertmissing">Bitte beantworten Sie noch die rot markierten Fragen!</div>';
 		}
 		parent::display();
 	}

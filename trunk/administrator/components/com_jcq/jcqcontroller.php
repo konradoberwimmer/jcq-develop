@@ -195,10 +195,11 @@ class JcqController extends JController
 	
 		$view = & $this->getView('questionform');
 			
-		if ($model = & $this->getModel('questions') && $modelscales = & $this->getModel('scales'))
+		if ($model = & $this->getModel('questions') && $modelscales = & $this->getModel('scales') && $modelitems = & $this->getModel('items'))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modelscales);
+			$view->setModel($modelitems);
 		}
 		else JError::raiseError(500, 'Model not found');
 			
@@ -243,13 +244,39 @@ class JcqController extends JController
 				$code['ord']=$codeord[$i];
 				$code['code']=$codevalue[$i];
 				$code['label']=$codelabel[$i];
-				if (in_array($codeids[$i],$codemissval)) $code['missval']=1;
+				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
 				else $code['missval']=0;
 				$code['scaleID']=$question['scaleID'];
 				$scalemodel->saveCode($code);
 			}
 			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
 			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+		}
+		
+		//save the items if question has any
+		if (isset($question['itemspresent']))
+		{
+			$itemsmodel = & $this->getModel('items');
+			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+			$itemids = JRequest::getVar('itemids', null, 'default', 'array' );
+			$itemord = JRequest::getVar('itemord', null, 'default', 'array' );
+			$itemtextleft = JRequest::getVar('itemtextleft', null, 'default', 'array' );
+			$itemvarname = JRequest::getVar('itemvarname', null, 'default', 'array' );
+			$itemmandatory = JRequest::getVar('itemmandatory', null, 'default', 'array' );
+			for ($i=0;$i<count($itemids);$i++)
+			{
+				$item = array();
+				$item['ID']=$itemids[$i];
+				$item['ord']=$itemord[$i];
+				$item['textleft']=$itemtextleft[$i];
+				$item['varname']=$itemvarname[$i];
+				if ($itemmandatory!=null && in_array($itemids[$i],$itemmandatory)) $item['mandatory']=1;
+				else $item['mandatory']=0;
+				$item['questionID']=$question['ID'];
+				$itemsmodel->saveItem($item);
+			}
+			$itemdelete = JRequest::getVar('itemdelete', null, 'default', 'array' );
+			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
 		}
 		
 		if ($question['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$question['ID'],false);

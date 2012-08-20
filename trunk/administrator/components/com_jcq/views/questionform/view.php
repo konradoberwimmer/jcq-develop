@@ -31,7 +31,7 @@ class JcqViewQuestionform extends JView
 		//attach scale(s) according to questiontype
 		switch ($this->question->questtype)
 		{
-			case 111:
+			case 111: case 311:
 				{
 					$scale = $this->getModel('scales')->getScales($this->question->ID);
 					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111');
@@ -40,26 +40,45 @@ class JcqViewQuestionform extends JView
 						$scale=$scale[0]; //only one scale for this type of question
 						$this->assignRef('scale', $scale);
 						$codes = $this->getModel('scales')->getCodes($this->scale->ID);
-						if ($codes===null) JError::raiseError(500, 'Error: No scale for question of type 111');
-						else $this->assignRef('codes', $codes);
+						$this->assignRef('codes', $codes);
 					}
 					break;
 				}
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
+		//attach item(s) according to questiontype
+		switch ($this->question->questtype)
+		{
+			case 311:
+				{
+					$items = $this->getModel('items')->getItems($this->question->ID);
+					$this->assignRef('items', $items);
+					break;
+				}
+			case 111: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
+			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
+		}
+		
 		//add javascript functionality according to questtype
 		$path = 'administrator/components/com_jcq/js/';
+		$filenames=array();
 		switch ($this->question->questtype)
 		{
 			case 111:
 				{
-					$filename = 'addcodes.js';
+					$filenames[0] = 'addcodes.js';
+					break;
+				}
+			case 311:
+				{
+					$filenames[0] = 'addcodes.js';
+					$filenames[1] = 'additems.js';
 					break;
 				}
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
-		if (isset($filename)) JHTML::script($filename, $path, true);
+		foreach ($filenames as $filename) JHTML::script($filename, $path, true);
 		
 		parent::display();
 	}
