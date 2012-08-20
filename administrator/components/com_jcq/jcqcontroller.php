@@ -3,6 +3,18 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 jimport('joomla.application.component.controller');
 
+function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
+{
+	foreach (get_object_vars($jtable) as $k => $v) //ok, here a scripting language makes everything simpler
+	{
+		if (is_array($v) or is_object($v) or $v === NULL) continue;
+		if ($k[0] == '_') continue;
+		if (strpos($k,"ID")!==false) continue;
+		$element = $xmldoc->createElement($k,'<![CDATA[' . $v . ']]>');
+		$xmlnode->appendChild($element);
+	}
+}
+
 class JcqController extends JController
 {
 
@@ -43,7 +55,7 @@ class JcqController extends JController
 		 
 		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
 		 
-		$projectID = (int)$projectids[0]; //get the first id from the list (we can only edit one greeting at a time)
+		$projectID = (int)$projectids[0]; //get the first id from the list (we can only edit one project at a time)
 	
 		$view = & $this->getView('projectform');
 		 
@@ -112,6 +124,85 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
+	function exportProject()
+	{
+		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
+		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
+		$projectID = (int)$projectids[0]; //get the first id from the list (we can only export one project at a time)
+		
+		//FIXME storing the xml-file in the usercode folder is totally insecure, but for now it is easier to achieve :-(
+		
+		//create php-file for project with basic class definition if it does not yet exist
+		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
+		$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.'project'.$projectID.'.xml', 'w');
+		//I am doing the data access here because it does not really fit in any of the models
+		$xmldoc = new DOMDocument('1.0', 'utf-8');
+		$projectnode = $xmldoc->createElement("project");
+		//adding project settings
+		$tableProject =& $this->getModel("projects")->getTable("projects");
+		$tableProject->load($projectID);
+		jtableToXmlWithoutIDs($tableProject, $xmldoc, $projectnode);
+		//adding pages
+		$pages =& $this->getModel("projects")->getPages($projectID);
+		foreach ($pages as $page)
+		{
+			$pagenode=$xmldoc->createElement("page");
+			$tablePage =& $this->getModel("pages")->getTable("pages");
+			$tablePage->load($page->ID);
+			jtableToXmlWithoutIDs($tablePage, $xmldoc, $pagenode);
+			//adding questions
+			$questions =& $this->getModel("pages")->getQuestions($page->ID);
+			foreach ($questions as $question)
+			{
+				$questionnode=$xmldoc->createElement("question");
+				$tableQuestion =& $this->getModel("questions")->getTable("questions");
+				$tableQuestion->load($question->ID);
+				jtableToXmlWithoutIDs($tableQuestion, $xmldoc, $questionnode);
+				//adding items
+				$items =& $this->getModel("items")->getItems($question->ID);
+				foreach ($items as $item)
+				{
+					$itemnode=$xmldoc->createElement("item");
+					$tableItem =& $this->getModel("items")->getTable("items");
+					$tableItem->load($item->ID);
+					jtableToXmlWithoutIDs($tableItem, $xmldoc, $itemnode);
+					//TODO scales from items
+					$questionnode->appendChild($itemnode);
+				}
+				//adding scale(s)
+				$scales =& $this->getModel("scales")->getScales($question->ID);
+				foreach ($scales as $scale)
+				{
+					$scalenode=$xmldoc->createElement("scale");
+					$tableScale =& $this->getModel("scales")->getTable("scales");
+					$tableScale->load($scale->ID);
+					jtableToXmlWithoutIDs($tableScale, $xmldoc, $scalenode);
+					//adding codes
+					$codes =& $this->getModel("scales")->getCodes($scale->ID);
+					foreach ($codes as $code)
+					{
+						$codenode=$xmldoc->createElement("code");
+						$tableCode =& $this->getModel("scales")->getTable("codes");
+						$tableCode->load($code->ID);
+						jtableToXmlWithoutIDs($tableCode, $xmldoc, $codenode);
+						$scalenode->appendChild($codenode);
+					}
+					$questionnode->appendChild($scalenode);
+				}
+				$pagenode->appendChild($questionnode);
+			}		
+			$projectnode->appendChild($pagenode);
+		}
+		//finishing
+		$xmldoc->appendChild($projectnode);
+		fwrite($filehandle, $xmldoc->saveXML());
+		fclose($filehandle);
+		
+		$view = & $this->getView('exportproject');
+		$view->setLayout('exportprojectlayout');
+		$view->display($projectID);
+	}	
+
 	function editPage(){
 			
 		$pageids = JRequest::getVar('cid', null, 'default', 'array' );
