@@ -9,6 +9,9 @@ p.question111advise { color: grey; }
 div.question311 { margin-top: 5px; margin-bottom: 10px; }
 p.question311text { font-weight: bold; }
 p.question311missing { font-weight: bold; color: red; }
-p.question311itemmissing { color: red; }
 p.question311advise { color: grey; }
-
+table.question311 { border-collapse: collapse; }
+th.question311 { border-bottom: 1px solid; text-align: center; padding-bottom: 5px; }
+td.question311button { text-align: center; vertical-align: middle; }
+td.question311item { text-align: left; padding-top: 2px; padding-bottom: 2px; }
+td.question311itemmissing { text-align: left; padding-top: 2px; padding-bottom: 2px; color: red; }
