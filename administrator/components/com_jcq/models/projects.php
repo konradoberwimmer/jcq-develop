@@ -80,7 +80,7 @@ class JcqModelProjects extends JModel {
 		// if the project is new, build the user data table (using once again the trick of updated id after the store operation)
 		if ($project['ID']==0)
 		{
-			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampEnd BIGINT, PRIMARY KEY (sessionID))";
+			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, PRIMARY KEY (sessionID))";
 			$db = $this->getDBO();
 			$db->setQuery($query);
 			if (!$db->query()){

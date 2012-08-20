@@ -2,8 +2,17 @@
 defined('_JEXEC') or die( 'Restricted access' ); ?>
 <div class="question311">
 	<?php
-		//TODO check missing items
-		if ($this->markmissing && $this->question->mandatory==1 && !$this->userdata->hasStoredValueQuestion($this->pageID,$this->question->ID))
+		$items = $this->page->getItemsToQuestion($this->question->ID);
+		$missings=false;
+		foreach ($items as $item)
+		{
+			if ($items->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID))
+			{
+				$missings=true;
+				break;
+			}
+		}
+		if ($this->markmissing && $missings)
 		{ ?>
 			<p class="question311missing"><?php echo $this->question->text; ?></p>
 		<?php 
@@ -17,12 +26,28 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 	<?php if ($this->question->advise != null) echo '<p class="question311advise">'.$this->question->advise.'</p>'; ?>
 	
 	<?php 
-		//TODO this is copy-over code -> table has to be created!
 		$codes = $this->page->getScaleToQuestion($this->question->ID);
-		$prevanswer = $this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID);
-		for ($j=0;$j<count($codes);$j++)
+		?>
+		<table class="question311">
+		<tr>
+			<th class="question311"/>
+			<?php 
+			for ($j=0;$j<count($codes);$j++) echo('<th class="question311">'.$codes[$j]->label.'</th>');
+			?>
+		</tr>
+		<?php 
+		for ($k=0;$k<count($items);$k++)
 		{
-			echo('<p><input type="radio" name="p'.$this->pageID.'q'.$this->question->ID.'" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'>'.$codes[$j]->label.'</input></p>');
+			echo("<tr>");
+			$prevanswer = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$items[$k]->ID);
+			if (!$this->markmissing || $prevanswer!=null || $items[$k]->mandatory==0) echo('<td class="question311item">'.$items[$k]->textleft.'</td>');
+			else echo('<td class="question311itemmissing">'.$items[$k]->textleft.'</td>');
+			for ($j=0;$j<count($codes);$j++)
+			{
+				echo('<td class="question311button"><input type="radio" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'/></td>');
+			}
+			echo("</tr>");
 		}
 	?>
+		</table>
 </div>

@@ -26,12 +26,16 @@ class JcqModelItems extends JModel {
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
 		
-		//set default values for new item
+		//set default values for new item and add user data column;
 		if ($item['ID']==0)
 		{
 			$itemTableRow->mandatory=true;
 			$itemTableRow->varname="question".$itemTableRow->questionID."item".$itemTableRow->ID;
 			$itemTableRow->store();
+			//use model questions to get pageID
+			require_once( JPATH_COMPONENT.DS.'models'.DS.'questions.php' );
+			$modelquestions = new JcqModelQuestions();
+			$this->addColumnUserDataINT($modelquestions->getPageFromQuestion($itemTableRow->questionID)->ID, $itemTableRow->questionID, $itemTableRow->ID);
 		}
 	}
 	
@@ -67,6 +71,7 @@ class JcqModelItems extends JModel {
 			$pageID = $modelquestions->getPageFromQuestion($questionID)->ID;
 			$projectID = $modelquestions->getProjectFromPage($pageID)->ID;
 			$query = "ALTER TABLE jcq_proj".$projectID." DROP COLUMN p".$pageID."q".$questionID."i".$oneID;
+			$db->setQuery($query);
 			if (!$db->query())
 			{
 				$errorMessage = $this->getDBO()->getErrorMsg();

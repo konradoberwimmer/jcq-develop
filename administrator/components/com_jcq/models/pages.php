@@ -99,8 +99,7 @@ class JcqModelPages extends JModel {
 			$db = $this->getDBO();
 			$db->setQuery($statementquery);
 			$sqlresult = $db->loadResult();
-			if ($sqlresult===null) JError::raiseError(500, 'Cannot create sql statement');
-			else
+			if ($sqlresult!=null)
 			{
 				$db->setQuery($sqlresult);
 				if (!$db->query()){

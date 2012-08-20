@@ -34,4 +34,12 @@ class JcqModelPage extends JModel
 		$db->setQuery($query);
 		return $db->loadObjectList();
 	}
+	
+	function getItemsToQuestion($questionID)
+	{
+		$db = $this->getDBO();
+		$query = 'SELECT * FROM jcq_item  WHERE questionID = '.$questionID.' ORDER BY ord';
+		$db->setQuery($query);
+		return $db->loadObjectList();
+	}
 }
