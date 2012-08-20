@@ -20,10 +20,18 @@ class JcqViewProjectlist extends JView
 			$i++;
 		}
 		$this->assignRef('pagecounts', $pagecounts);
-		 
+		
+		//add javascript functionality for custom buttons
+		$path = 'administrator/components/com_jcq/js/';
+		$filename = 'overridesubmit.js';
+		JHTML::script($filename, $path, true);
+		
 		JToolBarHelper::title('JCQ: Projects', 'generic.png');
+		if ($projects != null) JToolBarHelper::customX("exportProject","archive.png",".png","Export project",true);
+		if ($projects != null) JToolBarHelper::divider();
 		if ($projects != null) JToolBarHelper::deleteList("Do you really want to delete the selected projects?",'removeProject','Remove');
 		if ($projects != null) JToolBarHelper::editList('editProject','Edit');
+		JToolBarHelper::custom("importProject","unarchive.png",".png","Import project",false);
 		JToolBarHelper::addNewX('addProject','New project');
 		
 		parent::display();
