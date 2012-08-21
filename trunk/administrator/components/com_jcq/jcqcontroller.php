@@ -2,6 +2,7 @@
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 jimport('joomla.application.component.controller');
+jimport('joomla.filesystem.file');
 
 function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
 {
@@ -202,7 +203,33 @@ class JcqController extends JController
 		$view->setLayout('exportprojectlayout');
 		$view->display($projectID);
 	}	
+	
+	function showImportProject()
+	{
+		$view = & $this->getView('importproject');
+		$view->setLayout('importprojectlayout');
+		$view->display();
+	}
 
+	function importProject()
+	{
+		$importwell=true;
+		//TODO has to be secured against many risks of false file
+		$xmldoc = new DOMDocument('1.0', 'utf-8');
+		$file = JRequest::getVar('file_upload', null, 'files', 'array');
+		$src = $file['tmp_name'];
+		$filehandle = fopen($src,'r');
+		$content = fread($filehandle, filesize($src));
+		$xmldoc = new DOMDocument('1.0', 'utf-8');
+		$xmldoc->loadXML($content);
+		fclose($filehandle);
+		
+		//TODO actual import		
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
+		$this->setRedirect($redirectTo, ($importwell?'Project imported ...':'Error importing ...'));
+	}
+	
 	function editPage(){
 			
 		$pageids = JRequest::getVar('cid', null, 'default', 'array' );

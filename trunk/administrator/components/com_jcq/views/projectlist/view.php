@@ -31,7 +31,7 @@ class JcqViewProjectlist extends JView
 		if ($projects != null) JToolBarHelper::divider();
 		if ($projects != null) JToolBarHelper::deleteList("Do you really want to delete the selected projects?",'removeProject','Remove');
 		if ($projects != null) JToolBarHelper::editList('editProject','Edit');
-		JToolBarHelper::custom("importProject","unarchive.png",".png","Import project",false);
+		JToolBarHelper::custom("showImportProject","unarchive.png",".png","Import project",false);
 		JToolBarHelper::addNewX('addProject','New project');
 		
 		parent::display();

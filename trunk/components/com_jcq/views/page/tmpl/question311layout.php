@@ -6,7 +6,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		$missings=false;
 		foreach ($items as $item)
 		{
-			if ($items->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID))
+			if ($item->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID))
 			{
 				$missings=true;
 				break;
