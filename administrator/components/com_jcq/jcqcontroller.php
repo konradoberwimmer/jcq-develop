@@ -11,8 +11,25 @@ function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
 		if (is_array($v) or is_object($v) or $v === NULL) continue;
 		if ($k[0] == '_') continue;
 		if (strpos($k,"ID")!==false) continue;
-		$element = $xmldoc->createElement($k,'<![CDATA[' . $v . ']]>');
+		$element = $xmldoc->createElement($k);
+		$cdata = $xmldoc->createCDATASection($v);
+		$element->appendChild($cdata);
 		$xmlnode->appendChild($element);
+	}
+}
+
+function xmlToJTable ($xmlelement, $jtable)
+{
+	foreach (get_object_vars($jtable) as $k => $v) 
+	{
+		if ($k[0] == '_') continue;
+		if (strpos($k,"ID")!==false) continue;
+		$child = $xmlelement->getElementsByTagName($k);
+		if ($child->length>0)
+		{
+			$child=$child->item(0)->firstChild;
+			$jtable->$k = $child->textContent;
+		}
 	}
 }
 
@@ -223,8 +240,30 @@ class JcqController extends JController
 		$xmldoc = new DOMDocument('1.0', 'utf-8');
 		$xmldoc->loadXML($content);
 		fclose($filehandle);
-		
-		//TODO actual import		
+		$projectDef = $xmldoc->getElementsByTagName('project');
+		if ($projectDef!=null)
+		{
+			$projectDef=$projectDef->item(0);
+			//import project definition
+			$tableProject =& $this->getModel('projects')->getTable('projects');
+			$tableProject->ID = 0;
+			xmlToJTable($projectDef, $tableProject);
+			$tableProject->store();
+			$projectID = $tableProject->ID;
+			//TODO add user table
+			$pages = $projectDef->getElementsByTagName('page');
+			foreach ($pages as $pageDef)
+			{
+				$tablePage =& $this->getModel('pages')->getTable('pages');
+				$tablePage->ID = 0;
+				$tablePage->projectID = $projectID;
+				xmlToJTable($pageDef, $tablePage);
+				$tablePage->store();
+				$pageID = $tablePage->ID;
+				//TODO alter user table
+				//TODO store questions
+			}
+		}
 		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, ($importwell?'Project imported ...':'Error importing ...'));
