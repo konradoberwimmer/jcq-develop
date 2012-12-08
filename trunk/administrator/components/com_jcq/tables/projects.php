@@ -6,6 +6,7 @@ class TableProjects extends JTable {
 	public $name = null;
 	public $classfile = null;
 	public $classname = null;
+	public $cssfile = null;
 	public $description = null;
 	public $anonymous = false;
 	public $multiple = false;

@@ -40,13 +40,25 @@ class JcqController extends JController
 		}
 		//the userdata model is now linked to the participant's answers
 		
+		//add user css if any
+		$projectmodel = & $this->getModel('project');
+		$cssfilename = $projectmodel->getCSSfilename($projectID);
+		if (isset($cssfilename)&&strlen($cssfilename)>0)
+		{
+			$document = JFactory::getDocument();
+			$document->addStyleSheet(JURI::root().'components/com_jcq/usercode/'.$cssfilename);
+		}
+		
 		$pageID = $modeluserdata->getCurrentPage();
 		//display the current page for this session
 		if ($pageID>0) 	$view->displayPage($pageID,$markmissing);
 		//or show the results (usercode)
 		else
 		{
-			//TODO invoke user code
+			require_once( JPATH_COMPONENT.DS.'usercode'.DS.$projectmodel->getClassfilename($projectID));
+			$classname = $projectmodel->getClassname($projectID);
+			$resultview = new $classname($modeluserdata);
+			$resultview->printResults();
 		}
 	}
 	

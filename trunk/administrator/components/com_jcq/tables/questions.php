@@ -12,6 +12,8 @@ class TableQuestions extends JTable {
 	public $text = null;
 	public $advise = null;
 	public $prepost = null;
+	public $width_question = null;
+	public $width_items = null;
 	public $width_scale = null;
 	public $alternate_bg = false;
 	public $pageID = null;

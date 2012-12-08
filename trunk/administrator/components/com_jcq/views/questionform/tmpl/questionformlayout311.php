@@ -28,6 +28,9 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Layout:</legend>
              <table>
+                    <tr><td>Width of question</td><td><input type="text" name="width_question" id="width_question" size="8" maxlength="250" value="<?php echo $this->question->width_question; ?>" /></td></tr>
+                    <tr><td>Width of items</td><td><input type="text" name="width_items" id="width_items" size="8" maxlength="250" value="<?php echo $this->question->width_items; ?>" /></td></tr>
+                    <tr><td>Width of scale options</td><td><input type="text" name="width_scale" id="width_scale" size="8" maxlength="250" value="<?php echo $this->question->width_scale; ?>" /></td></tr>
                     <tr><td>Alternate background</td><td><input type="checkbox" name="alternate_bg" id="alternate_bg" value="1" <?php if ($this->question->alternate_bg > 0) echo("checked"); ?>/></td></tr>
              </table>
        </fieldset>
