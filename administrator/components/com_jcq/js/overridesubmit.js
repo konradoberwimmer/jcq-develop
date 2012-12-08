@@ -20,5 +20,12 @@ function checkproject()
 	var regex_classname = new RegExp(/[A-Z]+[a-zA-Z]*/);
 	var correct = regex_classname.exec(classname.value);
 	if (correct==null || correct[0].length<classname.value.length) return false;
+	var cssfile = document.getElementById('cssfile');
+	if (cssfile.value.length>0)
+	{
+		var regex_cssfile = new RegExp(/[a-zA-Z]+[a-zA-Z_0-9]*\.css/);
+		var correct = regex_cssfile.exec(cssfile.value);
+		if (correct==null || correct[0].length<cssfile.value.length) return false;
+	}
 	return true;
 }

@@ -285,4 +285,31 @@ class JcqModelUserdata extends JModel
 		$answer = $db->loadResult();
 		return $answer["p".$pageID."q".$questionID."i".$itemID];
 	}
+	
+	/**
+	 * Fetches a value from the result set using the human-readable variable name.
+	 * Requires an existing and unique variable name.
+	 * @param string $varname The variable name.
+	 */
+	function getValuePerName($varname)
+	{
+		$getallquestions = "SELECT jcq_question.ID AS ID, jcq_question.varname AS varname, jcq_page.ID AS pageID FROM jcq_question JOIN jcq_page ON jcq_question.pageID=jcq_page.ID WHERE jcq_page.projectID=".$this->projectID;
+		$getallitems = "SELECT jcq_item.ID AS ID, jcq_item.varname AS varname, jcq_question.ID AS questionID, jcq_page.ID AS pageID FROM (jcq_item JOIN jcq_question ON jcq_item.questionID=jcq_question.ID) JOIN jcq_page ON jcq_question.pageID=jcq_page.ID WHERE jcq_page.projectID=".$this->projectID;
+		$db = $this->getDBO();
+		$db->setQuery($getallquestions);
+		$allquestions = $db->loadObjectList();
+		$db->setQuery($getallitems);
+		$allitems = $db->loadObjectList();
+		#FIXME collation unknown
+		foreach($allquestions as $question)
+		{
+			if (strcmp($question->varname,$varname)==0) return $this->getStoredValueQuestion($question->pageID,$question->ID);
+		}
+		foreach($allitems as $item)
+		{
+			if (strcmp($item->varname,$varname)==0)	return $this->getStoredValueItem($item->pageID,$item->questionID,$item->ID);
+		}
+		die();
+		JError::raiseError(500, 'Error: could not find variable "'.$varname.'"');
+	}
 }

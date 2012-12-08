@@ -101,14 +101,35 @@ class JcqController extends JController
 		if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['classfile']))
 		{
 			$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['classfile'], 'w');
-			fwrite($filehandle,"<?php\n");
-			fwrite($filehandle,"defined( '_JEXEC' ) or die( 'Restricted access' );\n");
-			fwrite($filehandle,"\n");
-			fwrite($filehandle,"class ".$project['classname']."\n");
-			fwrite($filehandle,"{\n");
-			fwrite($filehandle,"\n");
-			fwrite($filehandle,"}\n");
+			fwrite($filehandle,"<?php\n
+defined( '_JEXEC' ) or die( 'Restricted access' );\n
+\n
+jimport( 'joomla.application.component.model');\n
+\n
+class ".$project['classname']."\n
+{\n
+	private \$userdatamodel = null;\n
+	\n
+	function ".$project['classname']."(\$userdatamodel)\n
+	{\n
+		\$this->userdatamodel = \$userdatamodel;\n
+	}\n
+	\n
+	function printResults()\n
+	{\n
+		echo('No code for results yet!');\n
+	}\n
+}\n");
 			fclose($filehandle);
+		}
+		if (isset($project['cssfile'])&&strlen($project['cssfile'])>0)
+		{
+			if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile']))
+			{
+				$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile'], 'w');
+				fwrite($filehandle,"@CHARSET \"UTF-8\";\n");
+				fclose($filehandle);
+			}
 		}
 		
 		//set page order if edited
