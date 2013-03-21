@@ -1,51 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install type="component" version="1.5.22">
+<extension type="component" version="2.5.9" method="upgrade">
 	<name>JCQ</name>
+	<description>Joomla Complex Questionnaires: Component for creating and handling complex questionnaires with an API to calculate and work with the acquired data.</description>
 	<author>Konrad Daemon, Daniela Staritzbichler</author>
+	<authorEmail>konrad.daemon@sbg.ac.at</authorEmail>
+	<authorURL>http://www.uni-salzburg.at/</authorURL>
 	<creationDate>December 2011</creationDate>
 	<copyright>(C) 2011 Konrad Daemon, Daniela Staritzbichler</copyright>
 	<license>http://www.gnu.org/copyleft/gpl.html</license>
-	<authorEmail>konrad.daemon@sbg.ac.at</authorEmail>
-	<authorURL>http://www.uni-salzburg.at/</authorURL>
-	<version>0.0</version>
-	<description>Joomla Complex Questionnaires: Component for creating and handling complex questionnaires with an API to calculate and work with the acquired data.</description>
+	<version>0.0.1</version>
 	
-	<files>
-		
-		<filename>com_jcq.php</filename>		
-		<filename>index.html</filename>
-		<filename>helper.php</filename>
-		<filename>questionnaire.php</filename>
-		
-		<filename>model/index.html</filename>
-		<filename>model/jcqCode.php</filename>
-		<filename>model/jcqItem.php</filename>
-		<filename>model/jcqPage.php</filename>
-		<filename>model/jcqProject.php</filename>
-		<filename>model/jcqQuestion.php</filename>
-		<filename>model/jcqScale.php</filename>
-
-		<filename>tmpl/index.html</filename>
-		<filename>tmpl/default.php</filename>
-		
-	</files>
-	
-	<install>
-		<sql>
-			<file charset="utf8" driver="mysql">install.sql</file>
-		</sql>
+    <install>
+    	<sql>
+        	<file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
+        </sql>
 	</install>
+    <uninstall>
+    	<sql>
+        	<file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
+    	</sql>
+    </uninstall> 
+	<update>
+    	<schemas>
+        	<schemapath type="mysql">sql/updates/mysql</schemapath>
+        </schemas>
+    </update>
+	
+	<files folder="site">
+		<filename>index.html</filename>
+		<filename>jcq.php</filename>		
+		<filename>jcq.css</filename>
+		<filename>jcqcontroller.php</filename>
+		<folder>js</folder>
+		<folder>models</folder>
+		<folder>tables</folder>
+		<folder>tmpl</folder>
+		<folder>views</folder>	
+	</files>
 	
 	<administration>
 		<menu>JCQ</menu>
 	 	
 		<files folder="admin">
-	   		<filename>com_jcq.php</filename>
 	   		<filename>index.html</filename>
-			<filename>JCQ.erm</filename>
-			<filename>install.sql</filename>
+			<filename>jcq.css</filename>
+			<filename>jcq.php</filename>
+	   		<filename>jcqcontroller.php</filename>
+			<folder>js</folder>
+	   		<folder>models</folder>
+			<folder>sql</folder>
+			<folder>tables</folder>
+			<folder>views</folder>	
 	 	</files>
 	</administration>
-
-</install>
+	
+</extension>
 
