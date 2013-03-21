@@ -10,7 +10,7 @@ class JcqViewPage extends JView
 		//add javascript functionality for inputForm
 		$path = 'components/com_jcq/js/';
 		$filename = 'submitinputform.js';
-		JHTML::script($filename, $path, true);
+		JHTML::script($path.$filename, true);
 		
 		$modelpage = $this->getModel();
 		$modelpage->setPage($pageID);
