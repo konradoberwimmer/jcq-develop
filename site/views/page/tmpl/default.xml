@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+        <layout title="JCQ-Projekt">
+                <message>Link auf ein JCQ-Projekt</message>
+        </layout>
+        <fields name="request">
+                <fieldset name="request">
+                        <field
+                                name="projectID"
+                                type="text"
+                                label="Projekt-ID"
+                                description="Die ID des Projekts, das aufgerufen werden soll."
+                                default="1"
+                        >
+                        </field>
+                </fieldset>
+        </fields>
+</metadata>
