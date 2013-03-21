@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+div.questionalertmissing { margin-top: 5px; margin-bottom: 20px; border: 1px solid red; color: red; padding: 5px;}
+
+div.question111 { margin-top: 5px; margin-bottom: 10px; }
+p.question111text { font-weight: bold; }
+p.question111missing { font-weight: bold; color: red; }
+p.question111advise { color: grey; }
+
+div.question311 { margin-top: 5px; margin-bottom: 10px; }
+p.question311text { font-weight: bold; }
+p.question311missing { font-weight: bold; color: red; }
+p.question311advise { color: grey; }
+table.question311 { border-collapse: collapse; }
+th.question311 { border-bottom: 1px solid; text-align: center; padding-bottom: 5px; padding-left:5px; padding-right:5px;}
+span.question311missingvalue { font-style: italic; }
+td.question311button { text-align: center; padding-top: 2px; padding-bottom: 2px; vertical-align: middle; }
+td.question311item { text-align: left; padding-top: 2px; padding-bottom: 2px; }
+td.question311buttonAlt { text-align: center; padding-top: 2px; padding-bottom: 2px; vertical-align: middle; background-color: #DDDDDD; }
+td.question311itemAlt { text-align: left; padding-top: 2px; padding-bottom: 2px; background-color: #DDDDDD; }
+span.question311itemmissing { color: red; }
