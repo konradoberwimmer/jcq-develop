@@ -33,6 +33,7 @@ class JcqModelQuestions extends JModel {
 		$datatypes[1]='Integer';
 		$datatypes[2]='Real';
 		$datatypes[3]='String';
+		$datatypes[4]='NONE';
 		return $datatypes;
 	}
 
@@ -99,10 +100,26 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataINT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				case 311:
+				case 141:
+					{
+						$questionTableRow->varname = 'question'.$questionTableRow->ID;
+						$questionTableRow->datatype = 3;
+						$questionTableRow->prepost = "%s";
+						$questionTableRow->store();
+						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
+						break;
+					}
+				case 311: case 340:
 					{
 						$this->buildScalePrototype($questionTableRow->ID);
 						$this->buildItemPrototype($questionTableRow->ID,1);
+						break;
+					}
+				case 998:
+					{
+						$questionTableRow->datatype = 4;
+						$questionTableRow->mandatory = 0;
+						$questionTableRow->store();
 						break;
 					}
 				default: JError::raiseError(500, 'FATAL: Code for creating question of type '.$questionTableRow->questtype.' is missing!!!');
@@ -121,7 +138,7 @@ class JcqModelQuestions extends JModel {
 
 			switch ($question->questtype)
 			{
-				case 111:
+				case 111: case 141:
 					{
 						$query = "ALTER TABLE jcq_proj".$project->ID." DROP COLUMN p".$page->ID."q".$oneID;
 						$db = $this->getDBO();
@@ -132,7 +149,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case 311:
+				case 311: case 340:
 					{
 						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
 						$db = $this->getDBO();
@@ -146,6 +163,10 @@ class JcqModelQuestions extends JModel {
 								JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 							}
 						}
+						break;
+					}
+				case 998:
+					{
 						break;
 					}
 				default: JError::raiseError(500, 'FATAL: Code for deleting question of type '.$question->questtype.' is missing!!!');
@@ -284,6 +305,19 @@ class JcqModelQuestions extends JModel {
 	{
 		$project = $this->getProjectFromPage($pageID);
 		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID." INT";
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		if (!$db->query())
+		{
+			$errorMessage = $this->getDBO()->getErrorMsg();
+			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+		}
+	}
+	
+	function addColumnUserDataTEXT($pageID,$questionID)
+	{
+		$project = $this->getProjectFromPage($pageID);
+		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID." TEXT";
 		$db = $this->getDBO();
 		$db->setQuery($query);
 		if (!$db->query())

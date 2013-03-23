@@ -6,6 +6,11 @@ p.question111text { font-weight: bold; }
 p.question111missing { font-weight: bold; color: red; }
 p.question111advise { color: grey; }
 
+div.question141 { margin-top: 5px; margin-bottom: 10px; }
+p.question141text { font-weight: bold; }
+p.question141missing { font-weight: bold; color: red; }
+p.question141advise { color: grey; }
+
 div.question311 { margin-top: 5px; margin-bottom: 10px; }
 p.question311text { font-weight: bold; }
 p.question311missing { font-weight: bold; color: red; }
@@ -18,3 +23,18 @@ td.question311item { text-align: left; padding-top: 2px; padding-bottom: 2px; }
 td.question311buttonAlt { text-align: center; padding-top: 2px; padding-bottom: 2px; vertical-align: middle; background-color: #DDDDDD; }
 td.question311itemAlt { text-align: left; padding-top: 2px; padding-bottom: 2px; background-color: #DDDDDD; }
 span.question311itemmissing { color: red; }
+
+div.question340 { margin-top: 5px; margin-bottom: 10px; }
+p.question340text { font-weight: bold; }
+p.question340missing { font-weight: bold; color: red; }
+p.question340advise { color: grey; }
+table.question340 { border-collapse: collapse; }
+th.question340 { border-bottom: 1px solid; text-align: center; padding-bottom: 5px; padding-left:5px; padding-right:5px;}
+span.question340missingvalue { font-style: italic; }
+td.question340button { text-align: center; padding-top: 2px; padding-bottom: 2px; vertical-align: middle; }
+td.question340item { text-align: left; padding-top: 2px; padding-bottom: 2px; }
+td.question340buttonAlt { text-align: center; padding-top: 2px; padding-bottom: 2px; vertical-align: middle; background-color: #DDDDDD; }
+td.question340itemAlt { text-align: left; padding-top: 2px; padding-bottom: 2px; background-color: #DDDDDD; }
+span.question340itemmissing { color: red; }
+
+div.question998 { margin-top: 5px; margin-bottom: 10px; }

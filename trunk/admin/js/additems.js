@@ -1,9 +1,10 @@
-function addItem() 
+function addItem(addright) 
 {
 	var listscalebody = document.getElementById("listitembody");
 	var newTR = document.createElement("tr");
 	var newTDord = document.createElement("td");
 	var newTDtextleft = document.createElement("td");
+	if (addright==true) var newTDtextright = document.createElement("td");
 	var newTDvarname = document.createElement("td");
 	var newTDmandatory = document.createElement("td");
 	var newTDdelete = document.createElement("td");
@@ -42,14 +43,34 @@ function addItem()
 	newINPUTitemtextleftVALUE.nodeValue = "";
 	newINPUTitemtextleft.setAttributeNode(newINPUTitemtextleftVALUE);
 	var newINPUTitemtextleftSIZE = document.createAttribute("size");
-	newINPUTitemtextleftSIZE.nodeValue = "128";
+	if (addright!=true) newINPUTitemtextleftSIZE.nodeValue = "128";
+	else newINPUTitemtextleftSIZE.nodeValue = "64";
 	newINPUTitemtextleft.setAttributeNode(newINPUTitemtextleftSIZE);
+	if (addright==true)
+		{
+		//create field with textleft
+		var newINPUTitemtextright = document.createElement("input");
+		var newINPUTitemtextrightTYPE = document.createAttribute("type");
+		newINPUTitemtextrightTYPE.nodeValue = "text";
+		newINPUTitemtextright.setAttributeNode(newINPUTitemtextrightTYPE);
+		var newINPUTitemtextrightNAME = document.createAttribute("name");
+		newINPUTitemtextrightNAME.nodeValue = "itemtextright[]";
+		newINPUTitemtextright.setAttributeNode(newINPUTitemtextrightNAME);
+		var newINPUTitemtextrightVALUE = document.createAttribute("value");
+		newINPUTitemtextrightVALUE.nodeValue = "";
+		newINPUTitemtextright.setAttributeNode(newINPUTitemtextrightVALUE);
+		var newINPUTitemtextrightSIZE = document.createAttribute("size");
+		newINPUTitemtextrightSIZE.nodeValue = "64";
+		newINPUTitemtextright.setAttributeNode(newINPUTitemtextrightSIZE);
+		}
 	
 	newTDord.appendChild(newINPUTitemord);
 	newTDord.appendChild(newINPUTitemid);
 	newTR.appendChild(newTDord);
 	newTDtextleft.appendChild(newINPUTitemtextleft);
+	if (addright==true) newTDtextright.appendChild(newINPUTitemtextright);
 	newTR.appendChild(newTDtextleft);
+	if (addright==true) newTR.appendChild(newTDtextright);
 	newTR.appendChild(newTDvarname);
 	newTR.appendChild(newTDmandatory);
 	newTR.appendChild(newTDdelete);
