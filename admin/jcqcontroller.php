@@ -400,7 +400,7 @@ class ".$project['classname']."\n
 	
 	function saveQuestion()
 	{
-		$question = JRequest::get( 'POST' );
+		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
 			
 		$model = & $this->getModel('questions');
 		$model->saveQuestion($question);
@@ -439,6 +439,7 @@ class ".$project['classname']."\n
 			$itemids = JRequest::getVar('itemids', null, 'default', 'array' );
 			$itemord = JRequest::getVar('itemord', null, 'default', 'array' );
 			$itemtextleft = JRequest::getVar('itemtextleft', null, 'default', 'array' );
+			$itemtextright = JRequest::getVar('itemtextright', null, 'default', 'array' );
 			$itemvarname = JRequest::getVar('itemvarname', null, 'default', 'array' );
 			$itemmandatory = JRequest::getVar('itemmandatory', null, 'default', 'array' );
 			for ($i=0;$i<count($itemids);$i++)
@@ -447,6 +448,7 @@ class ".$project['classname']."\n
 				$item['ID']=$itemids[$i];
 				$item['ord']=$itemord[$i];
 				$item['textleft']=$itemtextleft[$i];
+				if ($itemtextright!=null) $item['textright']=$itemtextright[$i];
 				$item['varname']=$itemvarname[$i];
 				if ($itemmandatory!=null && in_array($itemids[$i],$itemmandatory)) $item['mandatory']=1;
 				else $item['mandatory']=0;

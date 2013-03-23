@@ -1,6 +1,13 @@
 <?php
 defined('_JEXEC') or die( 'Restricted access' );
 
+function val_is_int($input) {
+	if ($input[0] == '-') {
+		return ctype_digit(substr($input, 1));
+	}
+	return ctype_digit($input);
+}
+
 jimport('joomla.application.component.model');
 
 class JcqModelUserdata extends JModel
@@ -168,7 +175,31 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
-						case 311:
+						case 141:
+							{
+								//always store
+								$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID)."' WHERE sessionID='".$this->sessionID."'";
+								$db->setQuery($sqlstore);
+								if (!$db->query())
+								{
+									$errorMessage = $this->getDBO()->getErrorMsg();
+									JError::raiseError(500, 'Error saving value: '.$errorMessage);
+								}
+								//if mandatory and no value stored so far --> set missing
+								if ($question->mandatory==1)
+								{
+									$sqlgetvalue = "SELECT p".$page->ID."q".$question->ID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+									$db->setQuery($sqlgetvalue);
+									$answer = $db->loadResult();
+									if ($answer==null || strlen($answer)<1) $hasmissings=true;
+								}
+								//if data type does not match --> set missing
+								if ($question->datatype == 1 && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								if ($question->datatype == 2 && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								#TODO decimal seperator for locale
+								break;
+							}
+						case 311: case 340:
 							{
 								// use model page to get the items to the question
 								require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
@@ -201,6 +232,7 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
+						case 998: break;
 						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
 					}
 				}
@@ -256,7 +288,7 @@ class JcqModelUserdata extends JModel
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
-		return ($answer["p".$pageID."q".$questionID]!=null);
+		return ($answer!=null);
 	}
 
 	function hasStoredValueItem($pageID,$questionID,$itemID)
@@ -265,7 +297,7 @@ class JcqModelUserdata extends JModel
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
-		return ($answer["p".$pageID."q".$questionID."i".$itemID]!=null);
+		return ($answer!=null);
 	}
 
 	function getStoredValueQuestion($pageID,$questionID)
@@ -274,7 +306,7 @@ class JcqModelUserdata extends JModel
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
-		return $answer["p".$pageID."q".$questionID];
+		return $answer;
 	}
 
 	function getStoredValueItem($pageID,$questionID,$itemID)
@@ -283,7 +315,7 @@ class JcqModelUserdata extends JModel
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
-		return $answer["p".$pageID."q".$questionID."i".$itemID];
+		return $answer;
 	}
 	
 	/**

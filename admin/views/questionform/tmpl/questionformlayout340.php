@@ -79,7 +79,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <thead>
                     <tr>
                            <th>Order</th>
-                           <th>Item text</th>
+                           <th>Item text left</th>
+                           <th>Item text right</th>
                            <th>Variable name</th>
                            <th>Mandatory</th>
                            <th>Delete</th>
@@ -94,7 +95,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <tr>
 						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo $row->textleft; ?>" size="128" /></td>       
+                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo $row->textleft; ?>" size="64" /></td>       
+                        <td><input type="text" id="<?php echo("item".$row->ID."textright"); ?>" name="itemtextright[]" value="<?php echo $row->textright; ?>" size="64" /></td>       
                         <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>
                         <td><input type="checkbox" id="<?php echo("item".$row->ID."mandatory"); ?>" name="itemmandatory[]" value="<?php echo $row->ID; ?>" <?php if ($row->mandatory) echo("checked"); ?> /></td>            
                         <td><input type="checkbox" id="<?php echo("item".$row->ID."delete"); ?>" name="itemdelete[]" value="<?php echo $row->ID; ?>"/></td>
@@ -106,7 +108,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     ?>
              </tbody>
              </table>
-             <input type="button" value="Add Item" onclick="addItem(false)">
+             <input type="button" value="Add Item" onclick="addItem(true)">
        </fieldset>
        
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
