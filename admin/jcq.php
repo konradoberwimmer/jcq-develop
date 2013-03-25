@@ -12,7 +12,8 @@ require_once( JPATH_COMPONENT.DS.'jcqcontroller.php' );
 $controller   = new JcqController();
 
 // Perform the Request task
-$controller->execute(JRequest::getVar('task'));
+$taskresult = $controller->execute(JRequest::getVar('task'));
+if ($taskresult===false) JError::raiseError(500, 'No code for this task!');
 
 // Redirect if set by the controller
 $controller->redirect();

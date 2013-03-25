@@ -20,11 +20,22 @@ class JcqViewProjectlist extends JView
 			$i++;
 		}
 		$this->assignRef('pagecounts', $pagecounts);
+		$scales = $this->getModel('scales')->getPredefinedScales();
+		$this->assignRef('scales', $scales);
+		$codecounts = array();
+		$i=0;
+		foreach ($scales as $scale)
+		{
+			$codecount = $this->getModel('scales')->getCodeCount($scale->ID);
+			$codecounts[$i] = $codecount;
+			$i++;
+		}
+		$this->assignRef('codecounts', $codecounts);
 		
 		//add javascript functionality for custom buttons
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
-		JHTML::script($filename, $path, true);
+		JHTML::script($path.$filename, true);
 		
 		JToolBarHelper::title('JCQ: Projects', 'generic.png');
 		if ($projects != null) JToolBarHelper::customX("exportProject","archive.png",".png","Export project",true);

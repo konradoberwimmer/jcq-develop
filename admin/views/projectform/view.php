@@ -26,7 +26,7 @@ class JcqViewProjectform extends JView
 		//add javascript functionality for checking correctness of input
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
-		JHTML::script($filename, $path, true);
+		JHTML::script($path.$filename, true);
 		
 		JToolBarHelper::title('JCQ: Edit project');
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected pages?",'removePage','Remove page(s)');
