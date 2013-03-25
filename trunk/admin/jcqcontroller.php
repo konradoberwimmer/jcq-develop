@@ -53,6 +53,9 @@ class JcqController extends JController
 		}
 		else JError::raiseError(500, 'Model not found');
 		
+		if ($modelscales = & $this->getModel('scales')) $view->setModel($modelscales, false);
+		else JError::raiseError(500, 'Model not found');
+		
 		$view->setLayout($viewLayout);
 		$view->display();
 	}
@@ -515,4 +518,85 @@ class ".$project['classname']."\n
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
+	
+	function editScale(){
+			
+		$scaleid = JRequest::getVar('scaleid',null);
+		if($scaleid == null) JError::raiseError(500, 'scaleid parameter missing');
+			
+		$view = & $this->getView('scaleform');
+			
+		if ($model = & $this->getModel('scales')) $view->setModel($model, true);
+		else JError::raiseError(500, 'Model not found');
+			
+		$view->setLayout('scaleformlayout');
+		$view->displayEdit($scaleid);
+	}
+	
+	function addScale()
+	{
+		$view = & $this->getView('scaleform');
+		$model = & $this->getModel('scales');
+		if (!$model) JError::raiseError(500, 'Model not found');
+		$view->setModel($model, true);
+		$view->setLayout('scaleformlayout');
+		$view->displayAdd();
+	}
+	
+	
+	function saveScale()
+	{
+		$scale = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
+			
+		$scalemodel = & $this->getModel('scales');
+		$scaleid = $scalemodel->saveScale($scale);
+		
+		//also save the codes if it is no new scale;
+		if ($scale['ID']!=0)
+		{
+			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
+			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
+			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
+			$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
+			$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
+			for ($i=0;$i<count($codeids);$i++)
+			{
+				$code = array();
+				$code['ID']=$codeids[$i];
+				$code['ord']=$codeord[$i];
+				$code['code']=$codevalue[$i];
+				$code['label']=$codelabel[$i];
+				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
+				else $code['missval']=0;
+				$code['scaleID']=$scaleid;
+				$scalemodel->saveCode($code);
+			}
+			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
+			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+		}
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editScale&scaleid='.$scaleid,false);
+		$this->setRedirect($redirectTo, 'Scale saved!');
+	}
+	
+	function removeScale()
+	{
+		$scaleIDs = JRequest::getVar('scaledelid', null, 'default', 'array' );
+		if($scaleIDs === null) JError::raiseError(500, 'scaledelid parameter missing');
+			
+		$model = & $this->getModel('scales');
+		$model->deleteScales($scaleIDs);
+			
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
+		$this->setRedirect($redirectTo, 'Removed '.count($scaleIDs).' scale(s)');
+	}
+	
+	function cancelAddScale()
+	{
+		$question = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
 }
