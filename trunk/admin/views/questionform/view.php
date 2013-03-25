@@ -34,7 +34,7 @@ class JcqViewQuestionform extends JView
 			case 111: case 311: case 340:
 				{
 					$scale = $this->getModel('scales')->getScales($this->question->ID);
-					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111');
+					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111, 311 or 340');
 					else
 					{
 						$scale=$scale[0]; //only one scale for this type of question
@@ -44,6 +44,24 @@ class JcqViewQuestionform extends JView
 					}
 					break;
 				}
+			case 361:
+				{
+					$scale = $this->getModel('scales')->getScales($this->question->ID);
+					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111, 311 or 340');
+					else
+					{
+						$scalecount = count($scale);
+						$this->assignRef('scalecount', $scalecount);
+						$this->assignRef('scales', $scale);
+						$codes = array();
+						for ($i=0;$i<$scalecount;$i++)
+						{
+							$codes[$i]=$this->getModel('scales')->getCodes($this->scales[$i]->ID);
+						}
+						$this->assignRef('codes', $codes);
+					}
+					break;
+				}			
 			case 141: case 998: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
@@ -51,7 +69,7 @@ class JcqViewQuestionform extends JView
 		//attach item(s) according to questiontype
 		switch ($this->question->questtype)
 		{
-			case 311: case 340:
+			case 311: case 340: case 361:
 				{
 					$items = $this->getModel('items')->getItems($this->question->ID);
 					$this->assignRef('items', $items);
@@ -72,6 +90,12 @@ class JcqViewQuestionform extends JView
 					break;
 				}
 			case 311: case 340:
+				{
+					$filenames[0] = 'addcodes.js';
+					$filenames[1] = 'additems.js';
+					break;
+				}
+			case 361:
 				{
 					$filenames[0] = 'addcodes.js';
 					$filenames[1] = 'additems.js';

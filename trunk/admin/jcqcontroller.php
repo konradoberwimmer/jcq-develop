@@ -405,30 +405,60 @@ class ".$project['classname']."\n
 		$model = & $this->getModel('questions');
 		$model->saveQuestion($question);
 			
-		//save the scale if question has any
+		//save the scale(s) if question has any
 		if (isset($question['scaleID']))
 		{
 			$scalemodel = & $this->getModel('scales');
-			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
-			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
-			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
-			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
-			$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
-			$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
-			for ($i=0;$i<count($codeids);$i++)
+			if (is_array($question['scaleID']))
 			{
-				$code = array();
-				$code['ID']=$codeids[$i];
-				$code['ord']=$codeord[$i];
-				$code['code']=$codevalue[$i];
-				$code['label']=$codelabel[$i];
-				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
-				else $code['missval']=0;
-				$code['scaleID']=$question['scaleID'];
-				$scalemodel->saveCode($code);
+				for ($j=0;$j<count($question['scaleID']);$j++)
+				{
+					$prefix="scale".$question['scaleID'][$j];
+					//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+					$codeids = JRequest::getVar($prefix.'codeids', null, 'default', 'array' );
+					$codeord = JRequest::getVar($prefix.'codeord', null, 'default', 'array' );
+					$codevalue = JRequest::getVar($prefix.'codevalue', null, 'default', 'array' );
+					$codelabel = JRequest::getVar($prefix.'codelabel', null, 'default', 'array' );
+					$codemissval = JRequest::getVar($prefix.'codemissval', null, 'default', 'array' );
+					for ($i=0;$i<count($codeids);$i++)
+					{
+						$code = array();
+						$code['ID']=$codeids[$i];
+						$code['ord']=$codeord[$i];
+						$code['code']=$codevalue[$i];
+						$code['label']=$codelabel[$i];
+						if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
+						else $code['missval']=0;
+						$code['scaleID']=$question['scaleID'][$j];
+						$scalemodel->saveCode($code);
+					}
+					$codedelete = JRequest::getVar($prefix.'codedelete', null, 'default', 'array' );
+					if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+				}
+			} else 
+			{
+				#FIXME reduce duplicate code!
+				//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+				$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
+				$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
+				$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
+				$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
+				$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
+				for ($i=0;$i<count($codeids);$i++)
+				{
+					$code = array();
+					$code['ID']=$codeids[$i];
+					$code['ord']=$codeord[$i];
+					$code['code']=$codevalue[$i];
+					$code['label']=$codelabel[$i];
+					if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
+					else $code['missval']=0;
+					$code['scaleID']=$question['scaleID'];
+					$scalemodel->saveCode($code);
+				}
+				$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
+				if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 			}
-			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 		}
 		
 		//save the items if question has any
