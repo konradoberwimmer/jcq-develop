@@ -15,6 +15,7 @@ class JcqModelQuestions extends JModel {
 		$questtypes[141]='141 - Text field (single row)';
 		$questtypes[311]='311 - Matrix (standard 1)';
 		$questtypes[340]='340 - Matrix (semantical difference)';
+		$questtypes[361]='361 - Multiple-Scale Matrix (dropdown)';
 		$questtypes[998]='998 - Text and HTML-Code';
 		return $questtypes;
 	}
@@ -109,7 +110,7 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				case 311: case 340:
+				case 311: case 340: case 361:
 					{
 						$this->buildScalePrototype($questionTableRow->ID);
 						$this->buildItemPrototype($questionTableRow->ID,1);
