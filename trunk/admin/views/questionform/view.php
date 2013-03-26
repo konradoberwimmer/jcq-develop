@@ -46,20 +46,10 @@ class JcqViewQuestionform extends JView
 				}
 			case 361:
 				{
-					$scale = $this->getModel('scales')->getScales($this->question->ID);
-					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111, 311 or 340');
-					else
-					{
-						$scalecount = count($scale);
-						$this->assignRef('scalecount', $scalecount);
-						$this->assignRef('scales', $scale);
-						$codes = array();
-						for ($i=0;$i<$scalecount;$i++)
-						{
-							$codes[$i]=$this->getModel('scales')->getCodes($this->scales[$i]->ID);
-						}
-						$this->assignRef('codes', $codes);
-					}
+					$attachedscales = $this->getModel('scales')->getScales($this->question->ID);
+					$predefscales = $this->getModel('scales')->getPredefinedScales();
+					$this->assignRef('attachedscales', $attachedscales);
+					$this->assignRef('predefscales', $predefscales);
 					break;
 				}			
 			case 141: case 998: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
@@ -97,7 +87,7 @@ class JcqViewQuestionform extends JView
 				}
 			case 361:
 				{
-					$filenames[0] = 'addcodes.js';
+					$filenames[0] = 'addscales.js';
 					$filenames[1] = 'additems.js';
 					break;
 				}

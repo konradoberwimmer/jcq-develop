@@ -88,6 +88,7 @@ class JcqModelProjects extends JModel {
 				JError::raiseError(500, 'Error creating user data database: '.$errorMessage);
 			}
 		}
+		return $projectTableRow->ID;
 	}
 
 	function deleteProjects($arrayIDs)

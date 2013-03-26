@@ -96,7 +96,7 @@ class JcqController extends JController
 		$project = JRequest::get( 'POST' );
 		 
 		$model = & $this->getModel('projects');
-		$model->saveProject($project);
+		$projectid = $model->saveProject($project);
 		
 		//create php-file for project with basic class definition if it does not yet exist
 		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
@@ -142,8 +142,7 @@ class ".$project['classname']."\n
 			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
 		}
 		
-		if ($project['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
-		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
 		$this->setRedirect($redirectTo, 'Project saved!');
 	}
 	
@@ -332,7 +331,7 @@ class ".$project['classname']."\n
 		$page = JRequest::get( 'POST' );
 			
 		$model = & $this->getModel('pages');
-		$model->savePage($page);
+		$pageid = $model->savePage($page);
 		
 		if (isset($page['questionord']))
 		{
@@ -340,8 +339,7 @@ class ".$project['classname']."\n
 			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
 		}
 				
-		if ($page['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
-		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$pageid,false);
 		$this->setRedirect($redirectTo, 'Page saved!');
 	}
 	
@@ -406,61 +404,48 @@ class ".$project['classname']."\n
 		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
 			
 		$model = & $this->getModel('questions');
-		$model->saveQuestion($question);
+		$questionid = $model->saveQuestion($question);
 			
 		//save the scale(s) if question has any
 		if (isset($question['scaleID']))
 		{
 			$scalemodel = & $this->getModel('scales');
-			if (is_array($question['scaleID']))
+			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
+			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
+			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
+			$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
+			$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
+			for ($i=0;$i<count($codeids);$i++)
 			{
-				for ($j=0;$j<count($question['scaleID']);$j++)
-				{
-					$prefix="scale".$question['scaleID'][$j];
-					//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
-					$codeids = JRequest::getVar($prefix.'codeids', null, 'default', 'array' );
-					$codeord = JRequest::getVar($prefix.'codeord', null, 'default', 'array' );
-					$codevalue = JRequest::getVar($prefix.'codevalue', null, 'default', 'array' );
-					$codelabel = JRequest::getVar($prefix.'codelabel', null, 'default', 'array' );
-					$codemissval = JRequest::getVar($prefix.'codemissval', null, 'default', 'array' );
-					for ($i=0;$i<count($codeids);$i++)
-					{
-						$code = array();
-						$code['ID']=$codeids[$i];
-						$code['ord']=$codeord[$i];
-						$code['code']=$codevalue[$i];
-						$code['label']=$codelabel[$i];
-						if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
-						else $code['missval']=0;
-						$code['scaleID']=$question['scaleID'][$j];
-						$scalemodel->saveCode($code);
-					}
-					$codedelete = JRequest::getVar($prefix.'codedelete', null, 'default', 'array' );
-					if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
-				}
-			} else 
+				$code = array();
+				$code['ID']=$codeids[$i];
+				$code['ord']=$codeord[$i];
+				$code['code']=$codevalue[$i];
+				$code['label']=$codelabel[$i];
+				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
+				else $code['missval']=0;
+				$code['scaleID']=$question['scaleID'];
+				$scalemodel->saveCode($code);
+			}
+			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
+			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+		}
+		
+		//special case question type 361: save the attached scales
+		if ($question['questtype']==361)
+		{
+			$scalemodel = & $this->getModel('scales');
+			$scalemodel->clearAttachedScales($question['ID']);
+			$scaleids = JRequest::getVar('scaleids', null, 'default', 'array' );
+			$scaleord = JRequest::getVar('scaleord', null, 'default', 'array' );
+			$scaledelete = JRequest::getVar('scaledelete', null, 'default', 'array' );
+			if ($scaleids!=null)
 			{
-				#FIXME reduce duplicate code!
-				//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
-				$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
-				$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
-				$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
-				$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
-				$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
-				for ($i=0;$i<count($codeids);$i++)
+				for ($i=0;$i<count($scaleids);$i++)
 				{
-					$code = array();
-					$code['ID']=$codeids[$i];
-					$code['ord']=$codeord[$i];
-					$code['code']=$codevalue[$i];
-					$code['label']=$codelabel[$i];
-					if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
-					else $code['missval']=0;
-					$code['scaleID']=$question['scaleID'];
-					$scalemodel->saveCode($code);
+					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($question['ID'],$scaleids[$i],$scaleord[$i]);
 				}
-				$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-				if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 			}
 		}
 		
@@ -492,8 +477,7 @@ class ".$project['classname']."\n
 			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
 		}
 		
-		if ($question['ID']>0) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$question['ID'],false);
-		else  $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$questionid,false);
 		$this->setRedirect($redirectTo, 'Question saved!');
 	}
 	
