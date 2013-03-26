@@ -118,7 +118,7 @@ class JcqModelQuestions extends JModel {
 					}
 				case 361:
 					{
-						$this->buildItemPrototype($questionTableRow->ID,1);
+						$this->buildItemPrototype($questionTableRow->ID,1,array());
 						break;						
 					}
 				case 998:
@@ -275,7 +275,7 @@ class JcqModelQuestions extends JModel {
 		}
 	}
 
-	function buildItemPrototype($questionID,$datatype)
+	function buildItemPrototype($questionID,$datatype,$scales=null)
 	{
 		for ($i=1;$i<=5;$i++)
 		{
@@ -300,7 +300,8 @@ class JcqModelQuestions extends JModel {
 				{
 					case 1:
 						{
-							$modelitems->addColumnUserDataINT($this->getPageFromQuestion($questionID)->ID, $questionID, $newitem->ID);
+							if ($scales===null) $modelitems->addColumnUserDataINT($this->getPageFromQuestion($questionID)->ID, $questionID, $newitem->ID);
+							else foreach ($scales as $scale) $modelitems->addColumnUserDataINT($this->getPageFromQuestion($questionID)->ID, $questionID, $newitem->ID, $scale->ID);
 							break;
 						}
 					default: JError::raiseError(500, 'FATAL: code for adding user data column of datatype '.$datatype.' is missing!');

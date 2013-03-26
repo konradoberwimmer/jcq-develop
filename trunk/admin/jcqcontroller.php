@@ -339,7 +339,7 @@ class ".$project['classname']."\n
 			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
 		}
 				
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$pageid,false);
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid,false);
 		$this->setRedirect($redirectTo, 'Page saved!');
 	}
 	
@@ -405,11 +405,14 @@ class ".$project['classname']."\n
 			
 		$model = & $this->getModel('questions');
 		$questionid = $model->saveQuestion($question);
-			
+		$pageid = $model->getPageFromQuestion($questionid)->ID;
+		$projectid = $model->getProjectFromPage($pageid)->ID;
+		
+		$scalemodel = & $this->getModel('scales');
+		
 		//save the scale(s) if question has any
 		if (isset($question['scaleID']))
 		{
-			$scalemodel = & $this->getModel('scales');
 			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
 			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
 			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
@@ -435,16 +438,33 @@ class ".$project['classname']."\n
 		//special case question type 361: save the attached scales
 		if ($question['questtype']==361)
 		{
-			$scalemodel = & $this->getModel('scales');
 			$scalemodel->clearAttachedScales($question['ID']);
 			$scaleids = JRequest::getVar('scaleids', null, 'default', 'array' );
 			$scaleord = JRequest::getVar('scaleord', null, 'default', 'array' );
 			$scaledelete = JRequest::getVar('scaledelete', null, 'default', 'array' );
+			$scalemandatory = JRequest::getVar('scalemandatory', null, 'default', 'array' );
 			if ($scaleids!=null)
 			{
 				for ($i=0;$i<count($scaleids);$i++)
 				{
-					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($question['ID'],$scaleids[$i],$scaleord[$i]);
+					//(re-)attach if scaleid is not on delete list
+					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($question['ID'],$scaleids[$i],$scaleord[$i],in_array($scaleids[$i], $scalemandatory));
+					//else destroy any userdata columns there may be
+					else
+					{
+						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'p".$pageid."q".$questionid."i%s".$scaleids[$i]."';";
+						$db = JFactory::getDBO();
+						$db->setQuery($statementquery);
+						$sqlresult = $db->loadResult();
+						if ($sqlresult!=null)
+						{
+							$db->setQuery($sqlresult);
+							if (!$db->query()){
+								$errorMessage = $this->getDBO()->getErrorMsg();
+								JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -453,7 +473,7 @@ class ".$project['classname']."\n
 		if (isset($question['itemspresent']))
 		{
 			$itemsmodel = & $this->getModel('items');
-			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+			//has to be in this order: 1. save items 2. delete items; otherwise errors for missing IDs
 			$itemids = JRequest::getVar('itemids', null, 'default', 'array' );
 			$itemord = JRequest::getVar('itemord', null, 'default', 'array' );
 			$itemtextleft = JRequest::getVar('itemtextleft', null, 'default', 'array' );
@@ -471,7 +491,12 @@ class ".$project['classname']."\n
 				if ($itemmandatory!=null && in_array($itemids[$i],$itemmandatory)) $item['mandatory']=1;
 				else $item['mandatory']=0;
 				$item['questionID']=$question['ID'];
-				$itemsmodel->saveItem($item);
+				if ($question['questtype']==361)
+				{
+					$scales=$scalemodel->getScales($question['ID']);
+					$itemsmodel->saveItem($item, $scales);
+				}
+				else $itemsmodel->saveItem($item);
 			}
 			$itemdelete = JRequest::getVar('itemdelete', null, 'default', 'array' );
 			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
