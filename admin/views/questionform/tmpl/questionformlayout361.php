@@ -35,50 +35,50 @@ defined('_JEXEC') or die('Restricted access'); ?>
              </table>
        </fieldset>
        
-       <?php 
-       		for ($j=0;$j<$this->scalecount;$j++)
-       		{
-       ?>
        <fieldset>
-             <legend>Scale (ID <?php echo($this->scales[$j]->ID); ?>):</legend>
-             <input type="hidden" name="scaleID[]" value="<?php echo $this->scales[$j]->ID; ?>"/>
+             <legend>Scale(s):</legend>
+             <!-- for the javascript part a template of the select box is created -->
+			 <select id="scaleidTEMPLATE" name="" style="display: none;">
+             <?php 
+             	for ($j=0; $j<count($this->predefscales); $j++)
+                {
+                	echo '<option value="'.$this->predefscales[$j]->ID.'">'.$this->predefscales[$j]->name.'</option>';
+                }
+             ?>
+	         </select>
              <table class="list">
                     <thead>
                     <tr>
                            <th>Order</th>
-                           <th>Value</th>
-                           <th>Label</th>
-                           <th>Missing value</th>
+                           <th>Scale</th>
                            <th>Delete</th>
                     </tr>               
              </thead>
-             <tbody id="listscalebody<?php echo $this->scales[$j]->ID; ?>">
+             <tbody id="listscalesbody">
                     <?php
-                    $k = 0;
                     $i = 0;
-                    $prefix="scale".$this->scales[$j]->ID;
-                    foreach ($this->codes[$j] as $row){
+                    foreach ($this->attachedscales as $row){
                     ?>
                     <tr>
-						<td><input type="text" id="<?php echo($prefix."code".$row->ID."ord"); ?>" name="<?php echo($prefix); ?>codeord[]" value="<?php echo $row->ord; ?>"/>
-                            <input type="hidden" name="<?php echo($prefix); ?>codeids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo($prefix."code".$row->ID."value"); ?>" name="<?php echo($prefix); ?>codevalue[]" value="<?php echo $row->code; ?>"/></td>       
-                        <td><input type="text" id="<?php echo($prefix."code".$row->ID."label"); ?>" name="<?php echo($prefix); ?>codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
-                        <td><input type="checkbox" id="<?php echo($prefix."code".$row->ID."missval"); ?>" name="<?php echo($prefix); ?>codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
-                        <td><input type="checkbox" id="<?php echo($prefix."code".$row->ID."delete"); ?>" name="<?php echo($prefix); ?>codedelete[]" value="<?php echo $row->ID; ?>"/></td>
+						<td><input type="text" name="scaleord[]" value="<?php echo($row->ord); ?>"/>
+                        <td><select name="scaleids[]">
+	                    <?php 
+	                    	for ($j=0; $j<count($this->predefscales); $j++)
+	                    	{
+	                    		echo '<option value="'.$this->predefscales[$j]->ID.'" '.($row->ID==$this->predefscales[$j]->ID?'selected':'').'>'.$this->predefscales[$j]->name.'</option>';
+	                    	}
+	                    ?>
+	                    </select></td>
+                        <td><input type="checkbox" name="scaledelete[]" value="<?php echo($i); ?>"/></td>
                     </tr>
                     <?php
-                    	$k = 1 - $k;
                     	$i++;
                     }
                     ?>
              </tbody>
              </table>
-             <input type="button" value="Add Code" onclick="javascript: addCodeMultipleScales(<?php echo $this->scales[$j]->ID; ?>)">
+             <input type="button" value="Add Scale" onclick="javascript: addScale()">
        </fieldset>
-       <?php 
-       		}
-       ?>
               
        <fieldset>
              <legend>Items:</legend>

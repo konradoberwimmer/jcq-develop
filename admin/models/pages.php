@@ -86,6 +86,8 @@ class JcqModelPages extends JModel {
 				JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 			}
 		}
+		
+		return $pageTableRow->ID;
 	}
 	
 	function deletePages($arrayIDs)

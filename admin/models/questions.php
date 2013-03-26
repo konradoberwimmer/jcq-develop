@@ -110,11 +110,16 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				case 311: case 340: case 361:
+				case 311: case 340:
 					{
 						$this->buildScalePrototype($questionTableRow->ID);
 						$this->buildItemPrototype($questionTableRow->ID,1);
 						break;
+					}
+				case 361:
+					{
+						$this->buildItemPrototype($questionTableRow->ID,1);
+						break;						
 					}
 				case 998:
 					{
@@ -126,6 +131,8 @@ class JcqModelQuestions extends JModel {
 				default: JError::raiseError(500, 'FATAL: Code for creating question of type '.$questionTableRow->questtype.' is missing!!!');
 			}
 		}
+		
+		return $questionTableRow->ID;
 	}
 
 	function deleteQuestions($arrayIDs)
@@ -150,7 +157,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case 311: case 340:
+				case 311: case 340: case 361:
 					{
 						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
 						$db = $this->getDBO();
