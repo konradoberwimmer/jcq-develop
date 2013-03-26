@@ -60,9 +60,9 @@ class JcqModelScales extends JModel {
 		else return count($codes);
 	}
 	
-	function addAttachedScale($questionID,$scaleID,$ord)
+	function addAttachedScale($questionID,$scaleID,$ord,$mandatory)
 	{
-		$query = "INSERT INTO jcq_questionscales (questionID, scaleID, ord) VALUES ($questionID,$scaleID,$ord)";
+		$query = "INSERT INTO jcq_questionscales (questionID, scaleID, ord, mandatory) VALUES ($questionID,$scaleID,$ord,".($mandatory?"1":"0").")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
 		if (!$db->query()){

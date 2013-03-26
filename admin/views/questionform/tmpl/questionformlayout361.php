@@ -51,6 +51,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <tr>
                            <th>Order</th>
                            <th>Scale</th>
+                           <th>Mandatory</th>
                            <th>Delete</th>
                     </tr>               
              </thead>
@@ -69,6 +70,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 	                    	}
 	                    ?>
 	                    </select></td>
+	                    <td><input type="checkbox" name="scalemandatory[]" value="<?php echo($row->ID); ?>" <?php if ($row->mandatory) echo("checked"); ?>/></td>
                         <td><input type="checkbox" name="scaledelete[]" value="<?php echo($i); ?>"/></td>
                     </tr>
                     <?php
