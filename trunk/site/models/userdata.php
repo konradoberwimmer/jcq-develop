@@ -73,7 +73,7 @@ class JcqModelUserdata extends JModel
 			{
 				$this->sessionID = uniqid('', true);
 				$this->projectID = $projectID;
-				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, sessionID, curpage) VALUES ('".$user->username."','".$this->sessionID."',0)";
+				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, sessionID, curpage, timestampBegin) VALUES ('".$user->username."','".$this->sessionID."',0,".time().")";
 				$db->setQuery($sqlnewsession);
 				if (!$db->query())
 				{
@@ -232,6 +232,44 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
+						case 361:
+							{
+								// use model page to get the items to the question
+								require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
+								$modelpage = new JcqModelPage();
+								$items = $modelpage->getItemsToQuestion($question->ID);
+								$scales = $modelpage->getScalesToQuestion($question->ID);
+								foreach ($items as $item)
+								{
+									foreach($scales as $scale)
+									{
+										$varname = 'p'.$page->ID.'q'.$question->ID.'i'.$item->ID.'s'.$scale->ID;
+										if (JRequest::getVar($varname,null)!=null && is_numeric(JRequest::getVar($varname)))
+										{
+											//numeric value is posted --> store
+											$sqlstore = "UPDATE jcq_proj".$this->projectID." SET $varname =".JRequest::getVar($varname)." WHERE sessionID='".$this->sessionID."'";
+											$db->setQuery($sqlstore);
+											if (!$db->query())
+											{
+												$errorMessage = $this->getDBO()->getErrorMsg();
+												JError::raiseError(500, 'Error saving value: '.$errorMessage);
+											}
+										}
+										else
+										{
+											//if mandatory and no value stored so far --> set missing
+											if ($item->mandatory==1 && $scale->mandatory==1)
+											{
+												$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+												$db->setQuery($sqlgetvalue);
+												$answer = $db->loadResult();
+												if ($answer==null) $hasmissings=true;
+											}
+										}
+									}
+								}
+								break;
+							}
 						case 998: break;
 						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
 					}
@@ -291,9 +329,10 @@ class JcqModelUserdata extends JModel
 		return ($answer!=null);
 	}
 
-	function hasStoredValueItem($pageID,$questionID,$itemID)
+	function hasStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID."s".$scaleID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
@@ -309,9 +348,10 @@ class JcqModelUserdata extends JModel
 		return $answer;
 	}
 
-	function getStoredValueItem($pageID,$questionID,$itemID)
+	function getStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID."s".$scaleID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();

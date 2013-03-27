@@ -1,4 +1,3 @@
-DROP TABLE jcq_itemscales;
 DROP TABLE jcq_questionscales;
 DROP TABLE jcq_item;
 DROP TABLE jcq_question;
