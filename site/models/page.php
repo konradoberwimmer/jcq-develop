@@ -35,6 +35,22 @@ class JcqModelPage extends JModel
 		return $db->loadObjectList();
 	}
 	
+	function getScalesToQuestion($questionID)
+	{
+		$query = 'SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND jcq_questionscales.questionID = '.$questionID.' ORDER BY ord';
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		return $db->loadObjectList();
+	}
+	
+	function getCodesToScale($scaleID)
+	{
+		$query = 'SELECT * FROM jcq_code WHERE scaleID = '.$scaleID.' ORDER BY ord';
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		return $db->loadObjectList();
+	}
+	
 	function getItemsToQuestion($questionID)
 	{
 		$db = $this->getDBO();
