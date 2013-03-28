@@ -292,7 +292,7 @@ class JcqModelUserdata extends JModel
 					else
 					{
 						$nextpage = -1;
-						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET finished=1 WHERE sessionID='".$this->sessionID."'";
+						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET finished=1, timestampEnd=".time()." WHERE sessionID='".$this->sessionID."'";
 						$db->setQuery($sqlstore);
 						if (!$db->query())
 						{

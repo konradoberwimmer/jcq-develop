@@ -38,23 +38,14 @@ class JcqController extends JController
 
 	function display()
 	{
-		//This sets the default view (second argument)
 		$viewName    = JRequest::getVar( 'view', 'projectlist' );
-		//This sets the default layout/template for the view
 		$viewLayout  = JRequest::getVar( 'layout', 'projectlistlayout' );
-
 		$view = & $this->getView($viewName);
 			
-		// Get/Create the model
-		if ($model = & $this->getModel('projects')) {
-			//Push the model into the view (as default)
-			//Second parameter indicates that it is the default model for the view
-			$view->setModel($model, true);
-		}
-		else JError::raiseError(500, 'Model not found');
-		
+		if ($model = & $this->getModel('projects')) $view->setModel($model, true);
+		else JError::raiseError(500, 'Model projects not found');
 		if ($modelscales = & $this->getModel('scales')) $view->setModel($modelscales, false);
-		else JError::raiseError(500, 'Model not found');
+		else JError::raiseError(500, 'Model scales not found');
 		
 		$view->setLayout($viewLayout);
 		$view->display();
@@ -73,19 +64,15 @@ class JcqController extends JController
 	function editProject(){
 		 
 		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
-		 
 		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
-		 
-		$projectID = (int)$projectids[0]; //get the first id from the list (we can only edit one project at a time)
+		$projectID = (int)$projectids[0];
 	
 		$view = & $this->getView('projectform');
-		 
-		if ($model = & $this->getModel('projects')) {
-			//Push the model into the view (as default)
-			//Second parameter indicates that it is the default model for the view
-			$view->setModel($model, true);
-		}
-		else JError::raiseError(500, 'Model not found');
+		
+		if ($model = & $this->getModel('projects'))	$view->setModel($model, true);
+		else JError::raiseError(500, 'Model projects not found');
+		if ($modelparticipants = & $this->getModel('participants'))	$view->setModel($modelparticipants, false);
+		else JError::raiseError(500, 'Model participants not found');
 				 
 		$view->setLayout('projectformlayout');
 		$view->displayEdit($projectID);
@@ -608,4 +595,15 @@ class ".$project['classname']."\n
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
+	function saveData()
+	{
+		$project = JRequest::get( 'POST' );
+		$projectid = $project['ID'];
+		
+		$model = & $this->getModel('projects');
+		$model->saveData($projectid);		
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
+		$this->setRedirect($redirectTo, 'Data saved!');
+	}
 }

@@ -67,4 +67,40 @@ Project has <?php echo count($this->pages); ?> page(s).
 Project has no pages.
 </fieldset>
 <?php } ?>
+<?php if ($this->project->ID > 0) { ?>
+<fieldset>
+	<legend>Participants:</legend>
+	<table>
+		<tr>
+			<td># begun questionnaire:</td>
+			<td><?php echo($this->participants->getParticipantsBegun($this->project->ID)); ?></td>
+			<td><input type="button" value="Save data" onclick="javascript: submitbutton('saveData')"/></td>
+		</tr>
+		<tr>
+			<td># finished first page:</td>
+			<td><?php echo($this->participants->getParticipantsFinishedFirst($this->project->ID)); ?></td>
+		</tr>
+		<tr>
+			<td># finished all:</td>
+			<td><?php echo($this->participants->getParticipantsFinished($this->project->ID)); ?></td>
+		</tr>
+		<tr>
+			<td>Average duration to finish (minutes):</td>
+			<td><?php echo(number_format($this->participants->getAverageDurationFinished($this->project->ID)/60.0,1)); ?></td>
+		</tr>
+		<tr>
+			<td>Medium duration to finish (minutes):</td>
+			<td><?php echo(number_format($this->participants->getMediumDurationFinished($this->project->ID)/60.0,1)); ?></td>
+		</tr>
+		<tr>
+			<td>Last begun questionnaire:</td>
+			<td><?php echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastBegun($this->project->ID))); ?></td>
+		</tr>
+		<tr>
+			<td>Last finished questionnaire:</td>
+			<td><?php echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastFinished($this->project->ID))); ?></td>
+		</tr>
+	</table>
+</fieldset>
+<?php } ?>
 </form>
