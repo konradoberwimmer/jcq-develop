@@ -8,6 +8,9 @@ class SPSSVariable
 	public $intvarname;
 	public $extvarname;
 	public $datatype;
+	public $varlabel;
+	public $valuelabels;
+	public $codes = null;
 	public $pageID;
 	public $questionID;
 	public $itemID = null;
@@ -121,8 +124,11 @@ class JcqModelProjects extends JModel {
 	function saveData($projectID)
 	{
 		#FIXME just for now: create a file to write to
-		$file = fopen(JPATH_COMPONENT.DS."data_proj$projectID"."_".time().".sps","w") or JError::raiseError(500, 'Error creating file');
-		
+		#FIXME write in western european collation
+		$filename = "data_proj$projectID"."_".time().".sps";
+		$file = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
+		$project = $this->getProject($projectID);
+	
 		//prepare a storage for the variables to be downloaded
 		$variables = array();
 		$varcnt = 0;
@@ -149,11 +155,14 @@ class JcqModelProjects extends JModel {
 									$newvar->datatype = 1;
 									$newvar->extvarname = $question->varname;
 									$newvar->intvarname = "p".$page->ID."q".$question->ID;
+									$newvar->varlabel = $question->text;
 									$newvar->pageID = $page->ID;
 									$newvar->questionID = $question->ID;
 									$this->db->setQuery('SELECT * FROM jcq_questionscales WHERE questionID = '.$question->ID);
 									$scales = $this->db->loadObjectList();
 									$newvar->scaleID = $scales[0]->scaleID;
+									$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
+									$newvar->codes = $this->db->loadObjectList();										
 									$variables[$varcnt++]=$newvar;
 									break;
 								}
@@ -163,6 +172,7 @@ class JcqModelProjects extends JModel {
 									$newvar->datatype = $question->datatype;
 									$newvar->extvarname = $question->varname;
 									$newvar->intvarname = "p".$page->ID."q".$question->ID;
+									$newvar->varlabel = $question->text;
 									$newvar->pageID = $page->ID;
 									$newvar->questionID = $question->ID;
 									$variables[$varcnt++]=$newvar;
@@ -181,17 +191,20 @@ class JcqModelProjects extends JModel {
 										$newvar->datatype = 1;
 										$newvar->extvarname = $item->varname;
 										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
+										$newvar->varlabel = $item->textleft." ".$item->textright;
 										$newvar->pageID = $page->ID;
 										$newvar->questionID = $question->ID;
-										$newvar->itemID = $item->ID;
-										$newvar->scaleID = $scales[0]->scaleID;
+										$newvar->itemID = $item->scaleID;
+										$newvar->scaleID = $scales[0]->ID;
+										$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
+										$newvar->codes = $this->db->loadObjectList();										
 										$variables[$varcnt++]=$newvar;
 									}
 									break;
 								}
 							case 361:
 								{
-									$this->db->setQuery('SELECT * FROM jcq_questionscales WHERE questionID = '.$question->ID.' ORDER BY ord');
+									$this->db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
 									$scales = $this->db->loadObjectList();
 									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
 									$items = $this->db->loadObjectList();
@@ -206,10 +219,13 @@ class JcqModelProjects extends JModel {
 											#TODO give external varname postfix to predefined scales
 											$newvar->extvarname = $item->varname."_s".$scale->ID;
 											$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID."s".$scale->ID;
+											$newvar->varlabel = $item->textleft." (".$scale->name.")";
 											$newvar->pageID = $page->ID;
 											$newvar->questionID = $question->ID;
 											$newvar->itemID = $item->ID;
 											$newvar->scaleID = $scale->ID;
+											$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scale->ID.' ORDER BY ord');
+											$newvar->codes = $this->db->loadObjectList();
 											$variables[$varcnt++]=$newvar;
 										}
 									}
@@ -223,9 +239,119 @@ class JcqModelProjects extends JModel {
 			}
 		}
 		
-		#FIXME hier weiter
+		fwrite($file,"*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n");
+		
+		//Define Data.
+		#TODO add sessionID, duration etc.
+		fwrite($file,"DATA LIST LIST (\";\") / ");
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			fwrite($file,$variables[$i]->extvarname." ");
+			switch ($variables[$i]->datatype)
+			{
+				case 1:
+					{
+						fwrite($file,"(F8.0) ");
+						break;
+					}
+				case 2:
+					{
+						fwrite($file,"(F8.2) ");
+						break;
+					}
+				case 3:
+					{
+						fwrite($file,"(A) ");
+						break;
+					}
+				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
+			}
+		}
+		fwrite($file,".\n");
+		
+		//Get Data.
+		fwrite($file,"BEGIN DATA\n");
+		$this->db->setQuery("SELECT * FROM jcq_proj$projectID ORDER BY timestampBegin");
+		#FIXME perhaps this is not the most memory efficient procedure
+		$data = $this->db->loadAssocList();
+		#TODO set user-missings if value is missing
+		foreach ($data as $row)
+		{
+			for ($i=0;$i<$varcnt;$i++)
+			{
+				if ($i>0) fwrite($file,";");
+				switch ($variables[$i]->datatype)
+				{
+					case 1: case 2:
+						{
+							fwrite($file,$row[$variables[$i]->intvarname]);
+							break;
+						}
+					case 3:
+						{
+							#TODO secure against irregular text
+							fwrite($file,"\"".$row[$variables[$i]->intvarname]."\"");
+							break;
+						}
+					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
+				}				
+			}
+			fwrite($file,"\n");
+		}
+		fwrite($file,"END DATA.\n\n");
+		
+		//Set Variable Labels.
+		fwrite($file,"VARIABLE LABELS\n");
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($i>0) fwrite($file,"/ ");
+			#TODO check for irregular characters
+			fwrite($file,$variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n");
+		}
+		fwrite($file,".\n\n");
+		
+		//Set Value Labels.
+		fwrite($file,"VALUE LABELS\n");
+		$slashset = false;
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($variables[$i]->codes===null) continue;
+			if (!$slashset) $slashset=true;
+			else fwrite($file,"/ ");
+			fwrite($file,$variables[$i]->extvarname." ");
+			foreach ($variables[$i]->codes as $code)
+			{
+				fwrite($file,$code->code." '".$code->label."' ");
+			}
+			fwrite($file,"\n");
+		}
+		fwrite($file,".\n\n");
+
+		//Set Value Labels.
+		fwrite($file,"MISSING VALUES\n");
+		$slashset = false;
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($variables[$i]->codes===null) continue;
+			if (!$slashset) $slashset=true;
+			else fwrite($file,"/ ");
+			fwrite($file,$variables[$i]->extvarname." (");
+			$commaset = false;
+			foreach ($variables[$i]->codes as $code)
+			{
+				if ($code->missval)
+				{
+					fwrite($file,($commaset?",":"").$code->code);
+					$commaset = true;
+				}
+			}
+			fwrite($file,")\n");
+		}
+		fwrite($file,".\n\n");
 		
 		fclose($file);
+		
+		return $filename;
 	}
 }
 

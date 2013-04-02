@@ -79,6 +79,16 @@ Project has no pages.
 		<tr>
 			<td># finished first page:</td>
 			<td><?php echo($this->participants->getParticipantsFinishedFirst($this->project->ID)); ?></td>
+			<td>
+			<?php
+				if ($this->download!==null)
+				{
+					?>
+					<a href="<?php echo(JURI::base().'components/com_jcq/userdata/'.$this->download); ?>" target="blank">Download data</a>
+					<?php 
+				}
+			?>
+			</td>
 		</tr>
 		<tr>
 			<td># finished all:</td>
@@ -94,11 +104,11 @@ Project has no pages.
 		</tr>
 		<tr>
 			<td>Last begun questionnaire:</td>
-			<td><?php echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastBegun($this->project->ID))); ?></td>
+			<td><?php if ($this->participants->getLastBegun($this->project->ID)!=null) echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastBegun($this->project->ID))); ?></td>
 		</tr>
 		<tr>
 			<td>Last finished questionnaire:</td>
-			<td><?php echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastFinished($this->project->ID))); ?></td>
+			<td><?php if ($this->participants->getLastFinished($this->project->ID)!=null) echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastFinished($this->project->ID))); ?></td>
 		</tr>
 	</table>
 </fieldset>

@@ -51,6 +51,7 @@
 	   		<folder>models</folder>
 			<folder>sql</folder>
 			<folder>tables</folder>
+			<folder>userdata</folder>
 			<folder>views</folder>	
 	 	</files>
 	</administration>

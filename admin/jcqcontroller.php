@@ -61,11 +61,15 @@ class JcqController extends JController
 		$view->displayAdd();
 	}
 	
-	function editProject(){
+	function editProject($projectID=null,$download=null)
+	{
 		 
-		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
-		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
-		$projectID = (int)$projectids[0];
+		if ($projectID===null)
+		{
+			$projectids = JRequest::getVar('cid', null, 'default', 'array' );
+			if($projectids === null) JError::raiseError(500, 'cid parameter missing');
+			$projectID = (int)$projectids[0];
+		}
 	
 		$view = & $this->getView('projectform');
 		
@@ -75,7 +79,7 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model participants not found');
 				 
 		$view->setLayout('projectformlayout');
-		$view->displayEdit($projectID);
+		$view->displayEdit($projectID, $download);
 	}
 	
 	function saveProject()
@@ -601,9 +605,10 @@ class ".$project['classname']."\n
 		$projectid = $project['ID'];
 		
 		$model = & $this->getModel('projects');
-		$model->saveData($projectid);		
+		$filename = $model->saveData($projectid);		
 		
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
-		$this->setRedirect($redirectTo, 'Data saved!');
+		$app = &JFactory::getApplication();
+		$app->enqueueMessage("Data saved ...");
+		$this->editProject($projectid, $filename);
 	}
 }
