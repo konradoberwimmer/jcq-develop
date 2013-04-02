@@ -71,5 +71,20 @@ Page has <?php echo count($this->questions); ?> question(s).
              <legend>Questions:</legend>
 Page has no questions.
 </fieldset>
-<?php } ?>
+<?php } 
+if ($this->page->ID > 0)
+{
+	?>
+<fieldset>
+	<legend>Filter:</legend>
+	Page will NOT be shown if the following expression is true:
+	<input type="hidden" id="cntdisjunctions" value="0"/>
+	<table id="filtertable">
+	<tr><th/><th/><th/><th/><th/></tr>
+	</table>
+	<input type="button" value="Add disjunction" onclick="addDisjunction()"/><br/>
+</fieldset>
+	<?php 
+}
+?>
 </form>
