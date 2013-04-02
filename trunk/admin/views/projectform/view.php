@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewProjectform extends JView
 {
-	function displayEdit($projectID)
+	function displayEdit($projectID, $download=null)
 	{
 		$model = $this->getModel();
 		$project = $model->getProject($projectID);
@@ -13,6 +13,7 @@ class JcqViewProjectform extends JView
 		$pages = $model->getPages($projectID);
 		$this->assignRef('pages', $pages);
 		$this->assignRef('participants', $this->getModel('participants'));
+		$this->assignRef('download',$download);
 		
 		$questioncounts = array();
 		$i=0;
