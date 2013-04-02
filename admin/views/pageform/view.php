@@ -14,6 +14,10 @@ class JcqViewPageform extends JView
 		$questions = $model->getQuestions($pageID);
 		$this->assignRef('questions', $questions);
 		
+		$path = 'administrator/components/com_jcq/js/';
+		$filename = 'addfilter.js';
+		JHTML::script($path.$filename, true);
+		
 		JToolBarHelper::title('JCQ: Edit page');
 		if ($model->getQuestionCount($pageID) > 0) JToolBarHelper::deleteList("Do you really want to delete the selected questions?",'removeQuestion','Remove question(s)');
 		if ($model->getQuestionCount($pageID) > 0) JToolBarHelper::editList('editQuestion','Edit question');

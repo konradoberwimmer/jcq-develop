@@ -43,6 +43,7 @@ CREATE TABLE jcq_page(
 		name VARCHAR(255) NOT NULL,
 		ord INTEGER NOT NULL,
 		projectID BIGINT NOT NULL,
+		filter TEXT,
 		PRIMARY KEY (ID),
 		FOREIGN KEY (projectID) REFERENCES jcq_project(ID) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -63,6 +64,7 @@ CREATE TABLE jcq_question(
 		width_scale INTEGER DEFAULT 0,
 		alternate_bg BOOLEAN DEFAULT 0,
 		pageID BIGINT NOT NULL,
+		filter TEXT,
 		PRIMARY KEY (ID),
 		FOREIGN KEY (pageID) REFERENCES jcq_page(ID) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -75,6 +77,7 @@ CREATE TABLE jcq_item(
 		textleft TEXT,
 		textright TEXT,
 		questionID BIGINT NOT NULL,
+		filter TEXT,
 		PRIMARY KEY (ID),
 		FOREIGN KEY (questionID) REFERENCES jcq_question(ID) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;
