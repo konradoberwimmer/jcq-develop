@@ -2,7 +2,7 @@ function addDisjunction()
 {
 	var table = document.getElementById("filtertable");
 	var cntdisjunctionselem = document.getElementById("cntdisjunctions");
-	cntdisjunctionselem.setAttribute("value",cntdisjunctionselem.getAttribute("value")+1);
+	cntdisjunctionselem.setAttribute("value",Number(cntdisjunctionselem.getAttribute("value"))+1);
 	
 	var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
@@ -49,7 +49,7 @@ function removeDisjunction(number)
 {
 	var table = document.getElementById("filtertable");
 	var cntdisjunctionselem = document.getElementById("cntdisjunctions");
-	cntdisjunctionselem.setAttribute("value",cntdisjunctionselem.getAttribute("value")-1);
+	cntdisjunctionselem.setAttribute("value",Number(cntdisjunctionselem.getAttribute("value"))-1);
 	
 	table.deleteRow(number);
 	
@@ -85,7 +85,7 @@ function addConjugation(number)
 {
 	var table = document.getElementById("filtertable").rows[number].cells[1].getElementsByTagName("table")[0];
 	var cntconjugationselem = document.getElementById("cntconjugations"+number);
-	cntconjugationselem.setAttribute("value",cntconjugationselem.getAttribute("value")+1);
+	cntconjugationselem.setAttribute("value",Number(cntconjugationselem.getAttribute("value"))+1);
 	
 	var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
@@ -112,7 +112,7 @@ function removeConjugation(numberOR,numberAND)
 {
 	var table = document.getElementById("filtertable").rows[numberOR].cells[1].getElementsByTagName("table")[0];
 	var cntconjugationselem = document.getElementById("cntconjugations"+numberOR);
-	cntconjugationselem.setAttribute("value",cntconjugationselem.getAttribute("value")-1);
+	cntconjugationselem.setAttribute("value",Number(cntconjugationselem.getAttribute("value"))-1);
 	
 	table.deleteRow(numberAND);
 	

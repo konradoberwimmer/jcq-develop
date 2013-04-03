@@ -74,12 +74,56 @@ Page has no questions.
 <?php } 
 if ($this->page->ID > 0)
 {
+	$cntdisjunctions = 0;
+	if ($this->page->filter!=null && strlen($this->page->filter)>0)
+	{
+		$disjunctions = explode("|", $this->page->filter);
+		$cntdisjunctions = count($disjunctions);
+	}
 	?>
 <fieldset>
 	<legend>Filter:</legend>
 	Page will NOT be shown if the following expression is true:
-	<input type="hidden" id="cntdisjunctions" name="cntdisjunctions" value="0"/>
+	<input type="hidden" id="cntdisjunctions" name="cntdisjunctions" value="<?php echo($cntdisjunctions); ?>"/>
 	<table id="filtertable" style="border-collapse:collapse;">
+	<?php 
+	for ($i=0; $i<$cntdisjunctions; $i++)
+	{
+		?>
+		<tr style="border-bottom: 1px solid grey; border-top: 1px solid grey;">
+			<td><?php if ($i>0) echo("OR"); ?></td>
+			<td>
+			<?php 
+				$conjugations = explode("&", $disjunctions[$i]);
+				$cntconjugations = count($conjugations);
+			?>
+				<table>
+				<?php 
+				for ($j=0; $j<$cntconjugations; $j++)
+				{
+				?>
+					<tr>
+					<td><?php if ($j>0) echo("AND"); ?></td>
+					<td>VAR</td>
+					<td>OP</td>
+					<td>VAL</td>
+					<td>
+					<?php if ($j>0) { ?>
+					<input type="button" value="Remove AND" onclick="removeConjugation(<?php echo($i.",".$j); ?>)"/></td>
+					<?php } ?>
+					</tr>
+				<?php 
+				}
+				?>
+				</table>
+				<input type="hidden" id="cntconjugations<?php echo($i); ?>" name="cntconjugations<?php echo($i); ?>" value="<?php echo($cntconjugations); ?>"/>
+				<input type="button" value="Add AND" onclick="addConjugation(<?php echo($i); ?>)"/>
+			</td>
+			<td><input type="button" value="Remove OR" onclick="removeDisjunction(<?php echo($i); ?>)"/></td>
+		</tr>
+		<?php 
+	}
+	?>
 	</table>
 	<input type="button" value="Add OR" onclick="addDisjunction()"/><br/>
 </fieldset>

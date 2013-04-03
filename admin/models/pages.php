@@ -66,9 +66,28 @@ class JcqModelPages extends JModel {
 		// Bind the form fields to the greetings table
 		if (!$pageTableRow->bind($page)) JError::raiseError(500, 'Error binding data');
 	
+		if ($page['ID']>0) //handle filter information
+		{
+			$filter="";
+			for ($i=0; $i<$page['cntdisjunctions']; $i++)
+			{
+				if ($i>0) $filter .= "|";
+				$filter .= "(";
+				for ($j=0; $j<$page['cntconjugations'.$i]; $j++)
+				{
+					if ($j>0) $filter .= "&";
+					$filter .= "(";
+					$filter .= "$1$=0";
+					$filter .= ")";
+				}
+				$filter .= ")";
+			}
+			$pageTableRow->filter = $filter;
+		}
+		
 		// Make sure the greetings record is valid
 		if (!$pageTableRow->check()) JError::raiseError(500, 'Invalid data');
-			
+					
 		if (!$pageTableRow->store())
 		{
 			$errorMessage = $pageTableRow->getError();
@@ -85,20 +104,6 @@ class JcqModelPages extends JModel {
 				$errorMessage = $this->getDBO()->getErrorMsg();
 				JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 			}
-		} else //handle filter information
-		{
-			$str = "Filter: ".$page['cntdisjunctions'];
-			if ($page['cntdisjunctions']>0)
-			{
-				$str = $str . " (";
-				for ($i=0;$i<$page['cntdisjunctions'];$i++)
-				{
-					$str = $str . $page['cntconjugations'.$i];
-					if ($i<$page['cntdisjunctions']-1) $str = $str . ",";
-				}
-				$str = $str . ")";
-			}
-			JError::raiseError(500, $str);
 		}
 		
 		return $pageTableRow->ID;

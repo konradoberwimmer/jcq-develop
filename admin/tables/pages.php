@@ -6,6 +6,7 @@ class TablePages extends JTable {
 	public $name = null;
 	public $ord = null;
 	public $projectID = null;
+	public $filter = null;
 	
 	function TablePages(&$db)
 	{
