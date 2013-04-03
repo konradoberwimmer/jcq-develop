@@ -85,6 +85,20 @@ class JcqModelPages extends JModel {
 				$errorMessage = $this->getDBO()->getErrorMsg();
 				JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 			}
+		} else //handle filter information
+		{
+			$str = "Filter: ".$page['cntdisjunctions'];
+			if ($page['cntdisjunctions']>0)
+			{
+				$str = $str . " (";
+				for ($i=0;$i<$page['cntdisjunctions'];$i++)
+				{
+					$str = $str . $page['cntconjugations'.$i];
+					if ($i<$page['cntdisjunctions']-1) $str = $str . ",";
+				}
+				$str = $str . ")";
+			}
+			JError::raiseError(500, $str);
 		}
 		
 		return $pageTableRow->ID;
