@@ -79,10 +79,9 @@ if ($this->page->ID > 0)
 	<legend>Filter:</legend>
 	Page will NOT be shown if the following expression is true:
 	<input type="hidden" id="cntdisjunctions" value="0"/>
-	<table id="filtertable">
-	<tr><th/><th/><th/><th/><th/></tr>
+	<table id="filtertable" style="border-collapse:collapse;">
 	</table>
-	<input type="button" value="Add disjunction" onclick="addDisjunction()"/><br/>
+	<input type="button" value="Add Disjunction" onclick="addDisjunction()"/><br/>
 </fieldset>
 	<?php 
 }
