@@ -78,10 +78,10 @@ if ($this->page->ID > 0)
 <fieldset>
 	<legend>Filter:</legend>
 	Page will NOT be shown if the following expression is true:
-	<input type="hidden" id="cntdisjunctions" value="0"/>
+	<input type="hidden" id="cntdisjunctions" name="cntdisjunctions" value="0"/>
 	<table id="filtertable" style="border-collapse:collapse;">
 	</table>
-	<input type="button" value="Add Disjunction" onclick="addDisjunction()"/><br/>
+	<input type="button" value="Add OR" onclick="addDisjunction()"/><br/>
 </fieldset>
 	<?php 
 }
