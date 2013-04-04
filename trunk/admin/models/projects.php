@@ -18,15 +18,15 @@ class SPSSVariable
 }
 
 class JcqModelProjects extends JModel {
-	 
+
 	private $db;
-	
-	function __construct() 
+
+	function __construct()
 	{
 		parent::__construct();
 		$this->db = $this->getDBO();
 	}
-		
+
 	function getProjects()
 	{
 		$this->db->setQuery('SELECT * FROM jcq_project');
@@ -52,7 +52,7 @@ class JcqModelProjects extends JModel {
 		if ($pages == null) return 0;
 		else return count($pages);
 	}
-	 
+
 	function getQuestionCount($pageID)
 	{
 		$query = 'SELECT ID FROM jcq_question WHERE pageID = '.$pageID;
@@ -61,7 +61,7 @@ class JcqModelProjects extends JModel {
 		if ($questions == null) return 0;
 		else return count($questions);
 	}
-	
+
 	function getNewProject()
 	{
 		$projectTableRow =& $this->getTable('projects');
@@ -69,7 +69,7 @@ class JcqModelProjects extends JModel {
 		$projectTableRow->name = '';
 		return $projectTableRow;
 	}
-	 
+
 	function saveProject($project)
 	{
 		//TODO: secure against insertion
@@ -77,7 +77,7 @@ class JcqModelProjects extends JModel {
 		if (!$projectTableRow->bind($project)) JError::raiseError(500, 'Error binding data');
 		if (!$projectTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$projectTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$projectTableRow->getError());
-		
+
 		// if the project is new, build the user data table (using updated id after the store operation)
 		if ($project['ID']==0)
 		{
@@ -120,7 +120,7 @@ class JcqModelProjects extends JModel {
 		if ($pages === null) JError::raiseError(500, 'Error reading db');
 		return $pages;
 	}
-	
+
 	function saveData($projectID)
 	{
 		#FIXME just for now: create a file to write to
@@ -130,9 +130,130 @@ class JcqModelProjects extends JModel {
 		$project = $this->getProject($projectID);
 	
 		//prepare a storage for the variables to be downloaded
+		$variables = $this->getVariableList($projectID);
+		$varcnt = count($variables);
+		
+		fwrite($file,"*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n");
+	
+		//Define Data.
+		#TODO add sessionID, duration etc.
+		fwrite($file,"DATA LIST LIST (\";\") / ");
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			fwrite($file,$variables[$i]->extvarname." ");
+			switch ($variables[$i]->datatype)
+			{
+				case 1:
+					{
+						fwrite($file,"(F8.0) ");
+						break;
+					}
+				case 2:
+					{
+						fwrite($file,"(F8.2) ");
+						break;
+					}
+				case 3:
+					{
+						fwrite($file,"(A) ");
+						break;
+					}
+				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
+			}
+		}
+		fwrite($file,".\n");
+	
+		//Get Data.
+		fwrite($file,"BEGIN DATA\n");
+		$this->db->setQuery("SELECT * FROM jcq_proj$projectID ORDER BY timestampBegin");
+		#FIXME perhaps this is not the most memory efficient procedure
+		$data = $this->db->loadAssocList();
+		#TODO set user-missings if value is missing
+		foreach ($data as $row)
+		{
+			for ($i=0;$i<$varcnt;$i++)
+			{
+				if ($i>0) fwrite($file,";");
+				switch ($variables[$i]->datatype)
+				{
+					case 1: case 2:
+						{
+							fwrite($file,$row[$variables[$i]->intvarname]);
+							break;
+						}
+					case 3:
+						{
+							#TODO secure against irregular text
+							fwrite($file,"\"".$row[$variables[$i]->intvarname]."\"");
+						break;
+						}
+					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
+				}
+			}
+			fwrite($file,"\n");
+		}
+		fwrite($file,"END DATA.\n\n");
+	
+		//Set Variable Labels.
+		fwrite($file,"VARIABLE LABELS\n");
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($i>0) fwrite($file,"/ ");
+			#TODO check for irregular characters
+			fwrite($file,$variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n");
+		}
+		fwrite($file,".\n\n");
+	
+		//Set Value Labels.
+		fwrite($file,"VALUE LABELS\n");
+		$slashset = false;
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($variables[$i]->codes===null) continue;
+			if (!$slashset) $slashset=true;
+			else fwrite($file,"/ ");
+			fwrite($file,$variables[$i]->extvarname." ");
+			foreach ($variables[$i]->codes as $code)
+			{
+				fwrite($file,$code->code." '".$code->label."' ");
+			}
+			fwrite($file,"\n");
+		}
+		fwrite($file,".\n\n");
+	
+		//Set Value Labels.
+		fwrite($file,"MISSING VALUES\n");
+		$slashset = false;
+		for ($i=0;$i<$varcnt;$i++)
+		{
+			if ($variables[$i]->codes===null) continue;
+			if (!$slashset) $slashset=true;
+			else fwrite($file,"/ ");
+			fwrite($file,$variables[$i]->extvarname." (");
+			$commaset = false;
+			foreach ($variables[$i]->codes as $code)
+			{
+				if ($code->missval)
+				{
+					fwrite($file,($commaset?",":"").$code->code);
+					$commaset = true;
+				}
+			}
+			fwrite($file,")\n");
+		}
+		fwrite($file,".\n\n");
+	
+		fclose($file);
+	
+		return $filename;
+	}
+
+
+	function getVariableList($projectID)
+	{
 		$variables = array();
 		$varcnt = 0;
-	
+
 		$this->db->setQuery('SELECT * FROM jcq_page WHERE projectID = '.$projectID.' ORDER BY ord');
 		$pages = $this->db->loadObjectList();
 		if ($pages!=null)
@@ -162,7 +283,7 @@ class JcqModelProjects extends JModel {
 									$scales = $this->db->loadObjectList();
 									$newvar->scaleID = $scales[0]->scaleID;
 									$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
-									$newvar->codes = $this->db->loadObjectList();										
+									$newvar->codes = $this->db->loadObjectList();
 									$variables[$varcnt++]=$newvar;
 									break;
 								}
@@ -176,7 +297,7 @@ class JcqModelProjects extends JModel {
 									$newvar->pageID = $page->ID;
 									$newvar->questionID = $question->ID;
 									$variables[$varcnt++]=$newvar;
-									break;									
+									break;
 								}
 							case 311: case 340:
 								{
@@ -197,7 +318,7 @@ class JcqModelProjects extends JModel {
 										$newvar->itemID = $item->scaleID;
 										$newvar->scaleID = $scales[0]->ID;
 										$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
-										$newvar->codes = $this->db->loadObjectList();										
+										$newvar->codes = $this->db->loadObjectList();
 										$variables[$varcnt++]=$newvar;
 									}
 									break;
@@ -230,7 +351,7 @@ class JcqModelProjects extends JModel {
 										}
 									}
 									break;
-								}							
+								}
 							case 998: break;
 							default: JError::raiseError(500, 'FATAL: Code for saving data from question of type '.$question->questtype.' is missing!!!');
 						}
@@ -239,119 +360,7 @@ class JcqModelProjects extends JModel {
 			}
 		}
 		
-		fwrite($file,"*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n");
-		
-		//Define Data.
-		#TODO add sessionID, duration etc.
-		fwrite($file,"DATA LIST LIST (\";\") / ");
-		for ($i=0;$i<$varcnt;$i++)
-		{
-			fwrite($file,$variables[$i]->extvarname." ");
-			switch ($variables[$i]->datatype)
-			{
-				case 1:
-					{
-						fwrite($file,"(F8.0) ");
-						break;
-					}
-				case 2:
-					{
-						fwrite($file,"(F8.2) ");
-						break;
-					}
-				case 3:
-					{
-						fwrite($file,"(A) ");
-						break;
-					}
-				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
-			}
-		}
-		fwrite($file,".\n");
-		
-		//Get Data.
-		fwrite($file,"BEGIN DATA\n");
-		$this->db->setQuery("SELECT * FROM jcq_proj$projectID ORDER BY timestampBegin");
-		#FIXME perhaps this is not the most memory efficient procedure
-		$data = $this->db->loadAssocList();
-		#TODO set user-missings if value is missing
-		foreach ($data as $row)
-		{
-			for ($i=0;$i<$varcnt;$i++)
-			{
-				if ($i>0) fwrite($file,";");
-				switch ($variables[$i]->datatype)
-				{
-					case 1: case 2:
-						{
-							fwrite($file,$row[$variables[$i]->intvarname]);
-							break;
-						}
-					case 3:
-						{
-							#TODO secure against irregular text
-							fwrite($file,"\"".$row[$variables[$i]->intvarname]."\"");
-							break;
-						}
-					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
-				}				
-			}
-			fwrite($file,"\n");
-		}
-		fwrite($file,"END DATA.\n\n");
-		
-		//Set Variable Labels.
-		fwrite($file,"VARIABLE LABELS\n");
-		for ($i=0;$i<$varcnt;$i++)
-		{
-			if ($i>0) fwrite($file,"/ ");
-			#TODO check for irregular characters
-			fwrite($file,$variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n");
-		}
-		fwrite($file,".\n\n");
-		
-		//Set Value Labels.
-		fwrite($file,"VALUE LABELS\n");
-		$slashset = false;
-		for ($i=0;$i<$varcnt;$i++)
-		{
-			if ($variables[$i]->codes===null) continue;
-			if (!$slashset) $slashset=true;
-			else fwrite($file,"/ ");
-			fwrite($file,$variables[$i]->extvarname." ");
-			foreach ($variables[$i]->codes as $code)
-			{
-				fwrite($file,$code->code." '".$code->label."' ");
-			}
-			fwrite($file,"\n");
-		}
-		fwrite($file,".\n\n");
-
-		//Set Value Labels.
-		fwrite($file,"MISSING VALUES\n");
-		$slashset = false;
-		for ($i=0;$i<$varcnt;$i++)
-		{
-			if ($variables[$i]->codes===null) continue;
-			if (!$slashset) $slashset=true;
-			else fwrite($file,"/ ");
-			fwrite($file,$variables[$i]->extvarname." (");
-			$commaset = false;
-			foreach ($variables[$i]->codes as $code)
-			{
-				if ($code->missval)
-				{
-					fwrite($file,($commaset?",":"").$code->code);
-					$commaset = true;
-				}
-			}
-			fwrite($file,")\n");
-		}
-		fwrite($file,".\n\n");
-		
-		fclose($file);
-		
-		return $filename;
+		return $variables;
 	}
 }
 

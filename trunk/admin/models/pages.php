@@ -4,9 +4,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 jimport('joomla.application.component.model');
 
 class JcqModelPages extends JModel {
-	
+
 	//TODO: secure against insertion
-	
+
 	function getPage($ID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$ID;
@@ -17,7 +17,7 @@ class JcqModelPages extends JModel {
 		if ($page === null) JError::raiseError(500, 'Page with ID: '.$ID.' not found.');
 		else return $page;
 	}
-	
+
 	function getQuestionCount($pageID)
 	{
 		$query = 'SELECT ID FROM jcq_question WHERE pageID = '.$pageID;
@@ -28,7 +28,7 @@ class JcqModelPages extends JModel {
 		if ($questions == null) return 0;
 		else return count($questions);
 	}
-	
+
 	function getProjectFromPage($pageID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$pageID;
@@ -43,12 +43,12 @@ class JcqModelPages extends JModel {
 			$db = $this->getDBO();
 			$db->setQuery($query);
 			$project = $db->loadObject();
-			
+				
 			if ($project === null) JError::raiseError(500, 'Project with ID: '.$page->projectID.' not found.');
 			else return $project;
 		}
 	}
-	
+
 	function getNewPage($projectID)
 	{
 		$pageTableRow =& $this->getTable('pages');
@@ -58,14 +58,14 @@ class JcqModelPages extends JModel {
 		$pageTableRow->projectID = $projectID;
 		return $pageTableRow;
 	}
-	
+
 	function savePage($page)
 	{
 		$pageTableRow =& $this->getTable();
 			
 		// Bind the form fields to the greetings table
 		if (!$pageTableRow->bind($page)) JError::raiseError(500, 'Error binding data');
-	
+
 		if ($page['ID']>0) //handle filter information
 		{
 			$filter="";
@@ -76,24 +76,30 @@ class JcqModelPages extends JModel {
 				for ($j=0; $j<$page['cntconjugations'.$i]; $j++)
 				{
 					if ($j>0) $filter .= "&";
-					$filter .= "(";
-					$filter .= "$1$=0";
-					$filter .= ")";
+					$filter .= ("$".$page['variable'.$i.'_'.$j]."$");
+					$op="==";
+					if ($page['operator'.$i.'_'.$j]==2) $op="!=";
+					if ($page['operator'.$i.'_'.$j]==3) $op="<";
+					if ($page['operator'.$i.'_'.$j]==4) $op="<=";
+					if ($page['operator'.$i.'_'.$j]==5) $op=">=";
+					if ($page['operator'.$i.'_'.$j]==6) $op=">";
+					$filter .= $op;
+					$filter .= $page['val'.$i.'_'.$j];
 				}
 				$filter .= ")";
 			}
 			$pageTableRow->filter = $filter;
 		}
-		
+
 		// Make sure the greetings record is valid
 		if (!$pageTableRow->check()) JError::raiseError(500, 'Invalid data');
-					
+			
 		if (!$pageTableRow->store())
 		{
 			$errorMessage = $pageTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
-		
+
 		// if a new page is created, also create the timestamp in the user data table
 		if ($page['ID']==0)
 		{
@@ -105,10 +111,10 @@ class JcqModelPages extends JModel {
 				JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 			}
 		}
-		
+
 		return $pageTableRow->ID;
 	}
-	
+
 	function deletePages($arrayIDs)
 	{
 		// drop timestamp as well as columns of questions and items of this page in the user data table by naming convention
@@ -129,7 +135,7 @@ class JcqModelPages extends JModel {
 				}
 			}
 		}
-		// delete the page itself		
+		// delete the page itself
 		$query = "DELETE FROM jcq_page WHERE ID IN (".implode(',', $arrayIDs).")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
@@ -137,9 +143,9 @@ class JcqModelPages extends JModel {
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting pages: '.$errorMessage);
 		}
-		
+
 	}
-	
+
 	function setPageOrder(array $pageids,array $pageord)
 	{
 		for ($i=0;$i<count($pageids);$i++)
@@ -153,15 +159,16 @@ class JcqModelPages extends JModel {
 			}
 		}
 	}
-	
+
 	function getQuestions($pageID)
 	{
 		$db = $this->getDBO();
 			
 		$db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$pageID.' ORDER BY ord');
 		$questions = $db->loadObjectList();
-	
+
 		if ($questions === null) JError::raiseError(500, 'Error reading db');
 		else return $questions;
 	}
+
 }

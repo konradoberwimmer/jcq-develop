@@ -34,6 +34,7 @@ Project has <?php echo count($this->pages); ?> page(s).
                            <th>Order</th>
                            <th>Name</th>
                            <th>Questions</th>
+                           <th>Filter</th>
                     </tr>               
              </thead>
              <tbody>
@@ -50,6 +51,7 @@ Project has <?php echo count($this->pages); ?> page(s).
                             <input type="hidden" name="pageids[]" value="<?php echo $row->ID; ?>"/></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
                             <td><?php echo $this->questioncounts[$i]; ?></td>
+                            <td><input type="checkbox" <?php if ($row->filter!=null && strlen($row->filter)>0) echo("checked"); ?> disabled/></td>
                     </tr>
                     <?php
                     	$k = 1 - $k;
