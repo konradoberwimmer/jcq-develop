@@ -83,7 +83,7 @@ if ($this->page->ID > 0)
 	?>
 <fieldset>
 	<legend>Filter:</legend>
-	Page will NOT be shown if the following expression is true:
+	Page will only be shown if the following expression is true:
 	<select id="varidTEMPLATE" name="" style="display: none;">
 	<?php 
 		foreach ($this->variables as $variable)

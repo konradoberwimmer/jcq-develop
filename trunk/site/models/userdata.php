@@ -297,7 +297,7 @@ class JcqModelUserdata extends JModel
 					$foundnextpage = false;
 					while (++$i < count($pages))
 					{
-						if (!$this->pageFilterApplies($pages[$i]->ID))
+						if ($this->checkPageFilter($pages[$i]->ID))
 						{
 							$nextpage = $pages[$i]->ID;
 							$foundnextpage = true;
@@ -331,16 +331,19 @@ class JcqModelUserdata extends JModel
 		return !$hasmissings;
 	}
 
-	function pageFilterApplies ($pageID)
+	function checkPageFilter ($pageID)
 	{
 		$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=$pageID");
 		$page = $this->db->loadObject();
 		if ($page==null) JError::raiseError(500, "Error: could not find page with ID $pageID");
+		if ($page->filter==null || strlen($page->filter)<1) return true;
+		
+		$return = false;
 		$filter = $page->filter;
 		$disjunctions = explode("|",$filter);
 		foreach ($disjunctions as $disjunction)
 		{
-			$disval = true;
+			$inner = true;
 			$disjunction = str_replace(array("(",")"), "", $disjunction); //strip the brackets
 			$conjugations = explode("&",$disjunction);
 			foreach ($conjugations as $conjugation)
@@ -349,24 +352,20 @@ class JcqModelUserdata extends JModel
 				$seconddelim = strpos($conjugation, "$", $firstdelim+1);
 				$varname = substr($conjugation, $firstdelim+1, $seconddelim-$firstdelim-1);
 				//all comparisons against missing data yield false
-				if (!$this->hasStoredValueVariable($varname))
+				if (!$this->hasStoredValueVariable($varname)) $inner = $inner && false;
+				else
 				{
-					$disval = false;
-					break;
-				} else
-				{
-					if (strpos($conjugation,"==")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"==")+2));
-					if (strpos($conjugation,"!=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"!=")+2));
-					if (strpos($conjugation,"<")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"<")+1));
-					if (strpos($conjugation,"<=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"<=")+2));
-					if (strpos($conjugation,">=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,">=")+2));
-					elseif (strpos($conjugation,">")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,">")+1));
+					if (strpos($conjugation,"==")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"==")+2));
+					if (strpos($conjugation,"!=")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)!=substr($conjugation,strpos($conjugation,"!=")+2));
+					if (strpos($conjugation,"<")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)<substr($conjugation,strpos($conjugation,"<")+1));
+					if (strpos($conjugation,"<=")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)<=substr($conjugation,strpos($conjugation,"<=")+2));
+					if (strpos($conjugation,">=")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)>=substr($conjugation,strpos($conjugation,">=")+2));
+					elseif (strpos($conjugation,">")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)>substr($conjugation,strpos($conjugation,">")+1));
 				}
-				if (!$disval) break;
 			}			
-			if ($disval) return true;
+			$return = $return || $inner;
 		}
-		return false;
+		return $return;
 	}
 	
 	function getSessionID()
