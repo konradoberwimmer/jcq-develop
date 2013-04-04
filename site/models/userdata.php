@@ -12,9 +12,16 @@ jimport('joomla.application.component.model');
 
 class JcqModelUserdata extends JModel
 {
+	private $db;
 	private $projectID = null;
 	private $sessionID = null;
-
+	
+	function __construct()
+	{
+		parent::__construct();
+		$this->db = $this->getDBO();
+	}
+	
 	function loadSession($projectID,$sessionID)
 	{
 		//this is just for safety: look if session really exists
@@ -286,10 +293,19 @@ class JcqModelUserdata extends JModel
 						$errorMessage = $this->getDBO()->getErrorMsg();
 						JError::raiseError(500, 'Error saving timestamp: '.$errorMessage);
 					}
-					//next page exists in project
-					if ($i<count($pages)-1) $nextpage = $pages[$i+1]->ID;
+					//search for next unfiltered page
+					$foundnextpage = false;
+					while (++$i < count($pages))
+					{
+						if (!$this->pageFilterApplies($pages[$i]->ID))
+						{
+							$nextpage = $pages[$i]->ID;
+							$foundnextpage = true;
+							break;
+						}
+					}
 					//no next page --> user code has to be invoked
-					else
+					if (!$foundnextpage)
 					{
 						$nextpage = -1;
 						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET finished=1, timestampEnd=".time()." WHERE sessionID='".$this->sessionID."'";
@@ -315,11 +331,57 @@ class JcqModelUserdata extends JModel
 		return !$hasmissings;
 	}
 
+	function pageFilterApplies ($pageID)
+	{
+		$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=$pageID");
+		$page = $this->db->loadObject();
+		if ($page==null) JError::raiseError(500, "Error: could not find page with ID $pageID");
+		$filter = $page->filter;
+		$disjunctions = explode("|",$filter);
+		foreach ($disjunctions as $disjunction)
+		{
+			$disval = true;
+			$disjunction = str_replace(array("(",")"), "", $disjunction); //strip the brackets
+			$conjugations = explode("&",$disjunction);
+			foreach ($conjugations as $conjugation)
+			{
+				$firstdelim = strpos($conjugation, "$");
+				$seconddelim = strpos($conjugation, "$", $firstdelim+1);
+				$varname = substr($conjugation, $firstdelim+1, $seconddelim-$firstdelim-1);
+				//all comparisons against missing data yield false
+				if (!$this->hasStoredValueVariable($varname))
+				{
+					$disval = false;
+					break;
+				} else
+				{
+					if (strpos($conjugation,"==")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"==")+2));
+					if (strpos($conjugation,"!=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"!=")+2));
+					if (strpos($conjugation,"<")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"<")+1));
+					if (strpos($conjugation,"<=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,"<=")+2));
+					if (strpos($conjugation,">=")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,">=")+2));
+					elseif (strpos($conjugation,">")!==false) $disval=($this->getStoredValueVariable($varname)==substr($conjugation,strpos($conjugation,">")+1));
+				}
+				if (!$disval) break;
+			}			
+			if ($disval) return true;
+		}
+		return false;
+	}
+	
 	function getSessionID()
 	{
 		return $this->sessionID;
 	}
 
+	function hasStoredValueVariable($varname)
+	{
+		$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$this->db->setQuery($sqlgetvalue);
+		$answer = $this->db->loadResult();
+		return ($answer!=null);
+	}
+	
 	function hasStoredValueQuestion($pageID,$questionID)
 	{
 		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
@@ -339,6 +401,14 @@ class JcqModelUserdata extends JModel
 		return ($answer!=null);
 	}
 
+	function getStoredValueVariable($varname)
+	{
+		$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$this->db->setQuery($sqlgetvalue);
+		$answer = $this->db->loadResult();
+		return $answer;
+	}
+	
 	function getStoredValueQuestion($pageID,$questionID)
 	{
 		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";

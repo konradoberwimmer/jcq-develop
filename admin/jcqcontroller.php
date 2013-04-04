@@ -283,21 +283,19 @@ class ".$project['classname']."\n
 		$this->setRedirect($redirectTo, ($importwell?'Project imported ...':'Error importing ...'));
 	}
 	
-	function editPage(){
-			
+	function editPage()
+	{
 		$pageids = JRequest::getVar('cid', null, 'default', 'array' );
-			
 		if($pageids === null) JError::raiseError(500, 'cid parameter missing');
-			
-		$pageID = (int)$pageids[0]; //get the first id from the list (we can only edit one greeting at a time)
+		$pageID = (int)$pageids[0];
 	
 		$view = & $this->getView('pageform');
 			
-		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions')) {
-			//Push the model into the view (as default)
-			//Second parameter indicates that it is the default model for the view
+		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions') && $modelprojects = & $this->getModel('projects')) 
+		{
 			$view->setModel($model, true);
 			$view->setModel($modelquestions, false);
+			$view->setModel($modelprojects, false);
 		}
 		else JError::raiseError(500, 'Model not found');
 			
