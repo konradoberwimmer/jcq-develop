@@ -9,6 +9,9 @@ class TableItems extends JTable {
 	public $textleft = null;
 	public $textright = null;
 	public $questionID = null;
+	public $filter = null;
+	public $bindingType = "QUESTION";
+	public $bindingID = null;
 	
 	function TableItems(&$db)
 	{

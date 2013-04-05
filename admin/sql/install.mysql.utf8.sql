@@ -78,6 +78,8 @@ CREATE TABLE jcq_item(
 		textright TEXT,
 		questionID BIGINT NOT NULL,
 		filter TEXT,
+		bindingType ENUM('QUESTION','CODE','ITEM') NOT NULL,
+		bindingID BIGINT,
 		PRIMARY KEY (ID),
 		FOREIGN KEY (questionID) REFERENCES jcq_question(ID) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;

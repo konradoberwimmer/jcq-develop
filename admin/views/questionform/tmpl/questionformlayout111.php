@@ -55,6 +55,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                            <th>Label</th>
                            <th>Missing value</th>
                            <th>Delete</th>
+                           <th>Add/remove text field</th>
                     </tr>               
              </thead>
              <tbody id="listscalebody">
@@ -70,6 +71,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                         <td><input type="text" id="<?php echo("code".$row->ID."label"); ?>" name="codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."missval"); ?>" name="codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."delete"); ?>" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
+                    	<td><input type="checkbox" id="<?php echo("code".$row->ID."addrmtf"); ?>" name="codeaddrmtf[]" value="<?php echo $row->ID; ?>"/></td>
                     </tr>
                     <?php
                     	$k = 1 - $k;
