@@ -7,6 +7,14 @@ class JcqModelItems extends JModel {
 
 	//TODO: secure against insertion
 
+	function getItem($itemID)
+	{
+		$query = 'SELECT * FROM jcq_item WHERE ID='.$itemID;
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		return $db->loadObject();
+	}
+	
 	function getItems($questionID)
 	{
 		$query = 'SELECT * FROM jcq_item WHERE questionID = '.$questionID.' ORDER BY ord';

@@ -67,7 +67,17 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <tr>
 						<td><input type="text" id="<?php echo("code".$row->ID."ord"); ?>" name="codeord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="codeids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/></td>       
+                        <td><input type="text" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/>
+                        <?php 
+                        	$bindeditems = $this->getModel('scales')->getCodebindedItems($row->ID);
+                        	if ($bindeditems!=null && count($bindeditems)>0)
+                        	{
+                        		echo("<br/>Including textfield with varname:<br/>");
+                        		echo("<input type=\"hidden\" name=\"code".$row->ID."tfID\" value=\"".$bindeditems[0]->ID."\"/>");
+                        		echo("<input type=\"text\" size=\"16\" name=\"code".$row->ID."tfvarname\" value=\"".$bindeditems[0]->varname."\"/>");
+                        	}
+                        ?>
+                        </td>       
                         <td><input type="text" id="<?php echo("code".$row->ID."label"); ?>" name="codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."missval"); ?>" name="codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."delete"); ?>" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
