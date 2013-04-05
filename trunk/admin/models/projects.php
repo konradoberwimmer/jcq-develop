@@ -285,6 +285,22 @@ class JcqModelProjects extends JModel {
 									$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
 									$newvar->codes = $this->db->loadObjectList();
 									$variables[$varcnt++]=$newvar;
+									//look for additional textfields
+									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID='.$question->ID);
+									$items = $this->db->loadObjectList();
+									for ($k=0;$k<count($items);$k++)
+									{
+										$item=$items[$k];
+										$newvar = new SPSSVariable();
+										$newvar->datatype = 3;
+										$newvar->extvarname = $item->varname;
+										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
+										$newvar->varlabel = $question->text; #FIXME should be more informative
+										$newvar->pageID = $page->ID;
+										$newvar->questionID = $question->ID;
+										$newvar->itemID = $item->ID;
+										$variables[$varcnt++]=$newvar;
+									}
 									break;
 								}
 							case 141:
@@ -315,7 +331,7 @@ class JcqModelProjects extends JModel {
 										$newvar->varlabel = $item->textleft." ".$item->textright;
 										$newvar->pageID = $page->ID;
 										$newvar->questionID = $question->ID;
-										$newvar->itemID = $item->scaleID;
+										$newvar->itemID = $item->ID;
 										$newvar->scaleID = $scales[0]->ID;
 										$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
 										$newvar->codes = $this->db->loadObjectList();

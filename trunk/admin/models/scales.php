@@ -152,7 +152,29 @@ class JcqModelScales extends JModel {
 	
 	function deleteCodes($arrayIDs)
 	{
-		#TODO check for binded items (textfields) and delete them as well
+		//first delete binded items (if any)
+		foreach ($arrayIDs as $oneID)	
+		{
+			$bindeditems = $this->getCodebindedItems($oneID);
+			if ($bindeditems!=null && count($bindeditems)>0)
+			{
+				foreach ($bindeditems as $bindeditem)
+				{
+					$this->db->setQuery("SELECT * FROM jcq_question WHERE ID=".$bindeditem->questionID);
+					$question = $this->db->loadObject();
+					if (!$question) JError::raiseError(500, 'Error getting question: '.$this->db->getErrorMsg());
+					$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=".$question->pageID);
+					$page = $this->db->loadObject();
+					if (!$page) JError::raiseError(500, 'Error getting page: '.$this->db->getErrorMsg());
+					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
+					//also delete data column
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+				}
+			}
+		}
+		//then delete the code
 		$query = "DELETE FROM jcq_code WHERE ID IN (".implode(',', $arrayIDs).")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
@@ -160,6 +182,14 @@ class JcqModelScales extends JModel {
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting codes: '.$errorMessage);
 		}
+	}
+	
+	function getCodebindedItems($codeID)
+	{
+		$this->db->setQuery("SELECT * FROM jcq_item WHERE bindingType='CODE' AND bindingID=".$codeID);
+		$sqlresult = $this->db->loadObjectList();
+		if ($sqlresult===false) JError::raiseError(500, 'Error fetching textfields: '.$this->getDBO()->getErrorMsg());
+		else return $sqlresult;
 	}
 	
 	function addrmTextfields($arrayIDs,$questionid)
@@ -173,16 +203,17 @@ class JcqModelScales extends JModel {
 			$page = $this->db->loadObject();
 			if (!$page) JError::raiseError(500, 'Error getting page: '.$this->db->getErrorMsg());
 			//Delete if a textfield is already there
-			$this->db->setQuery("SELECT * FROM jcq_item WHERE bindingType='CODE' AND bindingID=".$oneID);
-			$sqlresult = $this->db->loadObjectList();
-			if ($sqlresult===false) JError::raiseError(500, 'Error fetching textfields: '.$this->getDBO()->getErrorMsg());
-			if ($sqlresult!=null && count($sqlresult)>0)
+			$bindeditems = $this->getCodebindedItems($oneID);
+			if ($bindeditems!=null && count($bindeditems)>0)
 			{
-				$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$sqlresult[0]->ID);
-				if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
-				//also delete data column
-				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$sqlresult[0]->ID);
-				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+				foreach ($bindeditems as $bindeditem)
+				{
+					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
+					//also delete data column
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+				}
 			} else
 			{
 				//if non exists so far, create one

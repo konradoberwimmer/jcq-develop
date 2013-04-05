@@ -402,7 +402,7 @@ class ".$project['classname']."\n
 		//save the scale(s) if question has any
 		if (isset($question['scaleID']))
 		{
-			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
+			//has to be in this order: 1. save codes 2. add/remove textfields 3. delete codes; otherwise errors for missing IDs
 			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
 			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
 			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
@@ -419,11 +419,20 @@ class ".$project['classname']."\n
 				else $code['missval']=0;
 				$code['scaleID']=$question['scaleID'];
 				$scalemodel->saveCode($code);
+				//save binded items if any
+				$bindeditem = JRequest::getVar('code'.$code['ID'].'tfID', null);
+				if ($bindeditem!=null)
+				{
+					$tableItem =& $this->getModel("items")->getTable("items");
+					$tableItem->load($bindeditem);
+					$tableItem->varname = JRequest::getVar('code'.$code['ID'].'tfvarname', null);
+					$tableItem->store();
+				}
 			}
-			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 			$codeaddrmtf = JRequest::getVar('codeaddrmtf', null, 'default', 'array' );
 			if ($codeaddrmtf!=null) $scalemodel->addrmTextfields($codeaddrmtf,$questionid);
+			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
+			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 		}
 		
 		//special case question type 361: save the attached scales
