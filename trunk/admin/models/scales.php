@@ -5,7 +5,13 @@ jimport('joomla.application.component.model');
 
 class JcqModelScales extends JModel {
 
-	//TODO: secure against insertion
+	private $db;
+	
+	function __construct()
+	{
+		parent::__construct();
+		$this->db = $this->getDBO();
+	}
 
 	function getScale($scaleID)
 	{
@@ -73,6 +79,9 @@ class JcqModelScales extends JModel {
 	
 	function saveScale($scale)
 	{
+		
+		//TODO: secure against insertion
+		
 		$scaleTableRow =& $this->getTable();
 			
 		// Bind the form fields to the greetings table
@@ -143,12 +152,52 @@ class JcqModelScales extends JModel {
 	
 	function deleteCodes($arrayIDs)
 	{
+		#TODO check for binded items (textfields) and delete them as well
 		$query = "DELETE FROM jcq_code WHERE ID IN (".implode(',', $arrayIDs).")";
 		$db = $this->getDBO();
 		$db->setQuery($query);
 		if (!$db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting codes: '.$errorMessage);
+		}
+	}
+	
+	function addrmTextfields($arrayIDs,$questionid)
+	{
+		foreach($arrayIDs as $oneID)
+		{
+			$this->db->setQuery("SELECT * FROM jcq_question WHERE ID=".$questionid);
+			$question = $this->db->loadObject();
+			if (!$question) JError::raiseError(500, 'Error getting question: '.$this->db->getErrorMsg());
+			$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=".$question->pageID);
+			$page = $this->db->loadObject();
+			if (!$page) JError::raiseError(500, 'Error getting page: '.$this->db->getErrorMsg());
+			//Delete if a textfield is already there
+			$this->db->setQuery("SELECT * FROM jcq_item WHERE bindingType='CODE' AND bindingID=".$oneID);
+			$sqlresult = $this->db->loadObjectList();
+			if ($sqlresult===false) JError::raiseError(500, 'Error fetching textfields: '.$this->getDBO()->getErrorMsg());
+			if ($sqlresult!=null && count($sqlresult)>0)
+			{
+				$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$sqlresult[0]->ID);
+				if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
+				//also delete data column
+				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$sqlresult[0]->ID);
+				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+			} else
+			{
+				//if non exists so far, create one
+				$itemTableRow =& $this->getTable('items');
+				$itemTableRow->ord = 0;
+				$itemTableRow->varname = "question".$questionid."code".$oneID."text";
+				$itemTableRow->mandatory = 0;
+				$itemTableRow->questionID = $questionid;
+				$itemTableRow->bindingType = "CODE";
+				$itemTableRow->bindingID = $oneID;
+				if (!$itemTableRow->store()) JError::raiseError(500, 'Error inserting textfield: '.$itemTableRow->getError());
+				//also create the userdata table column
+				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."q".$question->ID."i".$itemTableRow->ID." TEXT");
+				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());	
+			}
 		}
 	}
 }

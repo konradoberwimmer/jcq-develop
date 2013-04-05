@@ -146,7 +146,7 @@ class JcqModelQuestions extends JModel {
 
 			switch ($question->questtype)
 			{
-				case 111: case 141:
+				case 141:
 					{
 						$query = "ALTER TABLE jcq_proj".$project->ID." DROP COLUMN p".$page->ID."q".$oneID;
 						$db = $this->getDBO();
@@ -157,7 +157,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case 311: case 340: case 361:
+				case 111: case 311: case 340: case 361:
 					{
 						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
 						$db = $this->getDBO();

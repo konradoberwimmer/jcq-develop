@@ -422,6 +422,8 @@ class ".$project['classname']."\n
 			}
 			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
 			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+			$codeaddrmtf = JRequest::getVar('codeaddrmtf', null, 'default', 'array' );
+			if ($codeaddrmtf!=null) $scalemodel->addrmTextfields($codeaddrmtf,$questionid);
 		}
 		
 		//special case question type 361: save the attached scales
