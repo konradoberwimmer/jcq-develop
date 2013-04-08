@@ -56,6 +56,7 @@ class JcqModelPages extends JModel {
 		$pageTableRow->name = '';
 		$pageTableRow->ord = 0; //FIXME should be set to highest value
 		$pageTableRow->projectID = $projectID;
+		$pageTableRow->isFinal = 0;
 		return $pageTableRow;
 	}
 
@@ -148,7 +149,7 @@ class JcqModelPages extends JModel {
 
 	function setPageOrder(array $pageids,array $pageord)
 	{
-		for ($i=0;$i<count($pageids);$i++)
+		for ($i=0;$i<count($pageord);$i++)
 		{
 			$query = "UPDATE jcq_page SET ord=".$pageord[$i]." WHERE ID=".$pageids[$i];
 			$db = $this->getDBO();

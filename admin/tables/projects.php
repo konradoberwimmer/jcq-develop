@@ -4,8 +4,6 @@ defined('_JEXEC') or die('Restricted Access');
 class TableProjects extends JTable {
 	public $ID = null;
 	public $name = null;
-	public $classfile = null;
-	public $classname = null;
 	public $cssfile = null;
 	public $description = null;
 	public $anonymous = false;

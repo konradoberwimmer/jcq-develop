@@ -12,8 +12,6 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
                     <tr>
                            <th width="10"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->projects); ?>)" /></th>
                            <th>Name</th>
-                           <th>Classname</th>
-                           <th>Classfile</th>
                            <th>Description</th>
                            <th>Anonymous</th>
                            <th>Multiple</th>
@@ -31,8 +29,6 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
                     <tr>
                             <td><?php echo $checked; ?></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
-                            <td><?php echo $row->classname; ?></td>
-                            <td><?php echo $row->classfile; ?></td>
                             <td><?php echo $row->description; ?></td>
                             <td><input type="checkbox" <?php if ($row->anonymous) echo("checked"); ?> disabled/></td>
                             <td><input type="checkbox" <?php if ($row->multiple) echo("checked"); ?> disabled /></td>

@@ -11,7 +11,9 @@ class JcqViewProjectform extends JView
 		$project = $model->getProject($projectID);
 		$this->assignRef('project', $project);
 		$pages = $model->getPages($projectID);
+		$imports = $model->getImports($projectID);
 		$this->assignRef('pages', $pages);
+		$this->assignRef('imports', $imports);
 		$this->assignRef('participants', $this->getModel('participants'));
 		$this->assignRef('download',$download);
 		
@@ -28,6 +30,8 @@ class JcqViewProjectform extends JView
 		//add javascript functionality for checking correctness of input
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
+		JHTML::script($path.$filename, true);
+		$filename = 'addimports.js';
 		JHTML::script($path.$filename, true);
 		
 		JToolBarHelper::title('JCQ: Edit project');

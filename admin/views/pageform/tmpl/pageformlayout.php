@@ -17,6 +17,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->page->ID; ?>"/>
+       <input type="hidden" name="isFinal" value="<?php echo $this->page->isFinal; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->page->projectID; ?>"/>
        <input type="hidden" name="task" value=""/>
 <?php if ($this->page->ID > 0 && $this->questions != null) { ?>
@@ -72,7 +73,7 @@ Page has <?php echo count($this->questions); ?> question(s).
 Page has no questions.
 </fieldset>
 <?php } 
-if ($this->page->ID > 0)
+if ($this->page->ID > 0 && !$this->page->isFinal)
 {
 	$cntdisjunctions = 0;
 	if ($this->page->filter!=null && strlen($this->page->filter)>0)

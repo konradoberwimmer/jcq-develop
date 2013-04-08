@@ -2,7 +2,7 @@
 defined('_JEXEC') or die( 'Restricted access' ); ?>
 <div class="question340">
 	<?php
-		$items = $this->page->getItemsToQuestion($this->question->ID);
+		$items = $this->pagemodel->getItemsToQuestion($this->question->ID);
 		$missings=false;
 		foreach ($items as $item)
 		{
@@ -28,7 +28,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 	<?php if ($this->question->advise != null) echo '<p class="question340advise" style="'.$width_question.'">'.$this->question->advise.'</p>'; ?>
 	
 	<?php 
-		$codes = $this->page->getScaleToQuestion($this->question->ID);
+		$codes = $this->pagemodel->getScaleToQuestion($this->question->ID);
 		?>
 		<table class="question340">
 		<tr>

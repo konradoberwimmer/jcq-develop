@@ -10,18 +10,103 @@ function val_is_int($input) {
 
 jimport('joomla.application.component.model');
 
+function getStoredValue ($varname)
+{
+	global $currentsession, $currentproject;
+	//search for the variable name
+	$intvarname = null;
+	$db =& JFactory::getDBO();
+	$db->setQuery('SELECT * FROM jcq_page WHERE isFinal = 0 AND projectID = '.$currentproject.' ORDER BY ord');
+	$pages = $db->loadObjectList();
+	if ($pages!=null)
+	{
+		for ($i=0;$i<count($pages);$i++)
+		{
+			$page=$pages[$i];
+			$db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$page->ID.' ORDER BY ord');
+			$questions = $db->loadObjectList();
+			if ($questions!=null)
+			{
+				for ($j=0;$j<count($questions);$j++)
+				{
+					$question=$questions[$j];
+					switch ($question->questtype)
+					{
+						case 111:
+							{
+								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
+								//look for additional textfields
+								$db->setQuery('SELECT * FROM jcq_item WHERE questionID='.$question->ID);
+								$items = $db->loadObjectList();
+								for ($k=0;$k<count($items);$k++)
+								{
+									$item=$items[$k];
+									if ($item->varname==$varname) $intvarname="p".$page->ID."q".$question->ID."i".$item->ID;
+								}
+								break;
+							}
+						case 141:
+							{
+								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
+								break;
+							}
+						case 311: case 340:
+							{
+								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
+								$items = $db->loadObjectList();
+								for ($k=0;$k<count($items);$k++)
+								{
+									$item=$items[$k];
+									if ($item->varname==$varname) $intvarname="p".$page->ID."q".$question->ID."i".$item->ID;
+								}
+								break;
+							}
+						case 361:
+							{
+								$db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
+								$scales = $db->loadObjectList();
+								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
+								$items = $db->loadObjectList();
+								for ($k=0;$k<count($items);$k++)
+								{
+									$item=$items[$k];
+									for ($l=0;$l<count($scales);$l++)
+									{
+										$scale=$scales[$l];
+										if ($item->varname."_s".$scale->ID==$varname) $intvarname = "p".$page->ID."q".$question->ID."i".$item->ID."s".$scale->ID;
+									}
+								}
+								break;
+							}
+						case 998: break;
+						default: JError::raiseError(500, 'FATAL: Code for accessing data from question of type '.$question->questtype.' is missing!!!');
+					}
+					if ($intvarname!=null) break;
+				}
+			}
+			if ($intvarname!=null) break;
+		}
+	}
+	if ($intvarname==null) return null;
+	//get the value from the database
+	$sqlgetvalue = "SELECT $intvarname FROM jcq_proj".$currentproject." WHERE sessionID='".$currentsession."'";
+	$db->setQuery($sqlgetvalue);
+	$answer = $db->loadResult();
+	return $answer;
+}
+
 class JcqModelUserdata extends JModel
 {
 	private $db;
 	private $projectID = null;
 	private $sessionID = null;
-	
+
 	function __construct()
 	{
 		parent::__construct();
 		$this->db = $this->getDBO();
 	}
-	
+
 	function loadSession($projectID,$sessionID)
 	{
 		//this is just for safety: look if session really exists
@@ -34,6 +119,10 @@ class JcqModelUserdata extends JModel
 		{
 			$this->sessionID = $sessionID;
 			$this->projectID = $projectID;
+			//these simple steps allow user code to access answers from the current session without violating privacy
+			global $currentsession, $currentproject;
+			$currentsession = $this->sessionID;
+			$currentproject = $this->projectID;
 			return true;
 		}
 	}
@@ -74,7 +163,7 @@ class JcqModelUserdata extends JModel
 			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='".$user->username."'";
 			$db->setQuery($sqlsessions);
 			$sessions = $db->loadObjectList();
-				
+
 			//case 2a: no session exists for user or multiple answers are permitted --> create session
 			if ($sessions==null || $project->multiple==1)
 			{
@@ -109,7 +198,7 @@ class JcqModelUserdata extends JModel
 		//case: if at the beginning, set to first page and return that value
 		if ($session->curpage==0)
 		{
-			$sqlpages = "SELECT * FROM jcq_page WHERE projectID=".$this->projectID." ORDER BY ord";
+			$sqlpages = "SELECT * FROM jcq_page WHERE projectID=".$this->projectID." ORDER BY isFinal, ord";
 			$db->setQuery($sqlpages);
 			$pages = $db->loadObjectList();
 			$curpage = $pages[0]->ID;
@@ -121,6 +210,13 @@ class JcqModelUserdata extends JModel
 				JError::raiseError(500, 'Error going next page: '.$errorMessage);
 			}
 			return $curpage;
+		}
+		//case: else if at the end, display the final page
+		elseif ($session->curpage==-1)
+		{
+			$this->db->setQuery("SELECT * FROM jcq_page WHERE projectID=".$this->projectID." AND isFinal=1");
+			$page = $db->loadObject();
+			return $page->ID;
 		}
 		//case: else return current page to display
 		else return $session->curpage;
@@ -281,7 +377,7 @@ class JcqModelUserdata extends JModel
 						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
 					}
 				}
-				
+
 				//go to next page if all mandatory questions/items answered
 				if (!$hasmissings)
 				{
@@ -337,7 +433,7 @@ class JcqModelUserdata extends JModel
 		$page = $this->db->loadObject();
 		if ($page==null) JError::raiseError(500, "Error: could not find page with ID $pageID");
 		if ($page->filter==null || strlen($page->filter)<1) return true;
-		
+
 		$return = false;
 		$filter = $page->filter;
 		$disjunctions = explode("|",$filter);
@@ -362,12 +458,12 @@ class JcqModelUserdata extends JModel
 					if (strpos($conjugation,">=")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)>=substr($conjugation,strpos($conjugation,">=")+2));
 					elseif (strpos($conjugation,">")!==false) $inner = $inner && ($this->getStoredValueVariable($varname)>substr($conjugation,strpos($conjugation,">")+1));
 				}
-			}			
+			}
 			$return = $return || $inner;
 		}
 		return $return;
 	}
-	
+
 	function getSessionID()
 	{
 		return $this->sessionID;
@@ -380,7 +476,7 @@ class JcqModelUserdata extends JModel
 		$answer = $this->db->loadResult();
 		return ($answer!=null);
 	}
-	
+
 	function hasStoredValueQuestion($pageID,$questionID)
 	{
 		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
@@ -407,7 +503,7 @@ class JcqModelUserdata extends JModel
 		$answer = $this->db->loadResult();
 		return $answer;
 	}
-	
+
 	function getStoredValueQuestion($pageID,$questionID)
 	{
 		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
@@ -426,7 +522,7 @@ class JcqModelUserdata extends JModel
 		$answer = $db->loadResult();
 		return $answer;
 	}
-	
+
 	/**
 	 * Fetches a value from the result set using the human-readable variable name.
 	 * Requires an existing and unique variable name.
