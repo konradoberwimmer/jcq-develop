@@ -2,8 +2,8 @@
 defined('_JEXEC') or die( 'Restricted access' ); ?>
 <div class="question361">
 	<?php
-		$items = $this->page->getItemsToQuestion($this->question->ID);
-		$scales = $this->page->getScalesToQuestion($this->question->ID);
+		$items = $this->pagemodel->getItemsToQuestion($this->question->ID);
+		$scales = $this->pagemodel->getScalesToQuestion($this->question->ID);
 		$missings=false;
 		foreach ($items as $item)
 		{
@@ -58,7 +58,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 				if ($possplit!==false) echo(substr($scales[$j]->prepost,0,$possplit));
 				echo('<select name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'s'.$scales[$j]->ID.'">');
 				echo('<option></option>');
-				$codes = $this->page->getCodesToScale($scales[$j]->ID);
+				$codes = $this->pagemodel->getCodesToScale($scales[$j]->ID);
 				for ($i=0;$i<count($codes);$i++)
 				{
 					echo('<option value="'.$codes[$i]->code.'" '.($codes[$i]->code==$prevanswers[$j]?"selected":"").'>'.$codes[$i]->label.'</option>');

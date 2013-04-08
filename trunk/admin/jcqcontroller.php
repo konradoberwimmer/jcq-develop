@@ -20,7 +20,7 @@ function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
 
 function xmlToJTable ($xmlelement, $jtable)
 {
-	foreach (get_object_vars($jtable) as $k => $v) 
+	foreach (get_object_vars($jtable) as $k => $v)
 	{
 		if ($k[0] == '_') continue;
 		if (strpos($k,"ID")!==false) continue;
@@ -46,11 +46,11 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model projects not found');
 		if ($modelscales = & $this->getModel('scales')) $view->setModel($modelscales, false);
 		else JError::raiseError(500, 'Model scales not found');
-		
+
 		$view->setLayout($viewLayout);
 		$view->display();
 	}
-	
+
 	function addProject()
 	{
 		$view = & $this->getView('projectform');
@@ -60,62 +60,37 @@ class JcqController extends JController
 		$view->setLayout('projectformlayout');
 		$view->displayAdd();
 	}
-	
+
 	function editProject($projectID=null,$download=null)
 	{
-		 
+			
 		if ($projectID===null)
 		{
 			$projectids = JRequest::getVar('cid', null, 'default', 'array' );
 			if($projectids === null) JError::raiseError(500, 'cid parameter missing');
 			$projectID = (int)$projectids[0];
 		}
-	
+
 		$view = & $this->getView('projectform');
-		
+
 		if ($model = & $this->getModel('projects'))	$view->setModel($model, true);
 		else JError::raiseError(500, 'Model projects not found');
 		if ($modelparticipants = & $this->getModel('participants'))	$view->setModel($modelparticipants, false);
 		else JError::raiseError(500, 'Model participants not found');
-				 
+			
 		$view->setLayout('projectformlayout');
 		$view->displayEdit($projectID, $download);
 	}
-	
+
 	function saveProject()
 	{
 		$project = JRequest::get( 'POST' );
-		 
+			
 		$model = & $this->getModel('projects');
 		$projectid = $model->saveProject($project);
-		
-		//create php-file for project with basic class definition if it does not yet exist
+
+		//create usercode path and css-file for project if it does not yet exist
 		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
-		//FIXME this is not save because several projects may use the same php-file
-		if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['classfile']))
-		{
-			$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['classfile'], 'w');
-			fwrite($filehandle,"<?php\n
-defined( '_JEXEC' ) or die( 'Restricted access' );\n
-\n
-jimport( 'joomla.application.component.model');\n
-\n
-class ".$project['classname']."\n
-{\n
-	private \$userdatamodel = null;\n
-	\n
-	function ".$project['classname']."(\$userdatamodel)\n
-	{\n
-		\$this->userdatamodel = \$userdatamodel;\n
-	}\n
-	\n
-	function printResults()\n
-	{\n
-		echo('No code for results yet!');\n
-	}\n
-}\n");
-			fclose($filehandle);
-		}
 		if (isset($project['cssfile'])&&strlen($project['cssfile'])>0)
 		{
 			if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile']))
@@ -125,45 +100,65 @@ class ".$project['classname']."\n
 				fclose($filehandle);
 			}
 		}
-		
+
 		//set page order if edited
 		if (isset($project['pageord']))
 		{
 			$pagemodel = & $this->getModel('pages');
 			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
 		}
-		
+
+		//save the importss if project has any
+		if (isset($project['importids']))
+		{
+			//has to be in this order: 1. save imports 2. delete imports; otherwise errors for missing IDs
+			$importids = JRequest::getVar('importids', null, 'default', 'array' );
+			$importord = JRequest::getVar('importord', null, 'default', 'array' );
+			$importfilename = JRequest::getVar('importfilename', null, 'default', 'array' );
+			for ($i=0;$i<count($importids);$i++)
+			{
+				$import = array();
+				$import['ID']=$importids[$i];
+				$import['ord']=$importord[$i];
+				$import['filename']=$importfilename[$i];
+				$import['projectID']=$project['ID'];
+				$model->saveImport($import);
+			}
+			$importdelete = JRequest::getVar('importdelete', null, 'default', 'array' );
+			if ($importdelete!=null) $model->deleteImports($importdelete);
+		}
+
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
 		$this->setRedirect($redirectTo, 'Project saved!');
 	}
-	
+
 	function removeProject()
 	{
 		$arrayIDs = JRequest::getVar('cid', null, 'default', 'array' ); //Reads cid as an array
-		 
+			
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
-		 
+			
 		$model = & $this->getModel('projects');
 		$model->deleteProjects($arrayIDs);
-		 
+			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' project(s)');
 	}
-	
+
 	function cancel()
 	{
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
-	
+
 	function exportProject()
 	{
 		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
 		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
 		$projectID = (int)$projectids[0]; //get the first id from the list (we can only export one project at a time)
-		
+
 		//FIXME storing the xml-file in the usercode folder is totally insecure, but for now it is easier to achieve :-(
-		
+
 		//create php-file for project with basic class definition if it does not yet exist
 		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
 		$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.'project'.$projectID.'.xml', 'w');
@@ -222,19 +217,19 @@ class ".$project['classname']."\n
 					$questionnode->appendChild($scalenode);
 				}
 				$pagenode->appendChild($questionnode);
-			}		
+			}
 			$projectnode->appendChild($pagenode);
 		}
 		//finishing
 		$xmldoc->appendChild($projectnode);
 		fwrite($filehandle, $xmldoc->saveXML());
 		fclose($filehandle);
-		
+
 		$view = & $this->getView('exportproject');
 		$view->setLayout('exportprojectlayout');
 		$view->display($projectID);
-	}	
-	
+	}
+
 	function showImportProject()
 	{
 		$view = & $this->getView('importproject');
@@ -278,20 +273,20 @@ class ".$project['classname']."\n
 				//TODO store questions
 			}
 		}
-		
+
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, ($importwell?'Project imported ...':'Error importing ...'));
 	}
-	
+
 	function editPage()
 	{
 		$pageids = JRequest::getVar('cid', null, 'default', 'array' );
 		if($pageids === null) JError::raiseError(500, 'cid parameter missing');
 		$pageID = (int)$pageids[0];
-	
+
 		$view = & $this->getView('pageform');
 			
-		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions') && $modelprojects = & $this->getModel('projects')) 
+		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions') && $modelprojects = & $this->getModel('projects'))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modelquestions, false);
@@ -302,7 +297,7 @@ class ".$project['classname']."\n
 		$view->setLayout('pageformlayout');
 		$view->displayEdit($pageID);
 	}
-	
+
 	function addPage()
 	{
 		$projectID = JRequest::getVar('ID');
@@ -314,24 +309,24 @@ class ".$project['classname']."\n
 		$view->setLayout('pageformlayout');
 		$view->displayAdd($projectID);
 	}
-	
+
 	function savePage()
 	{
 		$page = JRequest::get( 'POST' );
 			
 		$model = & $this->getModel('pages');
 		$pageid = $model->savePage($page);
-		
+
 		if (isset($page['questionord']))
 		{
 			$questionmodel = & $this->getModel('questions');
 			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
 		}
-				
+
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid,false);
 		$this->setRedirect($redirectTo, 'Page saved!');
 	}
-	
+
 	function removePage()
 	{
 		$project = JRequest::get( 'POST' );
@@ -345,14 +340,14 @@ class ".$project['classname']."\n
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' page(s)');
 	}
-	
+
 	function cancelAddPage()
 	{
 		$page = JRequest::get( 'POST' );
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$page['projectID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
-	
+
 	function editQuestion(){
 			
 		$questionids = JRequest::getVar('cid', null, 'default', 'array' );
@@ -360,7 +355,7 @@ class ".$project['classname']."\n
 		if($questionids === null) JError::raiseError(500, 'cid parameter missing');
 			
 		$questionID = (int)$questionids[0]; //get the first id from the list (we can only edit one greeting at a time)
-	
+
 		$view = & $this->getView('questionform');
 			
 		if ($model = & $this->getModel('questions') && $modelscales = & $this->getModel('scales') && $modelitems = & $this->getModel('items'))
@@ -375,7 +370,7 @@ class ".$project['classname']."\n
 		$view->setLayout('questionformlayout'.$questtype);
 		$view->displayEdit($questionID);
 	}
-	
+
 	function addQuestion()
 	{
 		$pageID = JRequest::getVar('ID');
@@ -384,10 +379,13 @@ class ".$project['classname']."\n
 		$model = & $this->getModel('questions');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
+		$modelpage = & $this->getModel('pages');
+		if (!$modelpage) JError::raiseError(500, 'Model not found');
+		$view->setModel($modelpage, false);
 		$view->setLayout('questionformlayout');
 		$view->displayAdd($pageID);
 	}
-	
+
 	function saveQuestion()
 	{
 		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
@@ -396,9 +394,9 @@ class ".$project['classname']."\n
 		$questionid = $model->saveQuestion($question);
 		$pageid = $model->getPageFromQuestion($questionid)->ID;
 		$projectid = $model->getProjectFromPage($pageid)->ID;
-		
+
 		$scalemodel = & $this->getModel('scales');
-		
+
 		//save the scale(s) if question has any
 		if (isset($question['scaleID']))
 		{
@@ -434,7 +432,7 @@ class ".$project['classname']."\n
 			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
 			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 		}
-		
+
 		//special case question type 361: save the attached scales
 		if ($question['questtype']==361)
 		{
@@ -468,7 +466,7 @@ class ".$project['classname']."\n
 				}
 			}
 		}
-		
+
 		//save the items if question has any
 		if (isset($question['itemspresent']))
 		{
@@ -501,11 +499,11 @@ class ".$project['classname']."\n
 			$itemdelete = JRequest::getVar('itemdelete', null, 'default', 'array' );
 			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
 		}
-		
+
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$questionid,false);
 		$this->setRedirect($redirectTo, 'Question saved!');
 	}
-	
+
 	function removeQuestion()
 	{
 		$page = JRequest::get( 'POST' );
@@ -519,15 +517,15 @@ class ".$project['classname']."\n
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' question(s)');
 	}
-	
-	
+
+
 	function cancelAddQuestion()
 	{
 		$question = JRequest::get( 'POST' );
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
-	
+
 	function editScale(){
 			
 		$scaleid = JRequest::getVar('scaleid',null);
@@ -541,7 +539,7 @@ class ".$project['classname']."\n
 		$view->setLayout('scaleformlayout');
 		$view->displayEdit($scaleid);
 	}
-	
+
 	function addScale()
 	{
 		$view = & $this->getView('scaleform');
@@ -551,15 +549,15 @@ class ".$project['classname']."\n
 		$view->setLayout('scaleformlayout');
 		$view->displayAdd();
 	}
-	
-	
+
+
 	function saveScale()
 	{
 		$scale = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
 			
 		$scalemodel = & $this->getModel('scales');
 		$scaleid = $scalemodel->saveScale($scale);
-		
+
 		//also save the codes if it is no new scale;
 		if ($scale['ID']!=0)
 		{
@@ -584,11 +582,11 @@ class ".$project['classname']."\n
 			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
 			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 		}
-		
+
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editScale&scaleid='.$scaleid,false);
 		$this->setRedirect($redirectTo, 'Scale saved!');
 	}
-	
+
 	function removeScale()
 	{
 		$scaleIDs = JRequest::getVar('scaledelid', null, 'default', 'array' );
@@ -600,22 +598,22 @@ class ".$project['classname']."\n
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
 		$this->setRedirect($redirectTo, 'Removed '.count($scaleIDs).' scale(s)');
 	}
-	
+
 	function cancelAddScale()
 	{
 		$question = JRequest::get( 'POST' );
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
-	
+
 	function saveData()
 	{
 		$project = JRequest::get( 'POST' );
 		$projectid = $project['ID'];
-		
+
 		$model = & $this->getModel('projects');
-		$filename = $model->saveData($projectid);		
-		
+		$filename = $model->saveData($projectid);
+
 		$app = &JFactory::getApplication();
 		$app->enqueueMessage("Data saved ...");
 		$this->editProject($projectid, $filename);

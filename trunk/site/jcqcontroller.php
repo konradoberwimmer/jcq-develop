@@ -48,18 +48,13 @@ class JcqController extends JController
 			$document = JFactory::getDocument();
 			$document->addStyleSheet(JURI::root().'components/com_jcq/usercode/'.$cssfilename);
 		}
+		//add user imported code (if any)
+		$imports = $projectmodel->getImports($projectID);
+		foreach ($imports as $import) require_once(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$import->filename);
 		
-		$pageID = $modeluserdata->getCurrentPage();
 		//display the current page for this session
-		if ($pageID>0) 	$view->displayPage($pageID,$markmissing);
-		//or show the results (usercode)
-		else
-		{
-			require_once( JPATH_COMPONENT.DS.'usercode'.DS.$projectmodel->getClassfilename($projectID));
-			$classname = $projectmodel->getClassname($projectID);
-			$resultview = new $classname($modeluserdata);
-			$resultview->printResults();
-		}
+		$pageID = $modeluserdata->getCurrentPage();
+		$view->displayPage($pageID,$markmissing);
 	}
 	
 	function storeAndContinue()

@@ -15,7 +15,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 	?>
 	<?php if ($this->question->advise != null) echo '<p class="question111advise">'.$this->question->advise.'</p>'; ?>
 	<?php 
-		$codes = $this->page->getScaleToQuestion($this->question->ID);
+		$codes = $this->pagemodel->getScaleToQuestion($this->question->ID);
 		$prevanswer = $this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID);
 		for ($j=0;$j<count($codes);$j++)
 		{

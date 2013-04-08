@@ -12,14 +12,6 @@ function submitbutton(pressbutton)
 
 function checkproject()
 {
-	var classfile = document.getElementById('classfile');
-	var regex_classfile = new RegExp(/[a-zA-Z]+[a-zA-Z_0-9]*\.php/);
-	var correct = regex_classfile.exec(classfile.value);
-	if (correct==null || correct[0].length<classfile.value.length) return false;
-	var classname = document.getElementById('classname');
-	var regex_classname = new RegExp(/[A-Z]+[a-zA-Z]*/);
-	var correct = regex_classname.exec(classname.value);
-	if (correct==null || correct[0].length<classname.value.length) return false;
 	var cssfile = document.getElementById('cssfile');
 	if (cssfile.value.length>0)
 	{

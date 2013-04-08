@@ -78,15 +78,14 @@ class JcqModelProjects extends JModel {
 		if (!$projectTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$projectTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$projectTableRow->getError());
 
-		// if the project is new, build the user data table (using updated id after the store operation)
+		// if the project is new, add first page and build the user data table (using updated id after the store operation)
 		if ($project['ID']==0)
 		{
+			$this->db->setQuery("INSERT INTO jcq_page (name, ord, projectID, isFinal) VALUES ('Final page',0,".$projectTableRow->ID.",1)");
+			if (!$this->db->query()) JError::raiseError(500, 'Error creating final page entry: '.$this->getDBO()->getErrorMsg());
 			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))";
 			$this->db->setQuery($query);
-			if (!$this->db->query()){
-				$errorMessage = $this->getDBO()->getErrorMsg();
-				JError::raiseError(500, 'Error creating user data database: '.$errorMessage);
-			}
+			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
 		}
 		return $projectTableRow->ID;
 	}
@@ -115,12 +114,43 @@ class JcqModelProjects extends JModel {
 
 	function getPages($projectID)
 	{
-		$this->db->setQuery('SELECT * FROM jcq_page WHERE projectID = '.$projectID.' ORDER BY ord');
+		$this->db->setQuery('SELECT * FROM jcq_page WHERE projectID = '.$projectID.' ORDER BY isFinal, ord');
 		$pages = $this->db->loadObjectList();
 		if ($pages === null) JError::raiseError(500, 'Error reading db');
 		return $pages;
 	}
-
+	
+	function getImports($projectID)
+	{
+		$this->db->setQuery('SELECT * FROM jcq_import WHERE projectID = '.$projectID.' ORDER BY ord');
+		$imports = $this->db->loadObjectList();
+		if ($imports === null) JError::raiseError(500, 'Error reading db');
+		return $imports;
+	}
+	
+	function saveImport(array $import)
+	{
+		$importTableRow =& $this->getTable('imports');
+		if (!$importTableRow->bind($import)) JError::raiseError(500, 'Error binding data');
+		if (!$importTableRow->check()) JError::raiseError(500, 'Invalid data');
+		if (!$importTableRow->store())
+		{
+			$errorMessage = $importTableRow->getError();
+			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
+		}
+	}
+	
+	function deleteImports($arrayIDs)
+	{
+		$query = "DELETE FROM jcq_import WHERE ID IN (".implode(',', $arrayIDs).")";
+		$db = $this->getDBO();
+		$db->setQuery($query);
+		if (!$db->query()){
+			$errorMessage = $this->getDBO()->getErrorMsg();
+			JError::raiseError(500, 'Error deleting imports: '.$errorMessage);
+		}
+	}
+	
 	function saveData($projectID)
 	{
 		#FIXME just for now: create a file to write to
@@ -254,7 +284,7 @@ class JcqModelProjects extends JModel {
 		$variables = array();
 		$varcnt = 0;
 
-		$this->db->setQuery('SELECT * FROM jcq_page WHERE projectID = '.$projectID.' ORDER BY ord');
+		$this->db->setQuery('SELECT * FROM jcq_page WHERE isFinal = 0 AND projectID = '.$projectID.' ORDER BY ord');
 		$pages = $this->db->loadObjectList();
 		if ($pages!=null)
 		{

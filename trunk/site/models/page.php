@@ -12,6 +12,13 @@ class JcqModelPage extends JModel
 		$this->pageID = $pageID;
 	}
 	
+	function getPage()
+	{
+		$db = $this->getDBO();
+		$db->setQuery("SELECT * FROM jcq_page WHERE ID=".$this->pageID);
+		return $db->loadObject();
+	}
+	
 	//requires the pageID to be set
 	function getQuestions()
 	{
