@@ -31,10 +31,10 @@ class JcqViewQuestionform extends JView
 		//attach scale(s) according to questiontype
 		switch ($this->question->questtype)
 		{
-			case 111: case 311: case 340:
+			case SINGLECHOICE: case MATRIX_LEFT: case MATRIX_BOTH:
 				{
 					$scale = $this->getModel('scales')->getScales($this->question->ID);
-					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type 111, 311 or 340');
+					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type '.SINGLECHOICE.', '.MATRIX_LEFT.' or '.MATRIX_BOTH);
 					else
 					{
 						$scale=$scale[0]; //only one scale for this type of question
@@ -44,7 +44,7 @@ class JcqViewQuestionform extends JView
 					}
 					break;
 				}
-			case 361:
+			case MULTISCALE:
 				{
 					$attachedscales = $this->getModel('scales')->getScales($this->question->ID);
 					$predefscales = $this->getModel('scales')->getPredefinedScales();
@@ -52,20 +52,20 @@ class JcqViewQuestionform extends JView
 					$this->assignRef('predefscales', $predefscales);
 					break;
 				}			
-			case 141: case 998: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
+			case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
 		//attach item(s) according to questiontype
 		switch ($this->question->questtype)
 		{
-			case 311: case 340: case 361:
+			case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
 				{
 					$items = $this->getModel('items')->getItems($this->question->ID);
 					$this->assignRef('items', $items);
 					break;
 				}
-			case 111: case 141: case 998: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
+			case SINGLECHOICE: case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
@@ -74,24 +74,24 @@ class JcqViewQuestionform extends JView
 		$filenames=array();
 		switch ($this->question->questtype)
 		{
-			case 111:
+			case SINGLECHOICE:
 				{
 					$filenames[0] = 'addcodes.js';
 					break;
 				}
-			case 311: case 340:
+			case MATRIX_LEFT: case MATRIX_BOTH:
 				{
 					$filenames[0] = 'addcodes.js';
 					$filenames[1] = 'additems.js';
 					break;
 				}
-			case 361:
+			case MULTISCALE:
 				{
 					$filenames[0] = 'addscales.js';
 					$filenames[1] = 'additems.js';
 					break;
 				}
-			case 141: case 998: break;
+			case TEXTFIELD: case TEXTANDHTML: break;
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		foreach ($filenames as $filename) JHTML::script($path.$filename, true);

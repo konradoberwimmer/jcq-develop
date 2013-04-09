@@ -32,7 +32,7 @@ function getStoredValue ($varname)
 					$question=$questions[$j];
 					switch ($question->questtype)
 					{
-						case 111:
+						case SINGLECHOICE:
 							{
 								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
 								//look for additional textfields
@@ -45,12 +45,12 @@ function getStoredValue ($varname)
 								}
 								break;
 							}
-						case 141:
+						case TEXTFIELD:
 							{
 								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
 								break;
 							}
-						case 311: case 340:
+						case MATRIX_LEFT: case MATRIX_BOTH:
 							{
 								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
 								$items = $db->loadObjectList();
@@ -61,7 +61,7 @@ function getStoredValue ($varname)
 								}
 								break;
 							}
-						case 361:
+						case MULTISCALE:
 							{
 								$db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
 								$scales = $db->loadObjectList();
@@ -78,7 +78,7 @@ function getStoredValue ($varname)
 								}
 								break;
 							}
-						case 998: break;
+						case TEXTANDHTML: break;
 						default: JError::raiseError(500, 'FATAL: Code for accessing data from question of type '.$question->questtype.' is missing!!!');
 					}
 					if ($intvarname!=null) break;
@@ -225,6 +225,10 @@ class JcqModelUserdata extends JModel
 	//requires a session to be loaded
 	function storeAndContinue()
 	{
+		// use model page to get the items to the question
+		require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
+		$modelpage = new JcqModelPage();
+		
 		$sqlsession = "SELECT * FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlsession);
@@ -252,7 +256,7 @@ class JcqModelUserdata extends JModel
 					//handle questions according to questiontype
 					switch ($question->questtype)
 					{
-						case 111:
+						case SINGLECHOICE:
 							{
 								if (JRequest::getVar('p'.$page->ID.'q'.$question->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID)))
 								{
@@ -276,9 +280,21 @@ class JcqModelUserdata extends JModel
 										if ($answer["p".$page->ID."q".$question->ID]==null) $hasmissings=true;
 									}
 								}
+								#TODO control if text is only entered when corresponding choice has been made
+								#TODO check that a text is entered if mandatory
+								$items = $modelpage->getItemsToQuestion($question->ID);
+								foreach ($items as $item)
+								{
+									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
+									{
+										$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)."' WHERE sessionID='".$this->sessionID."'";
+										$db->setQuery($sqlstore);
+										if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
+									}
+								}
 								break;
 							}
-						case 141:
+						case TEXTFIELD:
 							{
 								//always store
 								$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID)."' WHERE sessionID='".$this->sessionID."'";
@@ -302,11 +318,8 @@ class JcqModelUserdata extends JModel
 								#TODO decimal seperator for locale
 								break;
 							}
-						case 311: case 340:
+						case MATRIX_LEFT: case MATRIX_BOTH:
 							{
-								// use model page to get the items to the question
-								require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
-								$modelpage = new JcqModelPage();
 								$items = $modelpage->getItemsToQuestion($question->ID);
 								foreach ($items as $item)
 								{
@@ -335,11 +348,8 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
-						case 361:
+						case MULTISCALE:
 							{
-								// use model page to get the items to the question
-								require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
-								$modelpage = new JcqModelPage();
 								$items = $modelpage->getItemsToQuestion($question->ID);
 								$scales = $modelpage->getScalesToQuestion($question->ID);
 								foreach ($items as $item)
@@ -373,7 +383,7 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
-						case 998: break;
+						case TEXTANDHTML: break;
 						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
 					}
 				}

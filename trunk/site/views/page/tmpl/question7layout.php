@@ -1,6 +1,6 @@
 <?php
 defined('_JEXEC') or die( 'Restricted access' ); ?>
-<div class="question998">
+<div class="question7">
 	<?php 
 		#FIXME secure against wrong-doings with the brackets
 		$snippets = explode("{",$this->question->text);

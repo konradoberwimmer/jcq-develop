@@ -2,23 +2,23 @@
 defined('_JEXEC') or die( 'Restricted access' ); 
 
 ?>
-<div class="question141">
+<div class="question3">
 	<?php
 		$ismissing = false;
 		if ($this->markmissing && $this->question->mandatory==1 && (!$this->userdata->hasStoredValueQuestion($this->pageID,$this->question->ID) || strlen($this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID))<1))
 		{ 
 			$ismissing = true;
 			?>
-			<p class="question141missing"><?php echo $this->question->text; ?></p>
+			<p class="question3missing"><?php echo $this->question->text; ?></p>
 		<?php 
 		}  
 		else 
 		{ ?>
-			<p class="question141text"><?php echo $this->question->text; ?></p>
+			<p class="question3text"><?php echo $this->question->text; ?></p>
 		<?php 
 		}
 	?>
-	<?php if ($this->question->advise != null) echo '<p class="question141advise">'.$this->question->advise.'</p>'; ?>
+	<?php if ($this->question->advise != null) echo '<p class="question3advise">'.$this->question->advise.'</p>'; ?>
 	<?php 
 		$prevanswer = $this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID);
 		if ($this->markmissing && !$ismissing && $this->question->datatype==1 && !val_is_int($prevanswer)) echo '<div class="questionalertmissing">Bitte hier eine ganze Zahl eingeben!</div>';

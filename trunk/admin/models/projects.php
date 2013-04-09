@@ -154,7 +154,6 @@ class JcqModelProjects extends JModel {
 	function saveData($projectID)
 	{
 		#FIXME just for now: create a file to write to
-		#FIXME write in western european collation
 		$filename = "data_proj$projectID"."_".time().".sps";
 		$file = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
 		$project = $this->getProject($projectID);
@@ -163,14 +162,14 @@ class JcqModelProjects extends JModel {
 		$variables = $this->getVariableList($projectID);
 		$varcnt = count($variables);
 		
-		fwrite($file,"*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n");
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $out_charset, "*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n"));
 	
 		//Define Data.
 		#TODO add sessionID, duration etc.
 		fwrite($file,"DATA LIST LIST (\";\") / ");
 		for ($i=0;$i<$varcnt;$i++)
 		{
-			fwrite($file,$variables[$i]->extvarname." ");
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $variables[$i]->extvarname." "));
 			switch ($variables[$i]->datatype)
 			{
 				case 1:
@@ -185,7 +184,7 @@ class JcqModelProjects extends JModel {
 					}
 				case 3:
 					{
-						fwrite($file,"(A) ");
+						fwrite($file,"(A32767) ");
 						break;
 					}
 				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
@@ -213,9 +212,8 @@ class JcqModelProjects extends JModel {
 						}
 					case 3:
 						{
-							#TODO secure against irregular text
-							fwrite($file,"\"".$row[$variables[$i]->intvarname]."\"");
-						break;
+							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", str_replace(";","",$row[$variables[$i]->intvarname])));
+							break;
 						}
 					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
 				}
@@ -230,7 +228,7 @@ class JcqModelProjects extends JModel {
 		{
 			if ($i>0) fwrite($file,"/ ");
 			#TODO check for irregular characters
-			fwrite($file,$variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n");
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n"));
 		}
 		fwrite($file,".\n\n");
 	
@@ -245,7 +243,7 @@ class JcqModelProjects extends JModel {
 			fwrite($file,$variables[$i]->extvarname." ");
 			foreach ($variables[$i]->codes as $code)
 			{
-				fwrite($file,$code->code." '".$code->label."' ");
+				fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $code->code." '".$code->label."' "));
 			}
 			fwrite($file,"\n");
 		}
@@ -300,7 +298,7 @@ class JcqModelProjects extends JModel {
 						$question=$questions[$j];
 						switch ($question->questtype)
 						{
-							case 111:
+							case SINGLECHOICE:
 								{
 									$newvar = new SPSSVariable();
 									$newvar->datatype = 1;
@@ -333,7 +331,7 @@ class JcqModelProjects extends JModel {
 									}
 									break;
 								}
-							case 141:
+							case TEXTFIELD:
 								{
 									$newvar = new SPSSVariable();
 									$newvar->datatype = $question->datatype;
@@ -345,7 +343,7 @@ class JcqModelProjects extends JModel {
 									$variables[$varcnt++]=$newvar;
 									break;
 								}
-							case 311: case 340:
+							case MATRIX_LEFT: case MATRIX_BOTH:
 								{
 									$this->db->setQuery('SELECT * FROM jcq_questionscales WHERE questionID = '.$question->ID);
 									$scales = $this->db->loadObjectList();
@@ -369,7 +367,7 @@ class JcqModelProjects extends JModel {
 									}
 									break;
 								}
-							case 361:
+							case MULTISCALE:
 								{
 									$this->db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
 									$scales = $this->db->loadObjectList();
@@ -398,7 +396,7 @@ class JcqModelProjects extends JModel {
 									}
 									break;
 								}
-							case 998: break;
+							case TEXTANDHTML: break;
 							default: JError::raiseError(500, 'FATAL: Code for saving data from question of type '.$question->questtype.' is missing!!!');
 						}
 					}
