@@ -11,12 +11,13 @@ class JcqModelQuestions extends JModel {
 	static function getQuestionTypes()
 	{
 		$questtypes = array();
-		$questtypes[111]='111 - Single selection (vertical)';
-		$questtypes[141]='141 - Text field (single row)';
-		$questtypes[311]='311 - Matrix (standard 1)';
-		$questtypes[340]='340 - Matrix (semantical difference)';
-		$questtypes[361]='361 - Multiple-Scale Matrix (dropdown)';
-		$questtypes[998]='998 - Text and HTML-Code';
+		$questtypes[SINGLECHOICE]='Single selection';
+		$questtypes[MULTICHOICE]='Multiple selection';
+		$questtypes[TEXTFIELD]='Text field';
+		$questtypes[MATRIX_LEFT]='Matrix (with single item text)';
+		$questtypes[MATRIX_BOTH]='Matrix (semantical difference)';
+		$questtypes[MULTISCALE]='Multiple-Scale Matrix';
+		$questtypes[TEXTANDHTML]='Text and HTML-Code';
 		return $questtypes;
 	}
 
@@ -93,7 +94,7 @@ class JcqModelQuestions extends JModel {
 		{
 			switch ($questionTableRow->questtype)
 			{
-				case 111:
+				case SINGLECHOICE:
 					{
 						$questionTableRow->varname = 'question'.$questionTableRow->ID;
 						$questionTableRow->store();
@@ -101,7 +102,7 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataINT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				case 141:
+				case TEXTFIELD:
 					{
 						$questionTableRow->varname = 'question'.$questionTableRow->ID;
 						$questionTableRow->datatype = 3;
@@ -110,18 +111,18 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
-				case 311: case 340:
+				case MATRIX_LEFT: case MATRIX_BOTH:
 					{
 						$this->buildScalePrototype($questionTableRow->ID);
 						$this->buildItemPrototype($questionTableRow->ID,1);
 						break;
 					}
-				case 361:
+				case MULTISCALE:
 					{
 						$this->buildItemPrototype($questionTableRow->ID,1,array());
 						break;						
 					}
-				case 998:
+				case TEXTANDHTML:
 					{
 						$questionTableRow->datatype = 4;
 						$questionTableRow->mandatory = 0;
@@ -146,7 +147,7 @@ class JcqModelQuestions extends JModel {
 
 			switch ($question->questtype)
 			{
-				case 141:
+				case TEXTFIELD:
 					{
 						$query = "ALTER TABLE jcq_proj".$project->ID." DROP COLUMN p".$page->ID."q".$oneID;
 						$db = $this->getDBO();
@@ -157,7 +158,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case 111: case 311: case 340: case 361:
+				case SINGLECHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
 					{
 						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
 						$db = $this->getDBO();
@@ -173,7 +174,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case 998:
+				case TEXTANDHTML:
 					{
 						break;
 					}

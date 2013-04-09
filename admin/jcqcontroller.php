@@ -433,8 +433,8 @@ class JcqController extends JController
 			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
 		}
 
-		//special case question type 361: save the attached scales
-		if ($question['questtype']==361)
+		//special case question type MULTISCALE: save the attached scales
+		if ($question['questtype']==MULTISCALE)
 		{
 			$scalemodel->clearAttachedScales($question['ID']);
 			$scaleids = JRequest::getVar('scaleids', null, 'default', 'array' );
@@ -489,7 +489,7 @@ class JcqController extends JController
 				if ($itemmandatory!=null && in_array($itemids[$i],$itemmandatory)) $item['mandatory']=1;
 				else $item['mandatory']=0;
 				$item['questionID']=$question['ID'];
-				if ($question['questtype']==361)
+				if ($question['questtype']==MULTISCALE)
 				{
 					$scales=$scalemodel->getScales($question['ID']);
 					$itemsmodel->saveItem($item, $scales);

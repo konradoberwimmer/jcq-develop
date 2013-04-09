@@ -23,7 +23,7 @@ class JcqModelParticipants extends JModel {
 
 	function getParticipantsFinishedFirst($projectID)
 	{
-		$this->db->setQuery("SELECT ID FROM jcq_page WHERE projectID=$projectID ORDER BY ord");
+		$this->db->setQuery("SELECT ID FROM jcq_page WHERE projectID=$projectID ORDER BY isFinal, ord");
 		$results = $this->db->loadResultArray();
 		if ($results==null) return null;
 		else

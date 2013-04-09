@@ -51,7 +51,7 @@ class JcqModelItems extends JModel {
 			else foreach ($scales as $scale) $this->addColumnUserDataINT($pageid, $itemTableRow->questionID, $itemTableRow->ID, $scale->ID);
 		} else if ($scales!==null)
 		{
-			//stupidly try to add userdata columns if there are scales (question type 361)
+			//stupidly try to add userdata columns if there are scales (question type MULTISCALE)
 			//just ignore the errors
 			$db = $this->getDBO();
 			foreach ($scales as $scale)

@@ -12,7 +12,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     	$questtypes = $this->getModel()->getQuestionTypes();
                     	foreach ($questtypes as $typeid=>$typename)
                     	{
-                    		if ($this->page->isFinal && $typeid!=998) continue;
+                    		if ($this->page->isFinal && $typeid!=TEXTANDHTML) continue;
                     		echo '<option value="'.$typeid.'">'.$typename.'</option>';
                     	}
                     ?>
