@@ -1,5 +1,12 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); ?>
+<?php if (isset($this->previewSession)) { ?>
+<script type="text/javascript">
+<!--
+addOnload(openPreview('<?php echo(JURI::root()."index.php?option=com_jcq"); ?>','<?php echo($this->project->ID); ?>','<?php echo($this->previewSession); ?>'));
+//-->
+</script>
+<?php } ?>
 <?php if ($this->page->ID > 0) { ?>
 <p class="breadcrumbs">
 <a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a>&nbsp;&gt;&nbsp;
@@ -11,11 +18,18 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Page definition:</legend>
              <table>
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->page->name; ?>" /></td></tr>
+                    <tr>
+                    	<td>Name</td>
+                    	<td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->page->name; ?>" /></td>
+                    	<?php if ($this->page->ID > 0) { ?>
+                    	<td><input type="button" name="previewPage" value="Preview" onclick="submitbutton('previewPage')"/></td>
+                    	<?php } ?>
+                    </tr>
              </table>
        </fieldset>
 
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
+       <input type="hidden" name="previewPage" id="previewPage" value="0"/>
        <input type="hidden" name="ID" value="<?php echo $this->page->ID; ?>"/>
        <input type="hidden" name="isFinal" value="<?php echo $this->page->isFinal; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->page->projectID; ?>"/>

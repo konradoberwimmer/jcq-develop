@@ -5,6 +5,11 @@ function submitbutton(pressbutton)
 	{
 		alert('Project definition incorrect: check classfile and classname!');
 		return;
+	} else if (pressbutton=='previewPage')
+	{
+		var previewPage = document.getElementById('previewPage');
+		previewPage.setAttribute("value","1");
+		pressbutton = "savePage";
 	}
 	document.adminForm.task.value=pressbutton;
 	submitform(pressbutton);

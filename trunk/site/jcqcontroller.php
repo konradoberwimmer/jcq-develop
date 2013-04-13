@@ -72,8 +72,12 @@ class JcqController extends JController
 		$modeluserdata->loadSession($projectID,$sessionID);
 		
 		//save participant input (redirect according to the need to display missing input)
-		if (!$modeluserdata->storeAndContinue()) $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&projectID='.$projectID.'&sessionID='.$sessionID.'&markmissing=1',false);
-		else $redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&projectID='.$projectID.'&sessionID='.$sessionID,false);
-		$this->setRedirect($redirectTo);
+		$uri = & JFactory::getURI();
+		if (!$modeluserdata->storeAndContinue()) $uri->setVar("markmissing","1");
+		else $uri->delVar("markmissing");
+		$uri->setVar("option",JRequest::getVar('option'));
+		$uri->setVar("projectID",$projectID);
+		$uri->setVar("sessionID",$sessionID);
+		$this->setRedirect($uri->toString());
 	}
 }

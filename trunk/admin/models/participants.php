@@ -15,7 +15,7 @@ class JcqModelParticipants extends JModel {
 
 	function getParticipantsBegun($projectID)
 	{
-		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID");
+		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE preview=0");
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
@@ -29,7 +29,7 @@ class JcqModelParticipants extends JModel {
 		else
 		{
 			$firstpageID = $results[0];
-			$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE curpage!=$firstpageID");
+			$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE curpage!=$firstpageID AND preview=0");
 			$results = $this->db->loadResultArray();
 			if ($results==null) return 0;
 			else return count($results);			
@@ -38,7 +38,7 @@ class JcqModelParticipants extends JModel {
 	
 	function getParticipantsFinished($projectID)
 	{
-		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE finished=1");
+		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
@@ -46,7 +46,7 @@ class JcqModelParticipants extends JModel {
 	
 	function getAverageDurationFinished($projectID)
 	{
-		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1");
+		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return 0;
 		else
@@ -59,7 +59,7 @@ class JcqModelParticipants extends JModel {
 
 	function getMediumDurationFinished($projectID)
 	{
-		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1");
+		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return 0;
 		else
@@ -73,7 +73,7 @@ class JcqModelParticipants extends JModel {
 	
 	function getLastFinished($projectID)
 	{
-		$this->db->setQuery("SELECT timestampEnd FROM jcq_proj$projectID WHERE finished=1 ORDER BY timestampEnd DESC");
+		$this->db->setQuery("SELECT timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0 ORDER BY timestampEnd DESC");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return null;
 		else return $results[0]->timestampEnd;
@@ -81,7 +81,7 @@ class JcqModelParticipants extends JModel {
 	
 	function getLastBegun($projectID)
 	{
-		$this->db->setQuery("SELECT timestampBegin FROM jcq_proj$projectID ORDER BY timestampBegin DESC");
+		$this->db->setQuery("SELECT timestampBegin FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin DESC");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return null;
 		else return $results[0]->timestampBegin;
