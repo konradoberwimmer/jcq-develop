@@ -295,7 +295,10 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model not found');
 			
 		$view->setLayout('pageformlayout');
-		$view->displayEdit($pageID);
+		
+		$previewSession = JRequest::getVar('preview', null);
+		if ($previewSession!==null) $view->displayEdit($pageID,$previewSession);
+		else $view->displayEdit($pageID);
 	}
 
 	function addPage()
@@ -323,7 +326,20 @@ class JcqController extends JController
 			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
 		}
 
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid,false);
+		if ($page['previewPage']==1)
+		{
+			$sessionID = uniqid('', true);
+			$projectID = $model->getProjectFromPage($pageid)->ID;
+			$sqlnewsession = "INSERT INTO jcq_proj$projectID (preview, sessionID, curpage, timestampBegin) VALUES (1,'$sessionID',$pageid,".time().")";
+			$db =& JFactory::getDBO();
+			$db->setQuery($sqlnewsession);
+			if (!$db->query()) JError::raiseError(500, 'Error inserting new session: '.$this->getDBO()->getErrorMsg());
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid.'&preview='.$sessionID,false);
+		}
+		else
+		{
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid,false);
+		}
 		$this->setRedirect($redirectTo, 'Page saved!');
 	}
 

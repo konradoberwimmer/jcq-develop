@@ -1,6 +1,6 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); ?>
-<form action="index.php" method="POST" name="inputForm">
+<form action="<?php echo(JFactory::getURI()->toString()); ?>" method="POST" name="inputForm">
 	<?php 
 		$questions = $this->pagemodel->getQuestions();
 		for ($i=0;$i<count($questions);$i++)

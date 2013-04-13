@@ -83,7 +83,7 @@ class JcqModelProjects extends JModel {
 		{
 			$this->db->setQuery("INSERT INTO jcq_page (name, ord, projectID, isFinal) VALUES ('Final page',0,".$projectTableRow->ID.",1)");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating final page entry: '.$this->getDBO()->getErrorMsg());
-			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))";
+			$query = "CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))";
 			$this->db->setQuery($query);
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
 		}
@@ -194,7 +194,7 @@ class JcqModelProjects extends JModel {
 	
 		//Get Data.
 		fwrite($file,"BEGIN DATA\n");
-		$this->db->setQuery("SELECT * FROM jcq_proj$projectID ORDER BY timestampBegin");
+		$this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
 		#FIXME perhaps this is not the most memory efficient procedure
 		$data = $this->db->loadAssocList();
 		#TODO set user-missings if value is missing
