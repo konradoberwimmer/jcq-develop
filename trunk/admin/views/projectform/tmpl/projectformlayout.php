@@ -9,7 +9,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Project definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->project->name; ?>" /></td></tr>
                     <tr><td>CSS-File (optional)</td><td><input type="text" name="cssfile" id="cssfile" size="32" maxlength="250" value="<?php echo $this->project->cssfile; ?>" /></td></tr>
                     <tr><td>Description</td><td><input type="text" name="description" id="description" size="64" maxlength="5000" value="<?php echo $this->project->description; ?>" /></td></tr>
@@ -21,10 +21,11 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->project->ID; ?>"/>      
        <input type="hidden" name="task" value=""/>
+       <input type="hidden" id="editImport" name="editImport" value=""/>
 <?php if ($this->project->ID > 0) { ?>
 <fieldset>
              <legend>Pages:</legend>
-Project has <?php echo count($this->pages); ?> page(s).
+		<div style="margin-top: 5px;">Project has <?php echo count($this->pages); ?> page(s).</div>
        <table class="list">
              <thead>
                     <tr>
@@ -73,24 +74,27 @@ Project has <?php echo count($this->pages); ?> page(s).
 	<?php 
 		if ($this->imports == null || count($this->imports)==0) echo("No files imported.<br/>");
 	?>
-	<table id="importstable">
+	<table id="importstable" class="list">
 		<?php 
 		if ($this->imports != null && count($this->imports)>0)
 		{
 			?>
-			<tr><th>Order</th><th>Filename</th><th>Delete</th></tr>
+			<thead><tr><th>Order</th><th>Filename</th><th>Delete</th><th/></tr></thead>
 			<?php 
 		}
 		foreach ($this->imports as $import)
 		{
 			?>
+			<tbody>
 			<tr>
 			<td><input type="hidden" name="importids[]" value="<?php echo $import->ID; ?>"/>
 			<input type="text" id="<?php echo("import".$import->ID."ord"); ?>" name="importord[]" value="<?php echo $import->ord; ?>"/>
 			</td>
 			<td><input type="text" id="<?php echo("import".$import->ID."filename"); ?>" name="importfilename[]" value="<?php echo $import->filename; ?>"/></td>
-			<td><input type="checkbox" id="<?php echo("code".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
+			<td><input type="checkbox" id="<?php echo("import".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
+			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editimport(<?php echo $import->ID; ?>)"/></td>
 			</tr>
+			<tbody>
 			<?php 	
 		}
 		?>
@@ -101,7 +105,7 @@ Project has <?php echo count($this->pages); ?> page(s).
 </fieldset>
 <fieldset>
 	<legend>Participants:</legend>
-	<table>
+	<table class="settings">
 		<tr>
 			<td># begun questionnaire:</td>
 			<td><?php echo($this->participants->getParticipantsBegun($this->project->ID)); ?></td>

@@ -107,6 +107,7 @@ class JcqModelQuestions extends JModel {
 						$questionTableRow->varname = 'question'.$questionTableRow->ID;
 						$questionTableRow->datatype = 3;
 						$questionTableRow->prepost = "%s";
+						$questionTableRow->width_items = "50";
 						$questionTableRow->store();
 						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
@@ -125,7 +126,7 @@ class JcqModelQuestions extends JModel {
 				case TEXTANDHTML:
 					{
 						$questionTableRow->datatype = 4;
-						$questionTableRow->mandatory = 0;
+						$questionTableRow->mandatory = false;
 						$questionTableRow->store();
 						break;
 					}

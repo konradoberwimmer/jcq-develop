@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Variable name</td><td><input type="text" name="varname" id="varname" size="32" maxlength="250" value="<?php echo $this->question->varname; ?>" /></td></tr>
                     <tr><td>Type</td>
@@ -40,6 +40,13 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     ?>
                     </select>
                     </td></tr>
+             </table>
+       </fieldset>
+
+	   <fieldset>
+             <legend>Layout:</legend>
+             <table class="settings">
+                    <tr><td>Width of textfield</td><td><input type="text" name="width_items" id="width_items" size="8" maxlength="250" value="<?php echo $this->question->width_items; ?>" /></td></tr>
              </table>
        </fieldset>
 

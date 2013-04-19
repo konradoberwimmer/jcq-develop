@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
              <table>
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->scale->name; ?>" /></td></tr>
                     <tr><td>Text before and after the field</td><td><input type="text" name="prepost" id="prepost" size="32" maxlength="250" value="<?php echo $this->scale->prepost; ?>" /></td></tr>
+             		<tr><td>Default value</td><td><input type="text" name="defval" id="defval" size="8" value="<?php echo $this->scale->defval; ?>" /></td></tr>
              </table>
        </fieldset>
 

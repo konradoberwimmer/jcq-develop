@@ -150,7 +150,44 @@ class JcqController extends JController
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
+	
+	function editImport()
+	{
+		$importID = JRequest::getVar('editImport', null); //Reads cid as an arra
+		if ($importID === null || !is_numeric($importID)) JError::raiseError(500, 'editImport parameter missing');
+		
+		$view = & $this->getView('editimport');
+		
+		if ($model = & $this->getModel('imports') && $modelproject = & $this->getModel('projects'))
+		{ 
+			$view->setModel($model, true);
+			$view->setModel($modelproject, false);
+		}
+		else JError::raiseError(500, 'Model not found');
+		
+		$view->setLayout('editimportlayout');
+		$view->display($importID);
+	}
 
+	function saveEditedImport()
+	{
+		$importID = JRequest::getVar('importID', null); //Reads cid as an arra
+		if ($importID === null || !is_numeric($importID)) JError::raiseError(500, 'editImport parameter missing');
+				
+		$model = & $this->getModel('imports');
+		$model->saveEditedImport($importID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
+				
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editImport&editImport='.$importID,false);
+		$this->setRedirect($redirectTo, 'Program file saved!');	
+	}
+	
+	function cancelEditImport()
+	{
+		$import = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$import['projectID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
 	function exportProject()
 	{
 		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
@@ -404,7 +441,7 @@ class JcqController extends JController
 
 	function saveQuestion()
 	{
-		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
+		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW);
 			
 		$model = & $this->getModel('questions');
 		$questionid = $model->saveQuestion($question);

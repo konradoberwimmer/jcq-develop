@@ -1,5 +1,7 @@
 table { border-collapse: collapse; }
+table.list { margin-top: 5px; }
 table.list tr th { padding-left: 5px; padding-right: 20px; text-align: left; border-bottom: 1px solid black; }
 table.list tr td { padding-left: 5px; padding-right: 20px; }
-table.settings tr td { text-align: left; padding-right: 25px; padding-top: 5px; padding-bottom: 10px; }
+table.settings { margin-top: 5px; }
+table.settings tr td { text-align: left; padding-right: 15px; }
 p.breadcrumbs { font-size: 150%; }

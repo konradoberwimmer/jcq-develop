@@ -57,11 +57,11 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 				$possplit = strpos($scales[$j]->prepost, '%i');
 				if ($possplit!==false) echo(substr($scales[$j]->prepost,0,$possplit));
 				echo('<select name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'s'.$scales[$j]->ID.'">');
-				echo('<option></option>');
+				if ($scales[$j]->defval==null) echo('<option></option>');
 				$codes = $this->pagemodel->getCodesToScale($scales[$j]->ID);
 				for ($i=0;$i<count($codes);$i++)
 				{
-					echo('<option value="'.$codes[$i]->code.'" '.($codes[$i]->code==$prevanswers[$j]?"selected":"").'>'.$codes[$i]->label.'</option>');
+					echo('<option value="'.$codes[$i]->code.'" '.($codes[$i]->code==$prevanswers[$j]||($prevanswers[$j]==null&&$scales[$j]->defval==$codes[$i]->code)?"selected":"").'>'.$codes[$i]->label.'</option>');
 				}
 				echo('</select>');
 				if ($possplit!==false) echo(substr($scales[$j]->prepost,$possplit+2));

@@ -104,7 +104,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <tr>
 						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo $row->textleft; ?>" size="128" /></td>       
+                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>       
                         <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>
                         <td><input type="checkbox" id="<?php echo("item".$row->ID."mandatory"); ?>" name="itemmandatory[]" value="<?php echo $row->ID; ?>" <?php if ($row->mandatory) echo("checked"); ?> /></td>            
                         <td><input type="checkbox" id="<?php echo("item".$row->ID."delete"); ?>" name="itemdelete[]" value="<?php echo $row->ID; ?>"/></td>

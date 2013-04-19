@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 		}
 	?>
 	<?php if (!$this->page->isFinal) { ?>
-	<input type="button" name="storeAndContinue" value="Weiter" onclick="javascript: submitbutton('storeAndContinue');"/>
+	<input type="button" name="storeAndContinue" value="Weiter" onclick="javascript: submitbutton('storeAndContinue');" style="margin-top: 10px;"/>
 	<?php } ?>
     <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
     <input type="hidden" name="projectID" value="<?php echo JRequest::getVar( 'projectID' ); ?>"/>
