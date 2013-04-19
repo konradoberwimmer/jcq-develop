@@ -38,4 +38,5 @@ function addImportfile()
 	cellFilename.appendChild(inputFilename);
 	
 	var cellDelete = row.insertCell(2);
+	var cellEdit = row.insertCell(3);
 }

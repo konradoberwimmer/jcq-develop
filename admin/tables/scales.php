@@ -5,6 +5,7 @@ class TableScales extends JTable {
 	public $ID = null;
 	public $name = null;
 	public $prepost = null;
+	public $defval = null;
 	public $predefined = 0;
 	
 	function TableScales(&$db)

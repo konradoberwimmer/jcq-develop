@@ -11,8 +11,17 @@ function submitbutton(pressbutton)
 		previewPage.setAttribute("value","1");
 		pressbutton = "savePage";
 	}
+	
 	document.adminForm.task.value=pressbutton;
 	submitform(pressbutton);
+}
+
+function editImport(id)
+{
+	var editImport = document.getElementById('editImport');
+	editImport.setAttribute("value",id);
+	
+	submitbutton('editImport');
 }
 
 function checkproject()

@@ -10,6 +10,7 @@ div.question3 { margin-top: 5px; margin-bottom: 10px; }
 p.question3text { font-weight: bold; }
 p.question3missing { font-weight: bold; color: red; }
 p.question3advise { color: grey; }
+span.question3missing { color: red; }
 
 div.question4 { margin-top: 5px; margin-bottom: 10px; }
 p.question4text { font-weight: bold; }
