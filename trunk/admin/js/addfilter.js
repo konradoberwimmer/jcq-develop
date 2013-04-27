@@ -21,7 +21,7 @@ function addConjugation(number)
     
     var cellVAR = row.insertCell(1);
     var varselector = document.getElementById("varidTEMPLATE").cloneNode(true);
-    varselector.setAttribute("style","");
+    varselector.setAttribute("style","width: 250px;");
     varselector.setAttribute("id","variable"+number+"_"+rowCount);
     varselector.setAttribute("name","variable"+number+"_"+rowCount);
     cellVAR.appendChild(varselector);

@@ -6,6 +6,11 @@ p.question1text { font-weight: bold; }
 p.question1missing { font-weight: bold; color: red; }
 p.question1advise { color: grey; }
 
+div.question2 { margin-top: 5px; margin-bottom: 10px; }
+p.question2text { font-weight: bold; }
+p.question2missing { font-weight: bold; color: red; }
+p.question2advise { color: grey; }
+
 div.question3 { margin-top: 5px; margin-bottom: 10px; }
 p.question3text { font-weight: bold; }
 p.question3missing { font-weight: bold; color: red; }
