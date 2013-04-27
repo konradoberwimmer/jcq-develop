@@ -52,14 +52,14 @@ class JcqViewQuestionform extends JView
 					$this->assignRef('predefscales', $predefscales);
 					break;
 				}			
-			case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
+			case MULTICHOICE: case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
 		//attach item(s) according to questiontype
 		switch ($this->question->questtype)
 		{
-			case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
+			case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
 				{
 					$items = $this->getModel('items')->getItems($this->question->ID);
 					$this->assignRef('items', $items);
@@ -77,6 +77,11 @@ class JcqViewQuestionform extends JView
 			case SINGLECHOICE:
 				{
 					$filenames[0] = 'addcodes.js';
+					break;
+				}
+			case MULTICHOICE:
+				{
+					$filenames[0] = 'additems.js';
 					break;
 				}
 			case MATRIX_LEFT: case MATRIX_BOTH:

@@ -331,6 +331,32 @@ class JcqModelProjects extends JModel {
 									}
 									break;
 								}
+							case MULTICHOICE:
+								{
+									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
+									$items = $this->db->loadObjectList();
+									for ($k=0;$k<count($items);$k++)
+									{
+										$item=$items[$k];
+										$newvar = new SPSSVariable();
+										$newvar->datatype = 1;
+										$newvar->extvarname = $item->varname;
+										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
+										$newvar->varlabel = $item->textleft." ".$item->textright;
+										$newvar->pageID = $page->ID;
+										$newvar->questionID = $question->ID;
+										$newvar->itemID = $item->ID;
+										$code0 = $this->getTable('codes');
+										$code0->code = 0;
+										$code0->label = "not selected";
+										$code1 = $this->getTable('codes');
+										$code1->code = 1;
+										$code1->label = "selected";
+										$newvar->codes = array($code0,$code1);
+										$variables[$varcnt++]=$newvar;
+									}
+									break;
+								}
 							case TEXTFIELD:
 								{
 									$newvar = new SPSSVariable();
@@ -397,7 +423,7 @@ class JcqModelProjects extends JModel {
 									break;
 								}
 							case TEXTANDHTML: break;
-							default: JError::raiseError(500, 'FATAL: Code for saving data from question of type '.$question->questtype.' is missing!!!');
+							default: JError::raiseError(500, 'FATAL: Code for generating variable list for question of type '.$question->questtype.' is missing!!!');
 						}
 					}
 				}

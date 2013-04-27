@@ -102,6 +102,11 @@ class JcqModelQuestions extends JModel {
 						$this->addColumnUserDataINT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
+				case MULTICHOICE:
+					{
+						$this->buildItemPrototype($questionTableRow->ID,1);
+						break;
+					}
 				case TEXTFIELD:
 					{
 						$questionTableRow->varname = 'question'.$questionTableRow->ID;
@@ -159,7 +164,7 @@ class JcqModelQuestions extends JModel {
 						}
 						break;
 					}
-				case SINGLECHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
+				case SINGLECHOICE: case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
 					{
 						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
 						$db = $this->getDBO();

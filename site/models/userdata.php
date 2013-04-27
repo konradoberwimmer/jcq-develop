@@ -50,7 +50,7 @@ function getStoredValue ($varname)
 								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
 								break;
 							}
-						case MATRIX_LEFT: case MATRIX_BOTH:
+						case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH:
 							{
 								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
 								$items = $db->loadObjectList();
@@ -107,6 +107,20 @@ class JcqModelUserdata extends JModel
 		$this->db = $this->getDBO();
 	}
 
+	function setProjectID($id)
+	{
+		$this->projectID=$id;
+		global $currentproject;
+		$currentproject = $this->projectID;
+	}
+
+	function setSessionID($id)
+	{
+		$this->sessionID=$id;
+		global $currentsession;
+		$currentsession = $this->sessionID;
+	}
+
 	function loadSession($projectID,$sessionID)
 	{
 		//this is just for safety: look if session really exists
@@ -117,12 +131,8 @@ class JcqModelUserdata extends JModel
 		if ($session==null) return false; //error because session unknown
 		else
 		{
-			$this->sessionID = $sessionID;
-			$this->projectID = $projectID;
-			//these simple steps allow user code to access answers from the current session without violating privacy
-			global $currentsession, $currentproject;
-			$currentsession = $this->sessionID;
-			$currentproject = $this->projectID;
+			$this->setSessionID($sessionID);
+			$this->setProjectID($projectID);
 			return true;
 		}
 	}
@@ -144,8 +154,8 @@ class JcqModelUserdata extends JModel
 			//case 1a: anonymous answers allowed --> create new ID
 			if ($project->anonymous==1)
 			{
-				$this->sessionID = uniqid('', true);
-				$this->projectID = $projectID;
+				$this->setSessionID(uniqid('', true));
+				$this->setProjectID($projectID);
 				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (sessionID, curpage, timestampBegin) VALUES ('".$this->sessionID."',0,".time().")";
 				$db->setQuery($sqlnewsession);
 				if (!$db->query())
@@ -167,8 +177,8 @@ class JcqModelUserdata extends JModel
 			//case 2a: no session exists for user or multiple answers are permitted --> create session
 			if ($sessions==null || $project->multiple==1)
 			{
-				$this->sessionID = uniqid('', true);
-				$this->projectID = $projectID;
+				$this->setSessionID(uniqid('', true));
+				$this->setProjectID($projectID);
 				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, sessionID, curpage, timestampBegin) VALUES ('".$user->username."','".$this->sessionID."',0,".time().")";
 				$db->setQuery($sqlnewsession);
 				if (!$db->query())
@@ -180,8 +190,8 @@ class JcqModelUserdata extends JModel
 			//case 2b: a session exists for user and multiple answers are not permitted --> load old session
 			else
 			{
-				$this->sessionID = $sessions[0]->sessionID;
-				$this->projectID = $projectID;
+				$this->setSessionID($sessions[0]->sessionID);
+				$this->setProjectID($projectID);
 			}
 		}
 		return true;
@@ -228,7 +238,7 @@ class JcqModelUserdata extends JModel
 		// use model page to get the items to the question
 		require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
 		$modelpage = new JcqModelPage();
-		
+
 		$sqlsession = "SELECT * FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlsession);
@@ -294,6 +304,26 @@ class JcqModelUserdata extends JModel
 								}
 								break;
 							}
+						case MULTICHOICE:
+							{
+								$items = $modelpage->getItemsToQuestion($question->ID);
+								$foundchecked = false;
+								foreach ($items as $item)
+								{
+									$value = 0;
+									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
+									{
+										$foundchecked = true;
+										$value = 1;
+									}
+									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".$value." WHERE sessionID='".$this->sessionID."'";
+									$db->setQuery($sqlstore);
+									if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
+									//if mandatory and no item checked --> set missing
+									if ($question->mandatory==1 && !$foundchecked) $hasmissings=true;
+								}
+								break;
+							}
 						case TEXTFIELD:
 							{
 								//always store
@@ -313,8 +343,8 @@ class JcqModelUserdata extends JModel
 									if ($answer==null || strlen($answer)<1) $hasmissings=true;
 								}
 								//if data type does not match --> set missing
-								if ($question->datatype == 1 && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
-								if ($question->datatype == 2 && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'q'.$question->ID) != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'q'.$question->ID) != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
 								#TODO decimal seperator for locale
 								break;
 							}

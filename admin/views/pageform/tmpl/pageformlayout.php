@@ -103,7 +103,8 @@ if ($this->page->ID > 0 && !$this->page->isFinal)
 	<?php 
 		foreach ($this->variables as $variable)
 		{
-			echo("<option value=\"".$variable->intvarname."\">".$variable->extvarname." (".$variable->varlabel.")</option>");
+			$label = htmlentities($variable->varlabel,ENT_COMPAT,"UTF-8");			
+			echo("<option value=\"".$variable->intvarname."\">".$variable->extvarname." (".$label.")</option>");
 		}
 	?>
 	</select>
@@ -128,7 +129,7 @@ if ($this->page->ID > 0 && !$this->page->isFinal)
 					<tr>
 					<td><?php if ($j>0) echo("AND"); ?></td>
 					<td>
-						<select id="variable<?php echo($i."_".$j); ?>" name="variable<?php echo($i."_".$j); ?>">
+						<select id="variable<?php echo($i."_".$j); ?>" name="variable<?php echo($i."_".$j); ?>" style="width: 250px;">
 						<?php 
 							foreach ($this->variables as $variable)
 							{
