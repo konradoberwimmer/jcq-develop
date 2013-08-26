@@ -548,7 +548,18 @@ class JcqController extends JController
 					$itemsmodel->saveItem($item, $scales);
 				}
 				else $itemsmodel->saveItem($item);
+				//save binded items if any
+				$bindeditem = JRequest::getVar('item'.$item['ID'].'tfID', null);
+				if ($bindeditem!=null)
+				{
+					$tableItem =& $this->getModel("items")->getTable("items");
+					$tableItem->load($bindeditem);
+					$tableItem->varname = JRequest::getVar('item'.$item['ID'].'tfvarname', null);
+					$tableItem->store();
+				}
 			}
+			$itemaddrmtf = JRequest::getVar('itemaddrmtf', null, 'default', 'array' );
+			if ($itemaddrmtf!=null) $itemsmodel->addrmTextfields($itemaddrmtf,$questionid);
 			$itemdelete = JRequest::getVar('itemdelete', null, 'default', 'array' );
 			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
 		}

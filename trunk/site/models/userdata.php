@@ -310,6 +310,7 @@ class JcqModelUserdata extends JModel
 								$foundchecked = false;
 								foreach ($items as $item)
 								{
+									if ($item->bindingType!="QUESTION") continue;
 									$value = 0;
 									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
 									{
@@ -319,8 +320,20 @@ class JcqModelUserdata extends JModel
 									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".$value." WHERE sessionID='".$this->sessionID."'";
 									$db->setQuery($sqlstore);
 									if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
-									//if mandatory and no item checked --> set missing
-									if ($question->mandatory==1 && !$foundchecked) $hasmissings=true;
+								}
+								//if mandatory and no item checked --> set missing
+								if ($question->mandatory==1 && !$foundchecked) $hasmissings=true;
+								#TODO control if text is only entered when corresponding choice has been made
+								#TODO check that a text is entered if mandatory
+								foreach ($items as $item)
+								{
+									if ($item->bindingType!="ITEM") continue;
+									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
+									{
+										$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)."' WHERE sessionID='".$this->sessionID."'";
+										$db->setQuery($sqlstore);
+										if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
+									}
 								}
 								break;
 							}
