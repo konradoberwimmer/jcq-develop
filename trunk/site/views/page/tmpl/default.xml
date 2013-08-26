@@ -5,14 +5,7 @@
         </layout>
         <fields name="request">
                 <fieldset name="request">
-                        <field
-                                name="projectID"
-                                type="text"
-                                label="Projekt-ID"
-                                description="Die ID des Projekts, das aufgerufen werden soll."
-                                default="1"
-                        >
-                        </field>
+						<field name="projectID" type="sql" default="" label="Select a project" query="SELECT ID, name FROM jcq_project" key_field="ID" value_field="name" />
                 </fieldset>
         </fields>
 </metadata>

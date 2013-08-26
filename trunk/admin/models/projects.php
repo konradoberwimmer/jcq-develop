@@ -162,7 +162,7 @@ class JcqModelProjects extends JModel {
 		$variables = $this->getVariableList($projectID);
 		$varcnt = count($variables);
 		
-		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $out_charset, "*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n"));
 	
 		//Define Data.
 		#TODO add sessionID, duration etc.
@@ -333,7 +333,7 @@ class JcqModelProjects extends JModel {
 								}
 							case MULTICHOICE:
 								{
-									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
+									$this->db->setQuery('SELECT * FROM jcq_item WHERE bindingType="QUESTION" AND questionID = '.$question->ID.' ORDER BY ord');
 									$items = $this->db->loadObjectList();
 									for ($k=0;$k<count($items);$k++)
 									{
@@ -354,6 +354,21 @@ class JcqModelProjects extends JModel {
 										$code1->label = "selected";
 										$newvar->codes = array($code0,$code1);
 										$variables[$varcnt++]=$newvar;
+										//look for additional textfields
+										$this->db->setQuery('SELECT * FROM jcq_item WHERE bindingType="ITEM" AND bindingID='.$item->ID);
+										$bindeditems = $this->db->loadObjectList();
+										foreach ($bindeditems as $bindeditem)
+										{
+											$newvar = new SPSSVariable();
+											$newvar->datatype = 3;
+											$newvar->extvarname = $bindeditem->varname;
+											$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$bindeditem->ID;
+											$newvar->varlabel = $question->text; #FIXME should be more informative
+											$newvar->pageID = $page->ID;
+											$newvar->questionID = $question->ID;
+											$newvar->itemID = $bindeditem->ID;
+											$variables[$varcnt++]=$newvar;
+										}
 									}
 									break;
 								}
