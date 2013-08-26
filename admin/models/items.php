@@ -7,20 +7,34 @@ class JcqModelItems extends JModel {
 
 	//TODO: secure against insertion
 
+	private $db;
+	
+	function __construct()
+	{
+		parent::__construct();
+		$this->db = $this->getDBO();
+	}
+	
 	function getItem($itemID)
 	{
 		$query = 'SELECT * FROM jcq_item WHERE ID='.$itemID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		return $db->loadObject();
+		$this->db->setQuery($query);
+		return $this->db->loadObject();
 	}
 	
 	function getItems($questionID)
 	{
 		$query = 'SELECT * FROM jcq_item WHERE questionID = '.$questionID.' ORDER BY ord';
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		return $db->loadObjectList();
+		$this->db->setQuery($query);
+		return $this->db->loadObjectList();
+	}
+	
+	function getItembindedItems($itemID)
+	{
+		$this->db->setQuery("SELECT * FROM jcq_item WHERE bindingType='ITEM' AND bindingID=".$itemID);
+		$sqlresult = $this->db->loadObjectList();
+		if ($sqlresult===false) JError::raiseError(500, 'Error fetching textfields: '.$this->getDBO()->getErrorMsg());
+		else return $sqlresult;
 	}
 
 	function saveItem(array $item, array $scales=null)
@@ -53,12 +67,11 @@ class JcqModelItems extends JModel {
 		{
 			//stupidly try to add userdata columns if there are scales (question type MULTISCALE)
 			//just ignore the errors
-			$db = $this->getDBO();
 			foreach ($scales as $scale)
 			{
 				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN p".$pageid."q".$itemTableRow->questionID."i".$itemTableRow->ID."s".$scale->ID." INT";
-				$db->setQuery($query);
-				$db->query();
+				$this->db->setQuery($query);
+				$this->db->query();
 			}
 		}
 	}
@@ -66,16 +79,15 @@ class JcqModelItems extends JModel {
 	function getQuestionFromItem($itemID)
 	{
 		$query = 'SELECT * FROM jcq_item WHERE ID = '.$itemID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		$item = $db->loadObject();
+		$this->db->setQuery($query);
+		$item = $this->db->loadObject();
 			
 		if ($item === null) JError::raiseError(500, 'Item with ID: '.$itemID.' not found.');
 		else
 		{
 			$query = 'SELECT * FROM jcq_question WHERE ID = '.$item->questionID;
-			$db->setQuery($query);
-			$question = $db->loadObject();
+			$this->db->setQuery($query);
+			$question = $this->db->loadObject();
 	
 			if ($question === null) JError::raiseError(500, 'Question with ID: '.$itemID->questionID.' not found.');
 			else return $question;
@@ -85,7 +97,6 @@ class JcqModelItems extends JModel {
 	function deleteItems($arrayIDs)
 	{
 		//first remove user data columns!
-		$db = $this->getDBO();
 		foreach ($arrayIDs as $oneID)
 		{
 			$questionID = $this->getQuestionFromItem($oneID)->ID;
@@ -95,20 +106,20 @@ class JcqModelItems extends JModel {
 			$pageID = $modelquestions->getPageFromQuestion($questionID)->ID;
 			$projectID = $modelquestions->getProjectFromPage($pageID)->ID;
 			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'p".$pageID."q".$questionID."i".$oneID."%';";
-			$db->setQuery($statementquery);
-			$sqlresult = $db->loadResult();
+			$this->db->setQuery($statementquery);
+			$sqlresult = $this->db->loadResult();
 			if ($sqlresult!=null)
 			{
-				$db->setQuery($sqlresult);
-				if (!$db->query()){
+				$this->db->setQuery($sqlresult);
+				if (!$this->db->query()){
 					$errorMessage = $this->getDBO()->getErrorMsg();
 					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
 				}
 			}
 		}		
 		$query = "DELETE FROM jcq_item WHERE ID IN (".implode(',', $arrayIDs).")";
-		$db->setQuery($query);
-		if (!$db->query()){
+		$this->db->setQuery($query);
+		if (!$this->db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting items: '.$errorMessage);
 		}
@@ -122,12 +133,51 @@ class JcqModelItems extends JModel {
 		$project = $modelquestions->getProjectFromPage($pageID);
 		if ($scaleID===null) $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID."i".$itemID." INT";
 		else $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID."i".$itemID."s".$scaleID." INT";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query())
+		$this->db->setQuery($query);
+		if (!$this->db->query())
 		{
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+		}
+	}
+	
+	function addrmTextfields($arrayIDs,$questionid)
+	{
+		foreach($arrayIDs as $oneID)
+		{
+			$this->db->setQuery("SELECT * FROM jcq_question WHERE ID=".$questionid);
+			$question = $this->db->loadObject();
+			if (!$question) JError::raiseError(500, 'Error getting question: '.$this->db->getErrorMsg());
+			$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=".$question->pageID);
+			$page = $this->db->loadObject();
+			if (!$page) JError::raiseError(500, 'Error getting page: '.$this->db->getErrorMsg());
+			//Delete if a textfield is already there
+			$bindeditems = $this->getItembindedItems($oneID);
+			if ($bindeditems!=null && count($bindeditems)>0)
+			{
+				foreach ($bindeditems as $bindeditem)
+				{
+					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
+					//also delete data column
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+				}
+			} else
+			{
+				//if non exists so far, create one
+				$itemTableRow =& $this->getTable('items');
+				$itemTableRow->ord = 0;
+				$itemTableRow->varname = "question".$questionid."item".$oneID."text";
+				$itemTableRow->mandatory = 0;
+				$itemTableRow->questionID = $questionid;
+				$itemTableRow->bindingType = "ITEM";
+				$itemTableRow->bindingID = $oneID;
+				if (!$itemTableRow->store()) JError::raiseError(500, 'Error inserting textfield: '.$itemTableRow->getError());
+				//also create the userdata table column
+				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."q".$question->ID."i".$itemTableRow->ID." TEXT");
+				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
+			}
 		}
 	}
 }

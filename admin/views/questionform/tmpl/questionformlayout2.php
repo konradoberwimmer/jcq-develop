@@ -54,22 +54,42 @@ defined('_JEXEC') or die('Restricted access'); ?>
                            <th>Variable name</th>
                            <th></th>
                            <th>Delete</th>
+                           <th>Add/remove text field</th>
                     </tr>               
              	</thead>
              	 <tbody id="listitembody">
                     <?php
                     $k = 0;
                     $i = 0;
-                    foreach ($this->items as $row){
+                    foreach ($this->items as $row)
+                    {
+                    	if ($row->bindingType != "QUESTION") continue;
                     ?>
                     <tr>
 						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>       
+                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>
                         <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>
                         <td></td>            
                         <td><input type="checkbox" id="<?php echo("item".$row->ID."delete"); ?>" name="itemdelete[]" value="<?php echo $row->ID; ?>"/></td>
+                        <td><input type="checkbox" id="<?php echo("item".$row->ID."addrmtf"); ?>" name="itemaddrmtf[]" value="<?php echo $row->ID; ?>"/></td>
                     </tr>
+                    <?php
+                    $bindeditems = $this->getModel('items')->getItembindedItems($row->ID);
+                    if ($bindeditems!=null && count($bindeditems)>0)
+                    {
+                    	?>
+                    <tr>
+                    	<td>Including textfield:</td>
+                    	<td/>
+                    	<td><input type="hidden" name="<?php echo("item".$row->ID."tfID"); ?>" value="<?php echo $bindeditems[0]->ID; ?>"/><input type="text" name="<?php echo("item".$row->ID."tfvarname"); ?>" value="<?php echo $bindeditems[0]->varname; ?>"/></td>
+                    	<td/>
+                    	<td/>
+                    	<td/>
+                    </tr>
+                    	<?php 
+                    }
+                    ?>
                     <?php
                     	$k = 1 - $k;
                     	$i++;
