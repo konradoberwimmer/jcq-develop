@@ -3,7 +3,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
 
-class JcqModelParticipants extends JModel {
+class JcqModelUsergroups extends JModel {
 	 
 	private $db;
 	

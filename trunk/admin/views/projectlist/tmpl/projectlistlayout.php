@@ -14,6 +14,7 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
                            <th>Name</th>
                            <th>Description</th>
                            <th>Anonymous</th>
+                           <th>Allow Joomla</th>
                            <th>Multiple</th>
                            <th>Pages</th>
                     </tr>               
@@ -31,6 +32,7 @@ JCQ component has <?php echo count($this->projects); ?> project(s).
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
                             <td><?php echo $row->description; ?></td>
                             <td><input type="checkbox" <?php if ($row->anonymous) echo("checked"); ?> disabled/></td>
+                            <td><input type="checkbox" <?php if ($row->allowjoomla) echo("checked"); ?> disabled/></td>
                             <td><input type="checkbox" <?php if ($row->multiple) echo("checked"); ?> disabled /></td>
                     		<td><?php echo $this->pagecounts[$i]; ?></td>
                     </tr>
