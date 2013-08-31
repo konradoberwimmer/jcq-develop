@@ -13,15 +13,30 @@ class JcqModelUsergroups extends JModel {
 		$this->db = $this->getDBO();
 	}
 
-	function getParticipantsBegun($projectID)
+	function getUsergroups($projectID)
 	{
-		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE preview=0");
+		$this->db->setQuery("SELECT * FROM jcq_projusergroup$projectID ORDER BY value");
+		$results = $this->db->loadObjectList();
+		return $results;
+	}
+	
+	function getTokenCount($projectID, $usergroup)
+	{
+		$this->db->setQuery("SELECT ID FROM jcq_projtoken$projectID WHERE usergroupID=$usergroup");
+		$results = $this->db->loadResultArray();
+		if ($results==null) return 0;
+		else return count($results);
+	}
+	
+	function getParticipantsBegun($projectID,$groupID=null)
+	{
+		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
 	}
 
-	function getParticipantsFinishedFirst($projectID)
+	function getParticipantsFinishedFirst($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT ID FROM jcq_page WHERE projectID=$projectID ORDER BY isFinal, ord");
 		$results = $this->db->loadResultArray();
@@ -29,24 +44,24 @@ class JcqModelUsergroups extends JModel {
 		else
 		{
 			$firstpageID = $results[0];
-			$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE curpage!=$firstpageID AND preview=0");
+			$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE curpage!=$firstpageID AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 			$results = $this->db->loadResultArray();
 			if ($results==null) return 0;
 			else return count($results);			
 		}
 	}
 	
-	function getParticipantsFinished($projectID)
+	function getParticipantsFinished($projectID,$groupID=null)
 	{
-		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
+		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE finished=1 AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
 	}
 	
-	function getAverageDurationFinished($projectID)
+	function getAverageDurationFinished($projectID,$groupID=null)
 	{
-		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
+		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 		$results = $this->db->loadObjectList();
 		if ($results==null) return 0;
 		else
@@ -57,9 +72,9 @@ class JcqModelUsergroups extends JModel {
 		}
 	}
 
-	function getMediumDurationFinished($projectID)
+	function getMediumDurationFinished($projectID,$groupID=null)
 	{
-		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0");
+		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 		$results = $this->db->loadObjectList();
 		if ($results==null) return 0;
 		else
@@ -71,17 +86,17 @@ class JcqModelUsergroups extends JModel {
 		}
 	}
 	
-	function getLastFinished($projectID)
+	function getLastFinished($projectID,$groupID=null)
 	{
-		$this->db->setQuery("SELECT timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0 ORDER BY timestampEnd DESC");
+		$this->db->setQuery("SELECT timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0 ".($groupID!==null?" AND groupID=".$groupID:"")." ORDER BY timestampEnd DESC");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return null;
 		else return $results[0]->timestampEnd;
 	}
 	
-	function getLastBegun($projectID)
+	function getLastBegun($projectID,$groupID=null)
 	{
-		$this->db->setQuery("SELECT timestampBegin FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin DESC");
+		$this->db->setQuery("SELECT timestampBegin FROM jcq_proj$projectID WHERE preview=0 ".($groupID!==null?" AND groupID=".$groupID:"")." ORDER BY timestampBegin DESC");
 		$results = $this->db->loadObjectList();
 		if ($results==null) return null;
 		else return $results[0]->timestampBegin;

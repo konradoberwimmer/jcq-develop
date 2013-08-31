@@ -67,6 +67,7 @@ class JcqModelProjects extends JModel {
 		$projectTableRow =& $this->getTable('projects');
 		$projectTableRow->ID = 0;
 		$projectTableRow->name = '';
+		$projectTableRow->allowjoomla = true;
 		return $projectTableRow;
 	}
 
@@ -83,7 +84,7 @@ class JcqModelProjects extends JModel {
 		{
 			$this->db->setQuery("INSERT INTO jcq_page (name, ord, projectID, isFinal) VALUES ('Final page',0,".$projectTableRow->ID.",1)");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating final page entry: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
+			$this->db->setQuery("CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), groupID BIGINT, sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
 			$this->db->setQuery("CREATE TABLE jcq_projusergroup".$projectTableRow->ID." (ID BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(255) NOT NULL, value INTEGER,	PRIMARY KEY (ID)) ENGINE=InnoDB;");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());

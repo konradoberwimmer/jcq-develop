@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <tr><td>CSS-File (optional)</td><td><input type="text" name="cssfile" id="cssfile" size="32" maxlength="250" value="<?php echo $this->project->cssfile; ?>" /></td></tr>
                     <tr><td>Description</td><td><input type="text" name="description" id="description" size="64" maxlength="5000" value="<?php echo $this->project->description; ?>" /></td></tr>
                     <tr><td>Anonymous answers</td><td><input type="checkbox" name="anonymous" id="anonymous" value="1" <?php if ($this->project->anonymous > 0) echo("checked"); ?>/></td></tr>
+             		<tr><td>Allow Joomla users</td><td><input type="checkbox" name="allowjoomla" id="allowjoomla" value="1" <?php if ($this->project->allowjoomla > 0) echo("checked"); ?>/></td></tr>
              		<tr><td>Multiple answers</td><td><input type="checkbox" name="multiple" id="multiple" value="1" <?php if ($this->project->multiple > 0) echo("checked"); ?>/></td></tr>
              </table>
        </fieldset>
@@ -71,48 +72,108 @@ defined('_JEXEC') or die('Restricted access'); ?>
 </fieldset>
 
 <fieldset>
-	<legend>Participants:</legend>
-	<table class="settings">
-		<tr>
-			<td># begun questionnaire:</td>
-			<td><?php echo($this->participants->getParticipantsBegun($this->project->ID)); ?></td>
-			<td><input type="button" value="Save data" onclick="javascript: submitbutton('saveData')"/></td>
-		</tr>
-		<tr>
-			<td># finished first page:</td>
-			<td><?php echo($this->participants->getParticipantsFinishedFirst($this->project->ID)); ?></td>
-			<td>
-			<?php
-				if ($this->download!==null)
-				{
-					?>
-					<a href="<?php echo(JURI::base().'components/com_jcq/userdata/'.$this->download); ?>" target="blank">Download data</a>
-					<?php 
-				}
-			?>
-			</td>
-		</tr>
-		<tr>
-			<td># finished all:</td>
-			<td><?php echo($this->participants->getParticipantsFinished($this->project->ID)); ?></td>
-		</tr>
-		<tr>
-			<td>Average duration to finish (minutes):</td>
-			<td><?php echo(number_format($this->participants->getAverageDurationFinished($this->project->ID)/60.0,1)); ?></td>
-		</tr>
-		<tr>
-			<td>Medium duration to finish (minutes):</td>
-			<td><?php echo(number_format($this->participants->getMediumDurationFinished($this->project->ID)/60.0,1)); ?></td>
-		</tr>
-		<tr>
-			<td>Last begun questionnaire:</td>
-			<td><?php if ($this->participants->getLastBegun($this->project->ID)!=null) echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastBegun($this->project->ID))); ?></td>
-		</tr>
-		<tr>
-			<td>Last finished questionnaire:</td>
-			<td><?php if ($this->participants->getLastFinished($this->project->ID)!=null) echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastFinished($this->project->ID))); ?></td>
-		</tr>
-	</table>
+	<legend>User groups:</legend>
+    <table id="usergrouptable" class="list">
+    	<thead>
+    	<tr>
+    		<th></th>
+    		<th>Name</th>
+    		<th>Value</th>
+    		<th>User count</th>
+    		<th># begun</th>
+    		<th># first</th>
+    		<th># finished</th>
+    		<th>Average time</th>
+    		<th>Medium time</th>
+    		<th>Last begun</th>
+    		<th>Last finished</th>
+    		<th></th>
+    		<th></th>
+    	</tr>
+    	</thead>
+    	<tbody>
+    	<!-- Anonymous answers -->
+    	<tr>
+    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,-1); ?>
+    		<td/>
+    		<td>Anonymous</td>
+    		<td>-1</td>
+    		<td>-</td>
+    		<td><?php echo $usersbegun;?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,-1);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,-1);?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,-1)));?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,-1)));?></td>
+    		<td/>
+    		<td/>
+    	</tr>
+    	<!-- Joomla users -->
+    	<tr>
+    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,0); ?>
+    		<td/>
+    		<td>Joomla</td>
+    		<td>0</td>
+    		<td><?php #TODO echo user count ?></td>
+    		<td><?php echo $usersbegun;?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,0);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,0);?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,0)));?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,0)));?></td>
+    		<td/>
+    		<td/>    		
+    	</tr>
+    	<!-- User groups -->
+    	<?php 
+    		$projusergroups = $this->usergroups->getUsergroups($this->project->ID);
+    		if ($projusergroups!=null)
+    		{
+    			foreach ($projusergroups as $usergroup)
+    			{
+    				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->value);
+    				?>
+    	<tr>	
+    		<td/>
+    		<td><?php echo $usergroup->name; ?></td>
+    		<td><?php echo $usergroup->value; ?></td>
+    		<td><?php echo $this->usergroups->getTokenCount($this->project->ID,$usergroup->ID); ?></td>
+    		<td><?php echo $usersbegun;?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,$usergroup->value);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->value);?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->value)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->value)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,$usergroup->value)));?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->value)));?></td>
+    		<td/>
+    		<td/>
+    	</tr>
+    				<?php 
+    			}
+    		}
+    	?>
+    	<!-- All -->
+    	<tr>
+    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID); ?>
+    		<td/>
+    		<td>All</td>
+    		<td>-</td>
+    		<td>-</td>
+    		<td><?php echo $usersbegun?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID);?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID)));?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID)));?></td>
+    		<td/>
+    		<td/>    		
+    	</tr>
+    	</tbody>
+    </table>
+    <input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton(addUsergroup)"/><br/>
 </fieldset>
 
 <fieldset>
