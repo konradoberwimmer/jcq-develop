@@ -75,7 +75,7 @@ class JcqController extends JController
 
 		if ($model = & $this->getModel('projects'))	$view->setModel($model, true);
 		else JError::raiseError(500, 'Model projects not found');
-		if ($modelparticipants = & $this->getModel('participants'))	$view->setModel($modelparticipants, false);
+		if ($modelusergroups = & $this->getModel('usergroups'))	$view->setModel($modelusergroups, false);
 		else JError::raiseError(500, 'Model participants not found');
 			
 		$view->setLayout('projectformlayout');
@@ -108,7 +108,7 @@ class JcqController extends JController
 			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
 		}
 
-		//save the importss if project has any
+		//save the imports if project has any
 		if (isset($project['importids']))
 		{
 			//has to be in this order: 1. save imports 2. delete imports; otherwise errors for missing IDs

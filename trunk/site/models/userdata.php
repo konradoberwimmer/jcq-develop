@@ -148,38 +148,19 @@ class JcqModelUserdata extends JModel
 
 		$user =& JFactory::getUser();
 
-		//case 1: no user logged in (ID is set to 0)
-		if ($user->id==0)
-		{
-			//case 1a: anonymous answers allowed --> create new ID
-			if ($project->anonymous==1)
-			{
-				$this->setSessionID(uniqid('', true));
-				$this->setProjectID($projectID);
-				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (sessionID, curpage, timestampBegin) VALUES ('".$this->sessionID."',0,".time().")";
-				$db->setQuery($sqlnewsession);
-				if (!$db->query())
-				{
-					$errorMessage = $this->getDBO()->getErrorMsg();
-					JError::raiseError(500, 'Error inserting new session: '.$errorMessage);
-				}
-			}
-			//case 1b: anonymous answers not allowed --> return false (error)
-			else return false;
-		}
-		//case 2: a user is logged in
-		else
+		//case 1: a joomla user is logged in and joomla users are allowed
+		if ($user->id!=0 && $project->allowjoomla==1)
 		{
 			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='".$user->username."'";
 			$db->setQuery($sqlsessions);
 			$sessions = $db->loadObjectList();
-
-			//case 2a: no session exists for user or multiple answers are permitted --> create session
+			
+			//case 1a: no session exists for user or multiple answers are permitted --> create session
 			if ($sessions==null || $project->multiple==1)
 			{
 				$this->setSessionID(uniqid('', true));
 				$this->setProjectID($projectID);
-				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, sessionID, curpage, timestampBegin) VALUES ('".$user->username."','".$this->sessionID."',0,".time().")";
+				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, groupID, sessionID, curpage, timestampBegin) VALUES ('".$user->username."',0,'".$this->sessionID."',0,".time().")";
 				$db->setQuery($sqlnewsession);
 				if (!$db->query())
 				{
@@ -187,12 +168,31 @@ class JcqModelUserdata extends JModel
 					JError::raiseError(500, 'Error inserting new session: '.$errorMessage);
 				}
 			}
-			//case 2b: a session exists for user and multiple answers are not permitted --> load old session
+			//case 1b: a session exists for user and multiple answers are not permitted --> load old session
 			else
 			{
 				$this->setSessionID($sessions[0]->sessionID);
 				$this->setProjectID($projectID);
 			}
+		}
+		//case 2: no joomla user or joomla not allowed
+		else
+		{
+			//case 2a: anonymous answers allowed --> create new ID
+			if ($project->anonymous==1)
+			{
+				$this->setSessionID(uniqid('', true));
+				$this->setProjectID($projectID);
+				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (groupID, sessionID, curpage, timestampBegin) VALUES (-1,'".$this->sessionID."',0,".time().")";
+				$db->setQuery($sqlnewsession);
+				if (!$db->query())
+				{
+					$errorMessage = $this->getDBO()->getErrorMsg();
+					JError::raiseError(500, 'Error inserting new session: '.$errorMessage);
+				}
+			}
+			//case 2b: anonymous answers not allowed --> return false (error)
+			else return false;
 		}
 		return true;
 	}
@@ -457,6 +457,7 @@ class JcqModelUserdata extends JModel
 					if (!$foundnextpage)
 					{
 						$nextpage = -1;
+						//FIXME minor bug: finished=1 is not set, when projet has only the final page
 						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET finished=1, timestampEnd=".time()." WHERE sessionID='".$this->sessionID."'";
 						$db->setQuery($sqlstore);
 						if (!$db->query())

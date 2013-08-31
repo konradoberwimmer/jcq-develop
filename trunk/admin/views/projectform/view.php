@@ -14,7 +14,7 @@ class JcqViewProjectform extends JView
 		$imports = $model->getImports($projectID);
 		$this->assignRef('pages', $pages);
 		$this->assignRef('imports', $imports);
-		$this->assignRef('participants', $this->getModel('participants'));
+		$this->assignRef('usergroups', $this->getModel('usergroups'));
 		$this->assignRef('download',$download);
 		
 		$questioncounts = array();
