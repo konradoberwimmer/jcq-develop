@@ -69,40 +69,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <input type="hidden" name="boxchecked" value="0"/>    
        <input type="hidden" name="hidemainmenu" value="0"/>  
 </fieldset>
-<fieldset>
-	<legend>Program files:</legend>
-	<?php 
-		if ($this->imports == null || count($this->imports)==0) echo("No files imported.<br/>");
-	?>
-	<table id="importstable" class="list">
-		<?php 
-		if ($this->imports != null && count($this->imports)>0)
-		{
-			?>
-			<thead><tr><th>Order</th><th>Filename</th><th>Delete</th><th/></tr></thead>
-			<?php 
-		}
-		foreach ($this->imports as $import)
-		{
-			?>
-			<tbody>
-			<tr>
-			<td><input type="hidden" name="importids[]" value="<?php echo $import->ID; ?>"/>
-			<input type="text" id="<?php echo("import".$import->ID."ord"); ?>" name="importord[]" value="<?php echo $import->ord; ?>"/>
-			</td>
-			<td><input type="text" id="<?php echo("import".$import->ID."filename"); ?>" name="importfilename[]" value="<?php echo $import->filename; ?>"/></td>
-			<td><input type="checkbox" id="<?php echo("import".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
-			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editimport(<?php echo $import->ID; ?>)"/></td>
-			</tr>
-			<tbody>
-			<?php 	
-		}
-		?>
-	</table>
-	<input type="button" name="addImport" value="Add program file" onclick="addImportfile()"/><br/>
-	<br/>
-	(TIP: Use getStoredValue(varname) in user defined functions to get participants answers.)
-</fieldset>
+
 <fieldset>
 	<legend>Participants:</legend>
 	<table class="settings">
@@ -146,6 +113,41 @@ defined('_JEXEC') or die('Restricted access'); ?>
 			<td><?php if ($this->participants->getLastFinished($this->project->ID)!=null) echo(strftime("%d.%m.%Y, %H:%M:%S",$this->participants->getLastFinished($this->project->ID))); ?></td>
 		</tr>
 	</table>
+</fieldset>
+
+<fieldset>
+	<legend>Program files:</legend>
+	<?php 
+		if ($this->imports == null || count($this->imports)==0) echo("No files imported.<br/>");
+	?>
+	<table id="importstable" class="list">
+		<?php 
+		if ($this->imports != null && count($this->imports)>0)
+		{
+			?>
+			<thead><tr><th>Order</th><th>Filename</th><th>Delete</th><th/></tr></thead>
+			<?php 
+		}
+		foreach ($this->imports as $import)
+		{
+			?>
+			<tbody>
+			<tr>
+			<td><input type="hidden" name="importids[]" value="<?php echo $import->ID; ?>"/>
+			<input type="text" id="<?php echo("import".$import->ID."ord"); ?>" name="importord[]" value="<?php echo $import->ord; ?>"/>
+			</td>
+			<td><input type="text" id="<?php echo("import".$import->ID."filename"); ?>" name="importfilename[]" value="<?php echo $import->filename; ?>"/></td>
+			<td><input type="checkbox" id="<?php echo("import".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
+			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editimport(<?php echo $import->ID; ?>)"/></td>
+			</tr>
+			<tbody>
+			<?php 	
+		}
+		?>
+	</table>
+	<input type="button" name="addImport" value="Add program file" onclick="addImportfile()"/><br/>
+	<br/>
+	(TIP: Use getStoredValue(varname) in user defined functions to get participants answers.)
 </fieldset>
 <?php } ?>
 </form>

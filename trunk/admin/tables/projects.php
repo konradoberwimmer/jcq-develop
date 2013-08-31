@@ -7,6 +7,7 @@ class TableProjects extends JTable {
 	public $cssfile = null;
 	public $description = null;
 	public $anonymous = false;
+	public $allowjoomla = true;
 	public $multiple = false;
 	
 	function TableProjects(&$db)

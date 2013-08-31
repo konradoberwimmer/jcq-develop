@@ -33,6 +33,7 @@ CREATE TABLE jcq_project(
 		cssfile VARCHAR(255),
 		description TEXT,
 		anonymous BOOLEAN NOT NULL DEFAULT 0,
+		allowjoomla BOOLEAN NOT NULL DEFAULT 1,
 		multiple BOOLEAN NOT NULL DEFAULT 0,
 		PRIMARY KEY (ID)
 ) ENGINE=InnoDB;
