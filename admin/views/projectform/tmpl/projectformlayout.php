@@ -129,24 +129,24 @@ defined('_JEXEC') or die('Restricted access'); ?>
     	<!-- User groups -->
     	<?php 
     		$projusergroups = $this->usergroups->getUsergroups($this->project->ID);
-    		if ($projusergroups!=null)
+    		if ($projusergroups!==null)
     		{
     			foreach ($projusergroups as $usergroup)
     			{
-    				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->value);
+    				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->val);
     				?>
     	<tr>	
     		<td/>
     		<td><?php echo $usergroup->name; ?></td>
-    		<td><?php echo $usergroup->value; ?></td>
-    		<td><?php echo $this->usergroups->getTokenCount($this->project->ID,$usergroup->ID); ?></td>
+    		<td><?php echo $usergroup->val; ?></td>
+    		<td><?php echo $this->usergroups->getTokenCount($usergroup->ID); ?></td>
     		<td><?php echo $usersbegun;?></td>
-    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,$usergroup->value);?></td>
-    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->value);?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->value)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->value)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,$usergroup->value)));?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->value)));?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,$usergroup->val);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->val);?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,$usergroup->val)));?></td>
+    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->val)));?></td>
     		<td/>
     		<td/>
     	</tr>
@@ -173,7 +173,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
     	</tr>
     	</tbody>
     </table>
-    <input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton(addUsergroup)"/><br/>
+    <input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/><br/>
 </fieldset>
 
 <fieldset>

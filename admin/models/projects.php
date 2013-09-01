@@ -86,10 +86,6 @@ class JcqModelProjects extends JModel {
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating final page entry: '.$this->getDBO()->getErrorMsg());
 			$this->db->setQuery("CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), groupID BIGINT, sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("CREATE TABLE jcq_projusergroup".$projectTableRow->ID." (ID BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(255) NOT NULL, value INTEGER,	PRIMARY KEY (ID)) ENGINE=InnoDB;");
-			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("CREATE TABLE jcq_projtoken".$projectTableRow->ID." (ID BIGINT NOT NULL AUTO_INCREMENT,	token VARCHAR(16), email TEXT, tester BOOLEAN DEFAULT 0, usergroupID BIGINT NOT NULL, PRIMARY KEY (ID), FOREIGN KEY (usergroupID) REFERENCES jcq_projusergroup".$projectTableRow->ID."(ID) ON UPDATE CASCADE ON DELETE CASCADE) ENGINE=InnoDB;");
-			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
 		}
 		return $projectTableRow->ID;
 	}
@@ -107,10 +103,6 @@ class JcqModelProjects extends JModel {
 		foreach ($arrayIDs as $oneID)
 		{
 			$this->db->setQuery("DROP TABLE jcq_proj".$oneID);
-			if (!$this->db->query()) JError::raiseError(500, 'Error deleting projects: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("DROP TABLE jcq_projtoken".$oneID);
-			if (!$this->db->query()) JError::raiseError(500, 'Error deleting projects: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("DROP TABLE jcq_projusergroup".$oneID);
 			if (!$this->db->query()) JError::raiseError(500, 'Error deleting projects: '.$this->getDBO()->getErrorMsg());
 		}
 	}
