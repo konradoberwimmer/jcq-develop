@@ -4,30 +4,79 @@ defined('_JEXEC') or die( 'Restricted access' );
 jimport('joomla.application.component.model');
 
 class JcqModelUsergroups extends JModel {
-	 
+
 	private $db;
-	
-	function __construct() 
+
+	function __construct()
 	{
 		parent::__construct();
 		$this->db = $this->getDBO();
 	}
 
+	function getUsergroup($ID)
+	{
+		$query = 'SELECT * FROM jcq_usergroup WHERE ID = '.$ID;
+		$this->db->setQuery($query);
+		$usergroup = $this->db->loadObject();
+			
+		if ($usergroup === null) JError::raiseError(500, 'User group with ID: '.$ID.' not found.');
+		else return $usergroup;
+	}
+	
 	function getUsergroups($projectID)
 	{
-		$this->db->setQuery("SELECT * FROM jcq_projusergroup$projectID ORDER BY value");
+		$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE projectID=$projectID ORDER BY val");
 		$results = $this->db->loadObjectList();
 		return $results;
 	}
-	
-	function getTokenCount($projectID, $usergroup)
+
+	function getProjectFromUsergroup($usergroupID)
 	{
-		$this->db->setQuery("SELECT ID FROM jcq_projtoken$projectID WHERE usergroupID=$usergroup");
+		$query = 'SELECT * FROM jcq_usergroup WHERE ID = '.$usergroupID;
+		$this->db->setQuery($query);
+		$usergroup = $this->db->loadObject();
+			
+		if ($usergroup === null) JError::raiseError(500, 'User group with ID: '.$usergroupID.' not found.');
+		else
+		{
+			$query = 'SELECT * FROM jcq_project WHERE ID = '.$usergroup->projectID;
+			$this->db->setQuery($query);
+			$project = $this->db->loadObject();
+	
+			if ($project === null) JError::raiseError(500, 'Project with ID: '.$usergroup->projectID.' not found.');
+			else return $project;
+		}
+	}
+	
+	function getNewUsergroup($projectID)
+	{
+		$usergroupTableRow =& $this->getTable('usergroups');
+		$usergroupTableRow->ID = 0;
+		$usergroupTableRow->name = '';
+		$usergroupTableRow->val = 1; //FIXME should be set to highest value for this project
+		$usergroupTableRow->projectID = $projectID;
+		return $usergroupTableRow;
+	}
+
+	function saveUsergroup($usergoup)
+	{
+		$usergroupTableRow =& $this->getTable();
+		
+		if (!$usergroupTableRow->bind($usergoup)) JError::raiseError(500, 'Error binding data');
+		if (!$usergroupTableRow->check()) JError::raiseError(500, 'Invalid data');
+		if (!$usergroupTableRow->store()) JError::raiseError(500, 'Error inserting data: '.$usergroupTableRow->getError());
+		
+		return $usergroupTableRow->ID;
+	}
+
+	function getTokenCount($usergroupID)
+	{
+		$this->db->setQuery("SELECT ID FROM token WHERE usergroupID=$usergroupID");
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
 	}
-	
+
 	function getParticipantsBegun($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE preview=0".($groupID!==null?" AND groupID=".$groupID:""));
@@ -47,10 +96,10 @@ class JcqModelUsergroups extends JModel {
 			$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE curpage!=$firstpageID AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
 			$results = $this->db->loadResultArray();
 			if ($results==null) return 0;
-			else return count($results);			
+			else return count($results);
 		}
 	}
-	
+
 	function getParticipantsFinished($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE finished=1 AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
@@ -58,7 +107,7 @@ class JcqModelUsergroups extends JModel {
 		if ($results==null) return 0;
 		else return count($results);
 	}
-	
+
 	function getAverageDurationFinished($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT timestampBegin, timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0".($groupID!==null?" AND groupID=".$groupID:""));
@@ -85,7 +134,7 @@ class JcqModelUsergroups extends JModel {
 			return $durations[floor($i/2.0)];
 		}
 	}
-	
+
 	function getLastFinished($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT timestampEnd FROM jcq_proj$projectID WHERE finished=1 AND preview=0 ".($groupID!==null?" AND groupID=".$groupID:"")." ORDER BY timestampEnd DESC");
@@ -93,7 +142,7 @@ class JcqModelUsergroups extends JModel {
 		if ($results==null) return null;
 		else return $results[0]->timestampEnd;
 	}
-	
+
 	function getLastBegun($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT timestampBegin FROM jcq_proj$projectID WHERE preview=0 ".($groupID!==null?" AND groupID=".$groupID:"")." ORDER BY timestampBegin DESC");

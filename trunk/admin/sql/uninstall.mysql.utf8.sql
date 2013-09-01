@@ -1,3 +1,5 @@
+DROP TABLE jcq_token;
+DROP TABLE jcq_usergroup;
 DROP TABLE jcq_questionscales;
 DROP TABLE jcq_item;
 DROP TABLE jcq_question;

@@ -670,6 +670,55 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 
+	function addUsergroup()
+	{
+		$projectID = JRequest::getVar('ID');
+		if($projectID === null) JError::raiseError(500, 'project id parameter missing');
+		$view = & $this->getView('usergroupform');
+		$model = & $this->getModel('usergroups');
+		if (!$model) JError::raiseError(500, 'Model not found');
+		$view->setModel($model, true);
+		$view->setLayout('usergroupformlayout');
+		$view->displayAdd($projectID);
+	}
+	
+	function editUsergroup()
+	{
+		$usergroupids = JRequest::getVar('cid', null, 'default', 'array' );
+		if($usergroupids === null) JError::raiseError(500, 'cid parameter missing');
+		$usergroupID = (int)$usergroupids[0];
+	
+		$view = & $this->getView('usergroupform');
+			
+		if ($model = & $this->getModel('usergroups') && $modelprojects = & $this->getModel('projects'))
+		{
+			$view->setModel($model, true);
+			$view->setModel($modelprojects, false);
+		}
+		else JError::raiseError(500, 'Model not found');
+			
+		$view->setLayout('usergroupformlayout');
+		$view->displayEdit($usergroupID);
+	}
+	
+	function cancelAddUsergroup()
+	{
+		$usergroup = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$usergroup['projectID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
+	function saveUsergroup()
+	{
+		$usergroup = JRequest::get( 'POST' );
+			
+		$model = & $this->getModel('usergroups');
+		$usergroupid = $model->saveUsergroup($usergroup);
+	
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroupid,false);
+		$this->setRedirect($redirectTo, 'Usergroup saved!');
+	}
+	
 	function saveData()
 	{
 		$project = JRequest::get( 'POST' );
