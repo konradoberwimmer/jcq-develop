@@ -20,4 +20,37 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <input type="hidden" name="ID" value="<?php echo $this->usergroup->ID; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->usergroup->projectID; ?>"/>
        <input type="hidden" name="task" value=""/>
+<?php if ($this->usergroup->ID > 0) { ?>
+<fieldset>
+	<legend>Tokens:</legend>
+    <table id="tokentable" class="list">
+    	<thead>
+    	<tr>
+    		<th></th>
+    		<th>Token</th>
+    		<th>Email</th>
+    	</tr>
+    	</thead>
+    	<tbody>
+    	<?php 
+    		if ($this->tokens!==null)
+    		{
+    		foreach ($this->tokens as $token)
+    		{
+    			?>
+    		<tr>
+    			<td></td>
+    			<td><?php echo $token->token; ?></td>
+    			<td><?php echo $token->email; ?></td>
+    		</tr>
+    			<?php 
+    		}
+    		}
+    	?>
+		</tbody>
+	</table>
+    <input type="text" size="8" name="numTokens" value="25"/>
+    <input type="button" name="addTokens" value="Add ... tokens" onclick="submitbutton('addTokens')"/><br/>
+</fieldset>
+<?php } ?>
 </form>

@@ -31,6 +31,10 @@ class JcqViewProjectform extends JView
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
 		JHTML::script($path.$filename, true);
+		$filename = 'manageuglist.js';
+		JHTML::script($path.$filename, true);
+		$filename = 'opendownload.js';
+		JHTML::script($path.$filename, true);
 		$filename = 'addimports.js';
 		JHTML::script($path.$filename, true);
 		

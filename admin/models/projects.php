@@ -146,7 +146,7 @@ class JcqModelProjects extends JModel {
 		}
 	}
 	
-	function saveData($projectID)
+	function saveData($projectID,$usergroupids)
 	{
 		#FIXME just for now: create a file to write to
 		$filename = "data_proj$projectID"."_".time().".sps";
@@ -189,7 +189,8 @@ class JcqModelProjects extends JModel {
 	
 		//Get Data.
 		fwrite($file,"BEGIN DATA\n");
-		$this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
+		if ($usergroupids===null) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
+		else $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 AND groupID IN (".implode($usergroupids,",").") ORDER BY timestampBegin");
 		#FIXME perhaps this is not the most memory efficient procedure
 		$data = $this->db->loadAssocList();
 		#TODO set user-missings if value is missing

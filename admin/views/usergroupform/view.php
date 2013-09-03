@@ -9,8 +9,10 @@ class JcqViewUsergroupform extends JView
 		$model = $this->getModel();
 		$usergroup = $model->getUsergroup($usergroupID);
 		$project = $model->getProjectFromUsergroup($usergroupID);
+		$tokens = $model->getTokens($usergroupID);
 		$this->assignRef('usergroup', $usergroup);
 		$this->assignRef('project', $project);
+		$this->assignRef('tokens', $tokens);
 		
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
