@@ -719,13 +719,24 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Usergroup saved!');
 	}
 	
+	function addTokens()
+	{
+		$usergroup = JRequest::get( 'POST' );
+		$model = & $this->getModel('usergroups');
+		$model->addTokens($usergroup);
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
+		$this->setRedirect($redirectTo, 'Tokens added!');
+	}
+	
 	function saveData()
 	{
 		$project = JRequest::get( 'POST' );
 		$projectid = $project['ID'];
-
+		$usergroupids = JRequest::getVar('ugchk', null, 'default', 'array' );
+		
 		$model = & $this->getModel('projects');
-		$filename = $model->saveData($projectid);
+		$filename = $model->saveData($projectid,$usergroupids);
 
 		$app = &JFactory::getApplication();
 		$app->enqueueMessage("Data saved ...");

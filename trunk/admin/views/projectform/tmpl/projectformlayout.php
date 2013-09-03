@@ -1,6 +1,18 @@
 <?php
-defined('_JEXEC') or die('Restricted access'); ?>
-<?php if ($this->project->ID > 0) { ?>
+defined('_JEXEC') or die('Restricted access'); 
+
+if ($this->download!==null)
+{ 
+	#FIXME unsave path!
+?>
+<script type="text/javascript">
+<!--
+addOnload(openDownload('components/com_jcq/userdata','<?php echo($this->download); ?>'));
+//-->
+</script>
+<?php 
+}
+if ($this->project->ID > 0) { ?>
 <p class="breadcrumbs">
 <a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a>&nbsp;&gt;&nbsp;
 <a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$this->project->ID,false);?>">Project &quot;<?php echo $this->project->name; ?>&quot;</a>
@@ -85,17 +97,14 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		<th># finished</th>
     		<th>Average time</th>
     		<th>Medium time</th>
-    		<th>Last begun</th>
     		<th>Last finished</th>
-    		<th></th>
-    		<th></th>
     	</tr>
     	</thead>
     	<tbody>
     	<!-- Anonymous answers -->
     	<tr>
     		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,-1); ?>
-    		<td/>
+    		<td><input type="checkbox" name="ugchk[]" value="-1"/></td>
     		<td>Anonymous</td>
     		<td>-1</td>
     		<td>-</td>
@@ -104,15 +113,12 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,-1);?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,-1)));?></td>
     		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,-1)));?></td>
-    		<td/>
-    		<td/>
     	</tr>
     	<!-- Joomla users -->
     	<tr>
     		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,0); ?>
-    		<td/>
+    		<td><input type="checkbox" name="ugchk[]" value="0"/></td>
     		<td>Joomla</td>
     		<td>0</td>
     		<td><?php #TODO echo user count ?></td>
@@ -121,10 +127,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,0);?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,0)));?></td>
     		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,0)));?></td>
-    		<td/>
-    		<td/>    		
     	</tr>
     	<!-- User groups -->
     	<?php 
@@ -136,8 +139,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
     				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->val);
     				?>
     	<tr>	
-    		<td/>
-    		<td><?php echo $usergroup->name; ?></td>
+    		<td><input type="checkbox" name="ugchk[]" value="<?php echo $usergroup->val; ?>"/></td>
+    		<td><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup->ID,false);?>"><?php echo $usergroup->name; ?></a></td>
     		<td><?php echo $usergroup->val; ?></td>
     		<td><?php echo $this->usergroups->getTokenCount($usergroup->ID); ?></td>
     		<td><?php echo $usersbegun;?></td>
@@ -145,19 +148,16 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->val);?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID,$usergroup->val)));?></td>
     		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->val)));?></td>
-    		<td/>
-    		<td/>
     	</tr>
     				<?php 
     			}
     		}
     	?>
     	<!-- All -->
-    	<tr>
+    	<tr style="border-top: 1px solid black;">
     		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID); ?>
-    		<td/>
+    		<td><input type="checkbox" id="ug_all" name="ug_all" onclick="changeAllUGstate()"/></td>
     		<td>All</td>
     		<td>-</td>
     		<td>-</td>
@@ -166,14 +166,14 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID);?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
     		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastBegun($this->project->ID)));?></td>
     		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID)));?></td>
-    		<td/>
-    		<td/>    		
     	</tr>
     	</tbody>
     </table>
-    <input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/><br/>
+    <table>
+    	<tr><td><input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/></td></tr>
+    	<tr><td><input type="button" name="saveData" value="Save data" onclick="submitbutton('saveData')"/></td></tr>
+    </table>
 </fieldset>
 
 <fieldset>

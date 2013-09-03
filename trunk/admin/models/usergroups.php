@@ -71,12 +71,34 @@ class JcqModelUsergroups extends JModel {
 
 	function getTokenCount($usergroupID)
 	{
-		$this->db->setQuery("SELECT ID FROM token WHERE usergroupID=$usergroupID");
+		$this->db->setQuery("SELECT ID FROM jcq_token WHERE usergroupID=$usergroupID");
 		$results = $this->db->loadResultArray();
 		if ($results==null) return 0;
 		else return count($results);
 	}
 
+	function getTokens($usergroupID)
+	{
+		$this->db->setQuery("SELECT * FROM jcq_token WHERE usergroupID=$usergroupID");
+		$results = $this->db->loadObjectList();
+		return $results;
+	}
+	
+	function addTokens($usergoup)
+	{
+		$numTokens = $usergoup['numTokens'];
+		$usergroupID = $usergoup['ID'];
+		if (!is_numeric($numTokens)) JError::raiseError(500, 'Invalid number of Tokens: '.$numTokens);
+		#FIXME do it better with one access to DB and check if token is created multiple times
+		for ($i=0; $i<$numTokens; $i++)
+		{
+			$unid = uniqid('');
+			$token = substr($unid,strlen($unid)-8,8);
+			$this->db->setQuery("INSERT INTO jcq_token (token, usergroupID) VALUES ('$token',$usergroupID)");
+			$this->db->query();
+		}
+	}
+	
 	function getParticipantsBegun($projectID,$groupID=null)
 	{
 		$this->db->setQuery("SELECT sessionID FROM jcq_proj$projectID WHERE preview=0".($groupID!==null?" AND groupID=".$groupID:""));

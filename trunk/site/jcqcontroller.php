@@ -28,11 +28,14 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model(s) not found');
 		
 		//get or create session
+		$loginsuccessful = true;
 		$sessionID = JRequest::getVar('sessionID');
 		if ($sessionID==null)
 		{
-			//the only reason why a session could not be created is when anonymous answers are not allowed
-			if (!$modeluserdata->createSession($projectID)) JError::raiseError(500, 'Not allowed - needs login!');
+			//reasons why a session could not be created:
+			// a) no token or user and anonymous answers are not allowed
+			// b) invalid token
+			if (!$modeluserdata->createSession($projectID)) $loginsuccessful=false;
 		}
 		else
 		{
@@ -52,9 +55,20 @@ class JcqController extends JController
 		$imports = $projectmodel->getImports($projectID);
 		foreach ($imports as $import) require_once(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$import->filename);
 		
-		//display the current page for this session
-		$pageID = $modeluserdata->getCurrentPage();
-		$view->displayPage($pageID,$markmissing);
+		if ($loginsuccessful)
+		{
+			//display the current page for this session
+			$pageID = $modeluserdata->getCurrentPage();
+			$view->displayPage($pageID,$markmissing);
+		}
+		else
+		{
+			//display the login form
+			#TODO ban IPs that attempt to break through
+			$view = & $this->getView('loginform');
+			$view->setLayout('loginformlayout');
+			$view->display();
+		}
 	}
 	
 	function storeAndContinue()
