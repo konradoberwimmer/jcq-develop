@@ -4,6 +4,10 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 jimport('joomla.application.component.controller');
 jimport('joomla.filesystem.file');
 
+set_include_path(JPATH_COMPONENT.DS.'includes');
+include('PHPExcel'.DS.'PHPExcel.php');
+include('PHPExcel'.DS.'PHPExcel'.DS.'IOFactory.php');
+
 function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
 {
 	foreach (get_object_vars($jtable) as $k => $v) //ok, here a scripting language makes everything simpler
@@ -727,6 +731,33 @@ class JcqController extends JController
 		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
 		$this->setRedirect($redirectTo, 'Tokens added!');
+	}
+	
+	function uploadTokens()
+	{
+		$usergroup = JRequest::get('POST');
+		$projectID = $usergroup['projectID'];
+		if ($_FILES["file"]["error"] > 0)
+		{
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
+			$this->setRedirect($redirectTo, 'Upload failed!');
+		}
+		else
+		{
+			$filename = "importtokens_proj$projectID"."_".time().".".end(explode(".", $_FILES['file']['name']));
+			$file = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
+			$fileContent = file_get_contents($_FILES['file']['tmp_name']);
+			fwrite($file,$fileContent);
+			fclose($file);
+			
+			# ATTENTION: uses PHPExcel by Mark Baker - many thanks!!!
+			$objPHPExcel = PHPExcel_IOFactory::load($filename);
+			$sheetData = $objPHPExcel->getActiveSheet()->toArray(null,true,true,true);
+			var_dump($sheetData);
+			
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
+			$this->setRedirect($redirectTo, 'Tokens imported!');
+		}
 	}
 	
 	function saveData()

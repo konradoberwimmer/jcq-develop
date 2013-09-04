@@ -3,6 +3,16 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
 
+function RandomString($length)
+{
+	$characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+	$randstring = '';
+	for ($i = 0; $i < $length; $i++) {
+		$randstring .= $characters[rand(0, strlen($characters))];
+	}
+	return $randstring;
+}
+
 class JcqModelUsergroups extends JModel {
 
 	private $db;
@@ -92,8 +102,7 @@ class JcqModelUsergroups extends JModel {
 		#FIXME do it better with one access to DB and check if token is created multiple times
 		for ($i=0; $i<$numTokens; $i++)
 		{
-			$unid = uniqid('');
-			$token = substr($unid,strlen($unid)-8,8);
+			$token = RandomString(8);
 			$this->db->setQuery("INSERT INTO jcq_token (token, usergroupID) VALUES ('$token',$usergroupID)");
 			$this->db->query();
 		}
