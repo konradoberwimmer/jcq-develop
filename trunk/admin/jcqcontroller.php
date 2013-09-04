@@ -751,13 +751,43 @@ class JcqController extends JController
 			fclose($file);
 			
 			# ATTENTION: uses PHPExcel by Mark Baker - many thanks!!!
-			$objPHPExcel = PHPExcel_IOFactory::load($filename);
+			$objPHPExcel = PHPExcel_IOFactory::load(JPATH_COMPONENT.DS."userdata".DS.$filename);
+			#FIXME should allow other sheets as well
 			$sheetData = $objPHPExcel->getActiveSheet()->toArray(null,true,true,true);
-			var_dump($sheetData);
-			
-			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
-			$this->setRedirect($redirectTo, 'Tokens imported!');
+			$view = & $this->getView('uploadtokensform');
+			$view->setLayout('uploadtokensformlayout');
+			$model = & $this->getModel('usergroups');
+			$view->setModel($model,true);
+			$view->display($usergroup, $sheetData, $filename);
 		}
+	}
+	
+	function insertUploadedTokens()
+	{
+		$thepost = JRequest::get('POST');
+		$model = & $this->getModel('usergroups');
+		
+		# ATTENTION: uses PHPExcel by Mark Baker - many thanks!!!
+		$objPHPExcel = PHPExcel_IOFactory::load(JPATH_COMPONENT.DS."userdata".DS.$thepost['filename']);
+		#FIXME should allow other sheets as well
+		$sheetData = $objPHPExcel->getActiveSheet()->toArray(null,true,true,true);
+		$i = $thepost['columnnames']==1?2:1;
+		while (array_key_exists($i, $sheetData))
+		{
+			$token = array("token"=>$sheetData[$i][$thepost['columntoken']],"email"=>$sheetData[$i][$thepost['columnemail']]);
+			$model->addToken($thepost['usergroupID'],$token);
+			$i++;
+		}
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$thepost['usergroupID'],false);
+		$this->setRedirect($redirectTo, (count($sheetData)-($thepost['columnnames']==1?1:0))." tokens uploaded");		
+	}
+	
+	function cancelInsertUploadedTokens()
+	{
+		$usergroup = JRequest::get('POST');
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['usergroupID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');		
 	}
 	
 	function saveData()
