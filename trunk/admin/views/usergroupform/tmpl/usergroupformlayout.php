@@ -49,8 +49,10 @@ defined('_JEXEC') or die('Restricted access'); ?>
     	?>
 		</tbody>
 	</table>
-    <input type="text" size="8" name="numTokens" value="25"/>
-    <input type="button" name="addTokens" value="Add ... tokens" onclick="submitbutton('addTokens')"/><br/>
+	<table>
+	<tr><td><input type="text" size="8" name="numTokens" value="25"/><input type="button" name="addTokens" value="Add ... tokens" onclick="submitbutton('addTokens')"/></td></tr>
+    <tr><td><input type="file" name="file" id="file"/><input type="button" name="uploadTokens" value="Upload tokens" onclick="submitbutton('uploadTokens')"/></td></tr>
+    </table>
 </fieldset>
 <?php } ?>
 </form>

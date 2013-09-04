@@ -10,6 +10,9 @@ function submitbutton(pressbutton)
 		var previewPage = document.getElementById('previewPage');
 		previewPage.setAttribute("value","1");
 		pressbutton = "savePage";
+	} else if (pressbutton=='uploadTokens')
+	{
+		document.adminForm.setAttribute('enctype','multipart/form-data');
 	}
 	
 	document.adminForm.task.value=pressbutton;
