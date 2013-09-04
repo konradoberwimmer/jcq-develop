@@ -94,6 +94,18 @@ class JcqModelUsergroups extends JModel {
 		return $results;
 	}
 	
+	function addToken($usergroupID,$token)
+	{
+		if (!isset($token['token']) || strlen($token['token'])<2) $token['token'] = RandomString(8);
+		$query="INSERT INTO jcq_token (token, usergroupID";
+		if (isset($token['email']) && strlen($token['email'])>0) $query.=", email";
+		$query.=") VALUES ('".$token['token']."',$usergroupID";
+		if (isset($token['email']) && strlen($token['email'])>0) $query.=",'".$token['email']."'";
+		$query.=")";
+		$this->db->setQuery($query);
+		$this->db->query();
+	}
+		
 	function addTokens($usergoup)
 	{
 		$numTokens = $usergoup['numTokens'];

@@ -23,6 +23,10 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <?php if ($this->usergroup->ID > 0) { ?>
 <fieldset>
 	<legend>Tokens:</legend>
+<?php 
+if ($this->tokens===null || count($this->tokens)==0) echo("No tokens for this user group.");
+else
+{ ?>
     <table id="tokentable" class="list">
     	<thead>
     	<tr>
@@ -33,8 +37,6 @@ defined('_JEXEC') or die('Restricted access'); ?>
     	</thead>
     	<tbody>
     	<?php 
-    		if ($this->tokens!==null)
-    		{
     		foreach ($this->tokens as $token)
     		{
     			?>
@@ -45,13 +47,13 @@ defined('_JEXEC') or die('Restricted access'); ?>
     		</tr>
     			<?php 
     		}
-    		}
     	?>
 		</tbody>
 	</table>
-	<table>
-	<tr><td><input type="text" size="8" name="numTokens" value="25"/><input type="button" name="addTokens" value="Add ... tokens" onclick="submitbutton('addTokens')"/></td></tr>
-    <tr><td><input type="file" name="file" id="file"/><input type="button" name="uploadTokens" value="Upload tokens" onclick="submitbutton('uploadTokens')"/></td></tr>
+<?php } ?>
+	<table style="margin-top:10px;">
+	<tr><td><input type="button" style="width:150px;" name="addTokens" value="Add random tokens" onclick="submitbutton('addTokens')"/></td><td><label for="numTokens">Number of tokens:&nbsp;</label><input type="text" size="8" id="numTokens" name="numTokens" value="25"/></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="uploadTokens" value="Upload tokens" onclick="submitbutton('uploadTokens')"/></td><td><label for="file">File:&nbsp;</label><input type="file" name="file" id="file"/><br/><label><input type="checkbox" name="columnnames" value="1" checked /> First row contains column names</label></td></tr>
     </table>
 </fieldset>
 <?php } ?>
