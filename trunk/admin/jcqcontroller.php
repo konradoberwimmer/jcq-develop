@@ -723,7 +723,52 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Usergroup saved!');
 	}
 	
-	function addTokens()
+	function newToken()
+	{
+		$usergroupID = JRequest::getVar('ID');
+		if($usergroupID === null) JError::raiseError(500, 'user group id parameter missing');
+		$view = & $this->getView('tokenform');
+		$model = & $this->getModel('tokens');
+		if (!$model) JError::raiseError(500, 'Model not found');
+		$view->setModel($model, true);
+		$view->setLayout('tokenformlayout');
+		$view->displayAdd($usergroupID);
+	}
+	
+	function editToken()
+	{
+		$tokenids = JRequest::getVar('cid', null, 'default', 'array' );
+		if($tokenids === null) JError::raiseError(500, 'cid parameter missing');
+		$tokenID = (int)$tokenids[0];
+		
+		$view = & $this->getView('tokenform');
+			
+		if ($model = & $this->getModel('tokens')) $view->setModel($model, true);
+		else JError::raiseError(500, 'Model not found');
+			
+		$view->setLayout('tokenformlayout');
+		$view->displayEdit($tokenID);
+	}
+
+	function saveToken()
+	{
+		$thepost = JRequest::get( 'POST' );
+			
+		$model = & $this->getModel('tokens');
+		$tokenid = $model->saveToken($thepost);
+	
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editToken&cid[]='.$tokenid,false);
+		$this->setRedirect($redirectTo, 'Token saved!');
+	}
+	
+	function cancelAddToken()
+	{
+		$token = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$token['usergroupID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
+	function addRandomTokens()
 	{
 		$usergroup = JRequest::get( 'POST' );
 		$model = & $this->getModel('usergroups');
@@ -762,6 +807,20 @@ class JcqController extends JController
 		}
 	}
 	
+	function removeTokens()
+	{
+		$thepost = JRequest::get( 'POST' );
+		
+		$tokenIDs = JRequest::getVar('cid', null, 'default', 'array' );
+		if($tokenIDs === null) JError::raiseError(500, 'cid parameter missing');
+			
+		$model = & $this->getModel('tokens');
+		$model->removeTokens($tokenIDs,(isset($thepost['deleteanswers'])?true:false));
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, 'Removed '.count($tokenIDs).' token(s)');
+	}
+	
 	function insertUploadedTokens()
 	{
 		$thepost = JRequest::get('POST');
@@ -774,7 +833,20 @@ class JcqController extends JController
 		$i = $thepost['columnnames']==1?2:1;
 		while (array_key_exists($i, $sheetData))
 		{
-			$token = array("token"=>$sheetData[$i][$thepost['columntoken']],"email"=>$sheetData[$i][$thepost['columnemail']]);
+			$token_token = ($thepost['columntoken']!=-1?$sheetData[$i][$thepost['columntoken']]:"");
+			$token_email = ($thepost['columnemail']!=-1?$sheetData[$i][$thepost['columnemail']]:"");
+			$token_name = ($thepost['columnusername']!=-1?$sheetData[$i][$thepost['columnusername']]:"");
+			$token_firstname = ($thepost['columnfirstname']!=-1?$sheetData[$i][$thepost['columnfirstname']]:"");
+			$token_salutation = ($thepost['columnsalutation']!=-1?$sheetData[$i][$thepost['columnsalutation']]:"");
+			$token_note = ($thepost['columnnote']!=-1?$sheetData[$i][$thepost['columnnote']]:"");
+			$token = array(
+						"token"=>$token_token,
+						"email"=>$token_email,
+						"name"=>$token_name,
+						"firstname"=>$token_firstname,
+						"salutation"=>$token_salutation,
+						"note"=>$token_note,
+			);
 			$model->addToken($thepost['usergroupID'],$token);
 			$i++;
 		}

@@ -96,14 +96,12 @@ class JcqModelUsergroups extends JModel {
 	
 	function addToken($usergroupID,$token)
 	{
-		if (!isset($token['token']) || strlen($token['token'])<2) $token['token'] = RandomString(8);
-		$query="INSERT INTO jcq_token (token, usergroupID";
-		if (isset($token['email']) && strlen($token['email'])>0) $query.=", email";
-		$query.=") VALUES ('".$token['token']."',$usergroupID";
-		if (isset($token['email']) && strlen($token['email'])>0) $query.=",'".$token['email']."'";
-		$query.=")";
-		$this->db->setQuery($query);
-		$this->db->query();
+		$tokenTableRow =& $this->getTable('tokens');
+		if (!$tokenTableRow->bind($token)) JError::raiseError(500, 'Error binding data');
+		if ($tokenTableRow->token==null || strlen($tokenTableRow->token)==0) $tokenTableRow->token = RandomString(8);
+		$tokenTableRow->usergroupID = $usergroupID;		
+		if (!$tokenTableRow->check()) JError::raiseError(500, 'Invalid data');
+		if (!$tokenTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$tokenTableRow->getError());
 	}
 		
 	function addTokens($usergoup)
@@ -114,9 +112,10 @@ class JcqModelUsergroups extends JModel {
 		#FIXME do it better with one access to DB and check if token is created multiple times
 		for ($i=0; $i<$numTokens; $i++)
 		{
-			$token = RandomString(8);
-			$this->db->setQuery("INSERT INTO jcq_token (token, usergroupID) VALUES ('$token',$usergroupID)");
-			$this->db->query();
+			$tokenTableRow =& $this->getTable('tokens');
+			$tokenTableRow->usergroupID = $usergroupID;
+			$tokenTableRow->token = RandomString(8);
+			if (!$tokenTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$tokenTableRow->getError());
 		}
 	}
 	

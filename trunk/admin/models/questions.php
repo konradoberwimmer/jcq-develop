@@ -195,7 +195,6 @@ class JcqModelQuestions extends JModel {
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting questions: '.$errorMessage);
 		}
-		//TODO with more question types it will be necessary to delete user data columns from items!
 	}
 
 	function setQuestionOrder(array $questionids,array $questionord)
