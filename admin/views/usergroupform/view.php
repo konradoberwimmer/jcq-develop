@@ -17,6 +17,8 @@ class JcqViewUsergroupform extends JView
 		$path = 'administrator/components/com_jcq/js/';
 		$filename = 'overridesubmit.js';
 		JHTML::script($path.$filename, true);
+		$filename = 'managetokenlist.js';
+		JHTML::script($path.$filename, true);
 		
 		JToolBarHelper::title('JCQ: Edit user group');
 		JToolBarHelper::save("saveUsergroup","Save");

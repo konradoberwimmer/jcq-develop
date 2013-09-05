@@ -1,8 +1,10 @@
-DROP TABLE IF EXISTS jcq_itemscales;
+DROP TABLE IF EXISTS jcq_token;
+DROP TABLE IF EXISTS jcq_usergroup;
 DROP TABLE IF EXISTS jcq_questionscales;
 DROP TABLE IF EXISTS jcq_item;
 DROP TABLE IF EXISTS jcq_question;
 DROP TABLE IF EXISTS jcq_page;
+DROP TABLE IF EXISTS jcq_import;
 DROP TABLE IF EXISTS jcq_project;
 DROP TABLE IF EXISTS jcq_code;
 DROP TABLE IF EXISTS jcq_scale;
@@ -116,6 +118,10 @@ CREATE TABLE jcq_token(
 		ID BIGINT NOT NULL AUTO_INCREMENT,
 		token VARCHAR(16),
 		email TEXT,
+		name TEXT,
+		firstname TEXT,
+		salutation TEXT,
+		note TEXT,
 		usergroupID BIGINT NOT NULL, 
 		PRIMARY KEY (ID), 
 		FOREIGN KEY (usergroupID) REFERENCES jcq_usergroup(ID) ON UPDATE CASCADE ON DELETE CASCADE

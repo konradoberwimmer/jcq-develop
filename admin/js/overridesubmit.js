@@ -13,6 +13,25 @@ function submitbutton(pressbutton)
 	} else if (pressbutton=='uploadTokens')
 	{
 		document.adminForm.setAttribute('enctype','multipart/form-data');
+	} else if (pressbutton=='removeTokens')
+	{
+		var foundchecked = false;
+		var tokentable = document.getElementById('tokentable');
+		var chkboxes = tokentable.getElementsByTagName("input");
+		for (var i=0; i<chkboxes.length; i++)
+		{
+			if (chkboxes[i].getAttribute('name')=='cid[]' && chkboxes[i].checked)
+			{
+				foundchecked = true;
+				break;
+			}
+		}
+		if (!foundchecked)
+		{
+			alert('Please select token(s) first!');
+			return;
+		}
+		if (!confirm('Do you really want to remove the selected tokens?')) return;
 	}
 	
 	document.adminForm.task.value=pressbutton;

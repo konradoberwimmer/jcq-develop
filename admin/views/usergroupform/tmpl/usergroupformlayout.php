@@ -30,9 +30,13 @@ else
     <table id="tokentable" class="list">
     	<thead>
     	<tr>
-    		<th></th>
+    		<th><input type="checkbox" id="token_all" name="token_all" onclick="changeAllTokenstate()"/></th>
     		<th>Token</th>
     		<th>Email</th>
+    		<th>Name</th>
+    		<th>First name</th>
+    		<th>Salutation</th>
+    		<th>Note</th>
     	</tr>
     	</thead>
     	<tbody>
@@ -41,9 +45,13 @@ else
     		{
     			?>
     		<tr>
-    			<td></td>
-    			<td><?php echo $token->token; ?></td>
+    			<td><input type="checkbox" name="cid[]" value="<?php echo $token->ID; ?>"/></td>
+    			<td><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editToken&cid[]='.$token->ID,false);?>"><?php echo $token->token; ?></a></td>
     			<td><?php echo $token->email; ?></td>
+    			<td><?php echo $token->name; ?></td>
+    			<td><?php echo $token->firstname; ?></td>
+    			<td><?php echo $token->salutation; ?></td>
+    			<td><?php echo $token->note; ?></td>
     		</tr>
     			<?php 
     		}
@@ -52,7 +60,9 @@ else
 	</table>
 <?php } ?>
 	<table style="margin-top:10px;">
-	<tr><td><input type="button" style="width:150px;" name="addTokens" value="Add random tokens" onclick="submitbutton('addTokens')"/></td><td><label for="numTokens">Number of tokens:&nbsp;</label><input type="text" size="8" id="numTokens" name="numTokens" value="25"/></td></tr>
+	<tr><td><input type="button" style="width:150px;" name="newToken" value="New token" onclick="submitbutton('newToken')"/></td><td></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="removeTokens" value="Remove token(s)" onclick="submitbutton('removeTokens')"/></td><td><label><input type="checkbox" name="deleteanswers" value="1"/> Delete answers of token(s)</label></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="addRandomTokens" value="Add random tokens" onclick="submitbutton('addRandomTokens')"/></td><td><label for="numTokens">Number of tokens:&nbsp;</label><input type="text" size="8" id="numTokens" name="numTokens" value="25"/></td></tr>
     <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="uploadTokens" value="Upload tokens" onclick="submitbutton('uploadTokens')"/></td><td><label for="file">File:&nbsp;</label><input type="file" name="file" id="file"/><br/><label><input type="checkbox" name="columnnames" value="1" checked /> First row contains column names</label></td></tr>
     </table>
 </fieldset>

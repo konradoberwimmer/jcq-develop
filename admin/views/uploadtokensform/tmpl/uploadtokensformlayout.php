@@ -26,15 +26,73 @@ defined('_JEXEC') or die('Restricted access'); ?>
              <table class="settings">
              	<tr><td>Column for token:</td><td>
              	<select name="columntoken">
+             		<option value="-1">--- NONE ---</option>
              		<?php 
-             		foreach ($columns_letter as $index=>$value) echo("<option value=\"".$value."\">".$columns_name[$index]."</option>")
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"token")!==false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
              		?>
              	</select>
              	</td></tr>
              	<tr><td>Column for email:</td><td>
              	<select name="columnemail">
+             		<option value="-1">--- NONE ---</option>
              		<?php 
-             		foreach ($columns_letter as $index=>$value) echo("<option value=\"".$value."\">".$columns_name[$index]."</option>")
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"mail")!==false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
+             		?>
+             	</select>             	
+             	</td></tr>
+             	<tr><td>Column for name:</td><td>
+             	<select name="columnusername">
+             		<option value="-1">--- NONE ---</option>
+             		<?php 
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"name")!==false && strpos(strtolower($columns_name[$index]),"first")===false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
+             		?>
+             	</select>             	
+             	</td></tr>
+             	<tr><td>Column for first name:</td><td>
+             	<select name="columnfirstname">
+             		<option value="-1">--- NONE ---</option>
+             		<?php 
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"first")!==false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
+             		?>
+             	</select>             	
+             	</td></tr>
+             	<tr><td>Column for salutation:</td><td>
+             	<select name="columnsalutation">
+             		<option value="-1">--- NONE ---</option>
+             		<?php 
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"salutation")!==false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
+             		?>
+             	</select>             	
+             	</td></tr>
+             	<tr><td>Column for note:</td><td>
+             	<select name="columnnote">
+             		<option value="-1">--- NONE ---</option>
+             		<?php 
+             		foreach ($columns_letter as $index=>$value)
+             		{
+             			if (strpos(strtolower($columns_name[$index]),"note")!==false) echo("<option value=\"".$value."\" selected>".$columns_name[$index]."</option>");
+             			else echo("<option value=\"".$value."\">".$columns_name[$index]."</option>");
+             		}
              		?>
              	</select>             	
              	</td></tr>
