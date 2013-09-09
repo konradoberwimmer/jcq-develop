@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+        <fieldset name="smtp" label="SMTP-server configuration">
+                <field name="smtp_host" type="text" label="SMTP-Host:" description="Please specify a valid and reachable smtp server host!"/>
+        </fieldset>
+</config>
