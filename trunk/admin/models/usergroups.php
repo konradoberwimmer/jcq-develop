@@ -3,16 +3,6 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
 
-function RandomString($length)
-{
-	$characters = '0123456789abcdefghijklmnopqrstuvwxyz';
-	$randstring = '';
-	for ($i = 0; $i < $length; $i++) {
-		$randstring .= $characters[rand(0, strlen($characters))];
-	}
-	return $randstring;
-}
-
 class JcqModelUsergroups extends JModel {
 
 	private $db;
@@ -40,6 +30,13 @@ class JcqModelUsergroups extends JModel {
 		return $results;
 	}
 
+	function getAllUsergroupsList()
+	{
+		$this->db->setQuery("SELECT jcq_usergroup.ID AS ug_ID, jcq_usergroup.name AS ug_name, jcq_project.name AS proj_name FROM jcq_usergroup JOIN jcq_project ON jcq_project.ID=jcq_usergroup.projectID ORDER BY jcq_project.name, jcq_usergroup.val");
+		$results = $this->db->loadObjectList();
+		return $results;
+	}
+	
 	function getProjectFromUsergroup($usergroupID)
 	{
 		$query = 'SELECT * FROM jcq_usergroup WHERE ID = '.$usergroupID;
@@ -67,6 +64,32 @@ class JcqModelUsergroups extends JModel {
 		$usergroupTableRow->projectID = $projectID;
 		return $usergroupTableRow;
 	}
+	
+	function copyUsergroup($projectID,$usergroupID)
+	{
+		$ugtocopy = $this->getUsergroup($usergroupID);
+		$usergroupTableRow =& $this->getTable('usergroups');
+		$usergroupTableRow->ID = 0;
+		$usergroupTableRow->name = $ugtocopy->name;
+		$usergroupTableRow->val = $ugtocopy->val;
+		$usergroupTableRow->projectID = $projectID;
+		if (!$usergroupTableRow->check()) JError::raiseError(500, 'Invalid data');
+		if (!$usergroupTableRow->store()) JError::raiseError(500, 'Error inserting data: '.$usergroupTableRow->getError());
+		//now copy all the tokens;
+		$tokenstocopy = $this->getTokens($usergroupID);
+		if ($tokenstocopy!==null)
+		{
+			foreach ($tokenstocopy as $onetoken)
+			{
+				$tokenTableRow =& $this->getTable('tokens');
+				if (!$tokenTableRow->bind($onetoken)) JError::raiseError(500, 'Error binding data');
+				$tokenTableRow->ID=0;
+				$tokenTableRow->usergroupID=$usergroupTableRow->ID;
+				if (!$tokenTableRow->check()) JError::raiseError(500, 'Invalid data');
+				if (!$tokenTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$tokenTableRow->getError());
+			}
+		}
+	}
 
 	function saveUsergroup($usergoup)
 	{
@@ -79,6 +102,26 @@ class JcqModelUsergroups extends JModel {
 		return $usergroupTableRow->ID;
 	}
 
+	function removeUsergroups($ugIDs,$delAnswers=false)
+	{
+		// beforehand delete tokens (if any) because answers might be deleted (otherwise the CASCADE would suffice)
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'tokens.php');
+		$modeltokens = new JcqModelTokens();
+		foreach ($ugIDs as $oneugID)
+		{
+			$tokens = $this->getTokens($oneugID);
+			if ($tokens!=null && count($tokens)>0)
+			{
+				$arraytokenIDs = array();
+				foreach ($tokens as $onetoken) array_push($arraytokenIDs, $onetoken->ID);
+				$modeltokens->removeTokens($arraytokenIDs,$delAnswers);
+			}
+		}
+	
+		$this->db->setQuery("DELETE FROM jcq_usergroup WHERE ID IN (".implode(',', $ugIDs).")");
+		if (!$this->db->query()) JError::raiseError(500, 'Error deleting usergroups: '.$this->db->getErrorMsg());
+	}
+	
 	function getTokenCount($usergroupID)
 	{
 		$this->db->setQuery("SELECT ID FROM jcq_token WHERE usergroupID=$usergroupID");
@@ -96,6 +139,9 @@ class JcqModelUsergroups extends JModel {
 	
 	function addToken($usergroupID,$token)
 	{
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'tokens.php');
+		$modeltokens = new JcqModelTokens();
+		
 		$tokenTableRow =& $this->getTable('tokens');
 		if (!$tokenTableRow->bind($token)) JError::raiseError(500, 'Error binding data');
 		if ($tokenTableRow->token==null || strlen($tokenTableRow->token)==0) $tokenTableRow->token = RandomString(8);
@@ -106,15 +152,16 @@ class JcqModelUsergroups extends JModel {
 		
 	function addTokens($usergoup)
 	{
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'tokens.php');
+		$modeltokens = new JcqModelTokens();
+		
 		$numTokens = $usergoup['numTokens'];
 		$usergroupID = $usergoup['ID'];
 		if (!is_numeric($numTokens)) JError::raiseError(500, 'Invalid number of Tokens: '.$numTokens);
 		#FIXME do it better with one access to DB and check if token is created multiple times
 		for ($i=0; $i<$numTokens; $i++)
 		{
-			$tokenTableRow =& $this->getTable('tokens');
-			$tokenTableRow->usergroupID = $usergroupID;
-			$tokenTableRow->token = RandomString(8);
+			$tokenTableRow = $modeltokens->getNewToken($usergroupID);
 			if (!$tokenTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$tokenTableRow->getError());
 		}
 	}
