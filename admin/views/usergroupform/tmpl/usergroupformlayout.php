@@ -62,8 +62,32 @@ else
 	<table style="margin-top:10px;">
 	<tr><td><input type="button" style="width:150px;" name="newToken" value="New token" onclick="submitbutton('newToken')"/></td><td></td></tr>
     <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="removeTokens" value="Remove token(s)" onclick="submitbutton('removeTokens')"/></td><td><label><input type="checkbox" name="deleteanswers" value="1"/> Delete answers of token(s)</label></td></tr>
-    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="addRandomTokens" value="Add random tokens" onclick="submitbutton('addRandomTokens')"/></td><td><label for="numTokens">Number of tokens:&nbsp;</label><input type="text" size="8" id="numTokens" name="numTokens" value="25"/></td></tr>
-    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="uploadTokens" value="Upload tokens" onclick="submitbutton('uploadTokens')"/></td><td><label for="file">File:&nbsp;</label><input type="file" name="file" id="file"/><br/><label><input type="checkbox" name="columnnames" value="1" checked /> First row contains column names</label></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="addRandomTokens" value="Add random token(s)" onclick="submitbutton('addRandomTokens')"/></td><td><label for="numTokens">Number of tokens:&nbsp;</label><input type="text" size="8" id="numTokens" name="numTokens" value="25"/></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="uploadTokens" value="Upload token(s)" onclick="submitbutton('uploadTokens')"/></td><td><label for="file">File:&nbsp;</label><input type="file" name="file" id="file"/><br/><label><input type="checkbox" name="columnnames" value="1" checked /> First row contains column names</label></td></tr>
+    <tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="sendEmails" value="Send email(s)" onclick="submitbutton('sendEmails')"/></td><td>
+    	<table>
+    	<tr><td>From:&nbsp;</td><td><input type="text" size="48" name="email_from" id="email_from"/></td></tr>
+    	<tr><td>Subject:&nbsp;</td><td><input type="text" size="48" name="email_subject" id="email_subject"/></td></tr>
+    	<tr><td>Text:&nbsp;</td><td><textarea cols="48" rows="10" name="email_text" id="email_text"></textarea></td></tr>
+    	<tr><td>Link to use:&nbsp;</td><td>
+    	<?php 
+    		echo("<label><input type=\"radio\" name=\"email_linkbase\" value=\"-1\" checked/>Without menu: <a href=\"".JURI::root()."?option=com_jcq&projectID=".$this->usergroup->projectID."\" target=\"_blank\">".JURI::root()."?option=com_jcq&projectID=".$this->usergroup->projectID."</a></label><br/>");
+    		$db =& JFactory::getDbo();
+    		$db->setQuery("SELECT * FROM #__menu WHERE link LIKE '%option=com_jcq%' AND link LIKE '%projectID=".$this->usergroup->projectID."%' ORDER BY id");
+			$menus = $db->loadObjectList();
+    		if ($menus!=null && count($menus)>0)
+    		{
+    			foreach ($menus as $menu)
+    			{
+    				echo("<label><input type=\"radio\" name=\"email_linkbase\" value=\"".$menu->id."\" checked/>");
+    				echo("From menu item '".$menu->title."': <a href=\"".JURI::root()."?Itemid=".$menu->id."&option=com_jcq&projectID=".$this->usergroup->projectID."\" target=\"_blank\">".JURI::root()."?Itemid=".$menu->id."&option=com_jcq&projectID=".$this->usergroup->projectID."</a></label><br/>");
+    			}
+    		}
+    	?>
+    	</td></tr>
+    	<tr><td>BCC:&nbsp;</td><td><label><input type="checkbox" name="email_copy" id="email_copy"/>&nbsp;Send a copy to sender</label></td></tr>
+    	</table>
+    </td></tr>
     </table>
 </fieldset>
 <?php } ?>

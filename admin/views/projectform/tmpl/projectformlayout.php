@@ -172,7 +172,7 @@ if ($this->project->ID > 0) { ?>
     </table>
     <table>
     	<tr><td><input style="width: 150px;" type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/></td><td/></tr>
-    	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="copyUsergroup" value="Copy usergroup" onclick="submitbutton('copyUsergroup')"/></td><td><label for="selUsergroup">Usergroup:&nbsp;</label>
+    	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="copyUsergroup" value="Copy user group" onclick="submitbutton('copyUsergroup')"/></td><td><label for="selUsergroup">User group:&nbsp;</label>
 		<select name="selUsergroup" id="selUsergroup">
 			<option value="-1">--- SELECT ---</option>
 			<?php 
