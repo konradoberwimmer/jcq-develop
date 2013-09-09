@@ -14,7 +14,6 @@ function addOnload(onloadFunc) {
 
 function openDownload(root,filename)
 {
-	var url = root + "/" + filename;
-	var win=window.open(url, '_blank');
-	win.focus();
+	var url = root + "/senddl.php?datafile=" + filename;
+	window.open(url, '_blank');
 }

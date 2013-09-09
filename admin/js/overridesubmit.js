@@ -32,6 +32,33 @@ function submitbutton(pressbutton)
 			return;
 		}
 		if (!confirm('Do you really want to remove the selected tokens?')) return;
+	} else if (pressbutton=='copyUsergroup')
+	{
+		var selUsergroup = document.getElementById('selUsergroup');
+		if (selUsergroup.options[selUsergroup.selectedIndex].value==-1)
+		{
+			alert("Please select a usergroup first!");
+			return;
+		}
+	} else if (pressbutton=='removeUsergroups')
+	{
+		var foundchecked = false;
+		var ugtable = document.getElementById('usergrouptable');
+		var chkboxes = ugtable.getElementsByTagName("input");
+		for (var i=0; i<chkboxes.length; i++)
+		{
+			if (chkboxes[i].getAttribute('name')=='ugchk[]' && chkboxes[i].checked)
+			{
+				foundchecked = true;
+				break;
+			}
+		}
+		if (!foundchecked)
+		{
+			alert('Please select usergroup(s) first!');
+			return;
+		}
+		if (!confirm('Do you really want to remove the selected usergroup(s)?')) return;
 	}
 	
 	document.adminForm.task.value=pressbutton;

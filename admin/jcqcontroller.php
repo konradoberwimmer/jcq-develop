@@ -686,6 +686,17 @@ class JcqController extends JController
 		$view->displayAdd($projectID);
 	}
 	
+	function copyUsergroup()
+	{
+		$thepost=JRequest::get('POST' );
+		
+		$model = & $this->getModel('usergroups');
+		$model->copyUsergroup($thepost['ID'],$thepost['selUsergroup']);
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, 'Usergroup copied ...');
+	}
+	
 	function editUsergroup()
 	{
 		$usergroupids = JRequest::getVar('cid', null, 'default', 'array' );
@@ -710,6 +721,35 @@ class JcqController extends JController
 		$usergroup = JRequest::get( 'POST' );
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$usergroup['projectID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
+	function removeUsergroups()
+	{
+		$thepost = JRequest::get( 'POST' );
+	
+		$ugIDs = JRequest::getVar('ugchk', null, 'default', 'array' );
+		if($ugIDs === null) JError::raiseError(500, 'ugchk parameter missing');
+		//delete Anonymous or Joomla group from list if necessary
+		$errorID = false;
+		if (array_search(-1,$ugIDs,false)!==false)
+		{
+			$errorID = true;
+			unset($ugIDs[array_search(-1,$ugIDs,false)]);
+		}
+		if (array_search(0,$ugIDs,false)!==false)
+		{
+			$errorID = true;
+			unset($ugIDs[array_search(0,$ugIDs,false)]);
+		}
+		
+		if (count($ugIDs)>0)
+		{
+			$model = & $this->getModel('usergroups');
+			$model->removeUsergroups($ugIDs,(isset($thepost['deleteanswers'])?true:false));
+		}
+	
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, ($errorID?'Cannot delete user groups Anonymous or Joomla. ':'').'Removed '.count($ugIDs).' usergroup(s)');
 	}
 	
 	function saveUsergroup()

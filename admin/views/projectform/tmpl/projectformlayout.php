@@ -139,7 +139,7 @@ if ($this->project->ID > 0) { ?>
     				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->val);
     				?>
     	<tr>	
-    		<td><input type="checkbox" name="ugchk[]" value="<?php echo $usergroup->val; ?>"/></td>
+    		<td><input type="checkbox" name="ugchk[]" value="<?php echo $usergroup->ID; ?>"/></td>
     		<td><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup->ID,false);?>"><?php echo $usergroup->name; ?></a></td>
     		<td><?php echo $usergroup->val; ?></td>
     		<td><?php echo $this->usergroups->getTokenCount($usergroup->ID); ?></td>
@@ -171,8 +171,21 @@ if ($this->project->ID > 0) { ?>
     	</tbody>
     </table>
     <table>
-    	<tr><td><input type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/></td></tr>
-    	<tr><td><input type="button" name="saveData" value="Save data" onclick="submitbutton('saveData')"/></td></tr>
+    	<tr><td><input style="width: 150px;" type="button" name="addUsergroup" value="Add user group" onclick="submitbutton('addUsergroup')"/></td><td/></tr>
+    	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="copyUsergroup" value="Copy usergroup" onclick="submitbutton('copyUsergroup')"/></td><td><label for="selUsergroup">Usergroup:&nbsp;</label>
+		<select name="selUsergroup" id="selUsergroup">
+			<option value="-1">--- SELECT ---</option>
+			<?php 
+			$allusergroups=$this->usergroups->getAllUsergroupsList();
+			if ($allusergroups!==null)
+			{
+				foreach($allusergroups as $oneug) echo("<option value=\"".$oneug->ug_ID."\">".$oneug->ug_name." (Project '".$oneug->proj_name."')</option>");
+			}
+			?>
+		</select>
+		</td></tr>
+		<tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="removeUsergroups" value="Remove usergroup(s)" onclick="submitbutton('removeUsergroups')"/></td><td><label><input type="checkbox" name="deleteanswers" value="1"/> Delete answers of usergroup(s)</label></td></tr>
+       	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="saveData" value="Save data" onclick="submitbutton('saveData')"/></td><td/></tr>
     </table>
 </fieldset>
 

@@ -148,6 +148,13 @@ class JcqModelProjects extends JModel {
 	
 	function saveData($projectID,$usergroupids)
 	{
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
+		$modelusergroups = new JcqModelUsergroups();
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'pages.php');
+		$modelpages = new JcqModelPages();
+		require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
+		$modelusergroups = new JcqModelUsergroups();
+		
 		#FIXME just for now: create a file to write to
 		$filename = "data_proj$projectID"."_".time().".sps";
 		$file = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
@@ -185,15 +192,28 @@ class JcqModelProjects extends JModel {
 				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
 			}
 		}
+		//write system variables
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "sys_user (A32767) sys_usergroup (F8.0) sys_finished (F8.0) sys_lastpage (A32767) sys_duration (F8.2)"));
 		fwrite($file,".\n");
 	
 		//Get Data.
 		fwrite($file,"BEGIN DATA\n");
-		if ($usergroupids===null) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
-		else $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 AND groupID IN (".implode($usergroupids,",").") ORDER BY timestampBegin");
+		if ($usergroupids==null || count($usergroupids)==0) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
+		else
+		{
+			//translate usergroupids into usergroupvalues
+			$usergroupvals = array();
+			foreach ($usergroupids as $oneugID)
+			{
+				if ($oneugID==-1) array_push($usergroupvals,-1); //handle anonymous
+				else if ($oneugID==0) array_push($usergroupvals,0); //handle joomla users
+				else array_push($usergroupvals,$modelusergroups->getUsergroup($oneugID)->val);
+			}
+			$this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 AND groupID IN (".implode($usergroupvals,",").") ORDER BY timestampBegin");
+		}
 		#FIXME perhaps this is not the most memory efficient procedure
 		$data = $this->db->loadAssocList();
-		#TODO set user-missings if value is missing
+		#TODO set user-defined-missings if value is missing
 		foreach ($data as $row)
 		{
 			for ($i=0;$i<$varcnt;$i++)
@@ -214,6 +234,33 @@ class JcqModelProjects extends JModel {
 					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
 				}
 			}
+			//write UserID
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['userID'])));
+			//write GroupID
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['groupID'])));
+			//write if finished
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$row['finished']));
+			//write last page
+			if ($row['curpage']==-1) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";FINAL PAGE"));
+			else
+			{
+				$page = $modelpages->getPage($row['curpage']);
+				fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$page->name)));
+			}
+			//write duration by searching for the highest timestamp
+			$highestTSvalue = $row['timestampBegin'];
+			$highestTScolumn = 'timestampBegin';
+			$allcolumns = array_keys($row);
+			foreach ($allcolumns as $onecolumn)
+			{
+				if (strpos($onecolumn, 'timestamp')!==false && $row[$onecolumn]>$row[$highestTScolumn])
+				{
+					$highestTSvalue=$row[$onecolumn];
+					$highestTScolumn=$onecolumn;
+				}
+			}
+			$duration = ($row[$highestTScolumn]-$row['timestampBegin'])/60.0;
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(".",",",$duration)));
 			fwrite($file,"\n");
 		}
 		fwrite($file,"END DATA.\n\n");
@@ -224,8 +271,14 @@ class JcqModelProjects extends JModel {
 		{
 			if ($i>0) fwrite($file,"/ ");
 			#TODO check for irregular characters
-			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $variables[$i]->extvarname." '".$variables[$i]->varlabel."'\n"));
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $variables[$i]->extvarname." '".substr($variables[$i]->varlabel,0,256)."'\n"));
 		}
+		//set labels for system variables
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_user 'Token or Joomla user name (or empty if anonymous)'\n"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_usergroup 'User group'\n"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_finished 'Was questionnaire finished?'\n"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_lastpage 'Name of the last page reached by user'\n"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_duration 'Duration in minutes (up to last page reached)'\n"));
 		fwrite($file,".\n\n");
 	
 		//Set Value Labels.
@@ -239,13 +292,22 @@ class JcqModelProjects extends JModel {
 			fwrite($file,$variables[$i]->extvarname." ");
 			foreach ($variables[$i]->codes as $code)
 			{
-				fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $code->code." '".$code->label."' "));
+				fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $code->code." '".substr($code->label,0,120)."' "));
 			}
 			fwrite($file,"\n");
 		}
+		//set value labels for system variables
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_usergroup -1 'anonymous' 0 'Joomla' "));
+		$usergroups = $modelusergroups->getUsergroups($projectID);
+		if ($usergroups!=null && count($usergroups)>0)
+		{
+			foreach ($usergroups as $usergroup) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $usergroup->val." '".$usergroup->name."'"));
+		}
+		fwrite($file,"\n");
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_finished 0 'no' 1 'yes'\n"));
 		fwrite($file,".\n\n");
 	
-		//Set Value Labels.
+		//Set Missing values.
 		fwrite($file,"MISSING VALUES\n");
 		$slashset = false;
 		for ($i=0;$i<$varcnt;$i++)
