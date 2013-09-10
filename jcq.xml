@@ -44,8 +44,7 @@
 	 	
 		<files folder="admin">
 	   		<filename>index.html</filename>
-	   		<filename>config.xml</filename>
-			<filename>jcq.css</filename>
+	   		<filename>jcq.css</filename>
 			<filename>jcq.php</filename>
 	   		<filename>jcqcontroller.php</filename>
 			<folder>includes</folder>
