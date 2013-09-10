@@ -59,6 +59,9 @@ function submitbutton(pressbutton)
 			return;
 		}
 		if (!confirm('Do you really want to remove the selected usergroup(s)?')) return;
+	} else if (pressbutton=='sendEmails' && !checkemail())
+	{
+		return;
 	}
 	
 	document.adminForm.task.value=pressbutton;
@@ -81,6 +84,53 @@ function checkproject()
 		var regex_cssfile = new RegExp(/[a-zA-Z]+[a-zA-Z_0-9]*\.css/);
 		var correct = regex_cssfile.exec(cssfile.value);
 		if (correct==null || correct[0].length<cssfile.value.length) return false;
+	}
+	return true;
+}
+
+function checkemail()
+{
+	var foundchecked = false;
+	var tokentable = document.getElementById('tokentable');
+	var chkboxes = tokentable.getElementsByTagName("input");
+	for (var i=0; i<chkboxes.length; i++)
+	{
+		if (chkboxes[i].getAttribute('name')=='cid[]' && chkboxes[i].checked)
+		{
+			foundchecked = true;
+			break;
+		}
+	}
+	if (!foundchecked)
+	{
+		alert('Please select token(s) first!');
+		return false;
+	}
+	var from = document.getElementById('email_from');
+	if (from.value.length==0)
+	{
+		alert('Please enter an email address to send from!')
+		return false;
+	} else
+	{
+		var regex_email = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		if (!regex_email.test(from.value))
+		{
+			alert('Email address of sender (from) is invalid!');
+			return false;
+		}
+	}
+	var subject = document.getElementById('email_subject');
+	if (subject.value.length==0)
+	{
+		alert('Please enter a subject for the email!')
+		return false;
+	}
+	var text = document.getElementById('email_text');
+	if (text.value.length==0)
+	{
+		alert('Please enter a text for the email!')
+		return false;
 	}
 	return true;
 }

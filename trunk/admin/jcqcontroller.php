@@ -902,6 +902,60 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');		
 	}
 	
+	function sendEmails()
+	{
+		$thepost = JRequest::get('POST');
+		$tokenmodel =& $this->getModel('tokens');
+		$app = &JFactory::getApplication();
+		
+		$tokenIDs = JRequest::getVar('cid', null, 'default', 'array' );
+		if($tokenIDs === null) JError::raiseError(500, 'cid parameter missing');
+		$numemails=0;
+		
+		foreach ($tokenIDs as $onetokenID)
+		{
+			$token = $tokenmodel->getToken($onetokenID);
+			//check for valid email before sending
+			if ($token->email == null || strlen($token->email)==0)
+			{
+				$app->enqueueMessage("ERROR: Token '".$token->token."' is missing an email address");
+				continue;
+			}
+			if (filter_var($token->email,FILTER_VALIDATE_EMAIL)===false)
+			{
+				$app->enqueueMessage("ERROR: Token '".$token->token."' has invalid email address: '".$token->email."'");
+				continue;
+			}
+			//now try to send message
+			$mailer = JFactory::getMailer();
+			$mailer->setSender($thepost['email_from']);
+			$mailer->addRecipient($token->email);
+			if (isset($thepost['email_copy'])) $mailer->addBCC($thepost['email_from']);
+			$mailer->setSubject($thepost['email_subject']);
+			$mailer->isHTML(false);
+			//prepare the text by replacing placeholders
+			$mailtext = $thepost['email_text'];
+			$mailtext = str_replace("#token#", $token->token, $mailtext);
+			$mailtext = str_replace("#email#", $token->email, $mailtext);
+			$mailtext = str_replace("#name#", $token->name, $mailtext);
+			$mailtext = str_replace("#first#", $token->firstname, $mailtext);
+			$mailtext = str_replace("#salutation#", $token->salutation, $mailtext);
+			$mailtext = str_replace("#note#", $token->note, $mailtext);
+			//prepare the text by replacing the link placeholder
+			if ($thepost['email_linkbase']==-1) $mailtext = str_replace("#link#", JURI::root()."?option=com_jcq&projectID=".$thepost['projectID']."&token=".$token->token, $mailtext);
+			else $mailtext = str_replace("#link#", JURI::root()."?Itemid=".$thepost['email_linkbase']."&option=com_jcq&projectID=".$thepost['projectID']."&token=".$token->token, $mailtext);
+			//send the email				
+			$mailer->setBody($mailtext);
+			$send = $mailer->Send();
+			if ( $send !== true ) {
+				$app->enqueueMessage('ERROR sending email: ' . $send->__toString());
+			} else $numemails++;
+		} 
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, $numemails.' emails sent ...');
+	}
+	
 	function saveData()
 	{
 		$project = JRequest::get( 'POST' );
