@@ -10,6 +10,7 @@ function addCode()
 	
 	//create field for order
 	var newINPUTcodeord = document.createElement("input");
+	newINPUTcodeord.setAttribute("class","orderfield");
 	newINPUTcodeord.setAttribute("type","text");
 	newINPUTcodeord.setAttribute("name","codeord[]");
 	newINPUTcodeord.setAttribute("value",table.rows.length);
@@ -24,6 +25,7 @@ function addCode()
 	
 	//create field with code value
 	var newINPUTcodevalue = document.createElement("input");
+	newINPUTcodevalue.setAttribute("class","valuefield");
 	newINPUTcodevalue.setAttribute("type","text");
 	newINPUTcodevalue.setAttribute("name","codevalue[]");
 	newINPUTcodevalue.setAttribute("value",table.rows.length);

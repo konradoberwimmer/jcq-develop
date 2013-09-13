@@ -219,6 +219,8 @@ class JcqModelScales extends JModel {
 				//if non exists so far, create one
 				$itemTableRow =& $this->getTable('items');
 				$itemTableRow->ord = 0;
+				$itemTableRow->datatype = 3;
+				$itemTableRow->prepost = "%s";
 				$itemTableRow->varname = "question".$questionid."code".$oneID."text";
 				$itemTableRow->mandatory = 0;
 				$itemTableRow->questionID = $questionid;

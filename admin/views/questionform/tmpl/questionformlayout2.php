@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>
@@ -66,7 +66,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     	if ($row->bindingType != "QUESTION") continue;
                     ?>
                     <tr>
-						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
+						<td><input class="orderfield" type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
                         <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>
                         <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>
@@ -80,9 +80,29 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     {
                     	?>
                     <tr>
-                    	<td>Including textfield:</td>
-                    	<td/>
-                    	<td><input type="hidden" name="<?php echo("item".$row->ID."tfID"); ?>" value="<?php echo $bindeditems[0]->ID; ?>"/><input type="text" name="<?php echo("item".$row->ID."tfvarname"); ?>" value="<?php echo $bindeditems[0]->varname; ?>"/></td>
+                    	<td align="right">Including textfield:</td>
+                    	<td><input type="hidden" name="<?php echo("item".$row->ID."tfID"); ?>" value="<?php echo $bindeditems[0]->ID; ?>"/>
+                    		<table>
+                    		<tr><td>Variable name</td><td><input type="text" name="<?php echo("item".$row->ID."tfvarname"); ?>" value="<?php echo $bindeditems[0]->varname; ?>"/></td>
+                    			<td>Width</td><td><input class="widthfield" type="text" name="<?php echo("item".$row->ID."tfwidthleft"); ?>" value="<?php echo $bindeditems[0]->width_left; ?>" /></td>
+                    		</tr>
+                    		<tr><td>Data type</td><td>
+                    			<select name="<?php echo("item".$row->ID."tfdatatype"); ?>">
+			                    <?php 
+			                    	$datatypes = $this->getModel()->getDataTypes();
+			                    	for ($i=1; $i<=3; $i++)
+			                    	{
+			                    		echo '<option value="'.$i.'" '.($bindeditems[0]->datatype==$i?'selected':'').'>'.$datatypes[$i].'</option>';
+			                    	}
+			                    ?>
+                    			</select></td>
+                    		    <td>Rows</td><td><input class="widthfield" type="text" name="<?php echo("item".$row->ID."tfrows"); ?>" value="<?php echo $bindeditems[0]->rows; ?>" /></td>
+              				</tr>
+                    		<tr><td>Text surrounding</td><td><input type="text" name="<?php echo("item".$row->ID."tfprepost"); ?>" value="<?php echo $bindeditems[0]->prepost; ?>"/>
+                    			<td>Add linebreak</td><td><input type="checkbox" name="<?php echo("item".$row->ID."tflinebreak"); ?>" value="1" <?php if($bindeditems[0]->linebreak) echo "checked"; ?>/></td>
+                    		</tr>
+                    		</table>
+                    	</td>
                     	<td/>
                     	<td/>
                     	<td/>

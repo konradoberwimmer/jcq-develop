@@ -34,7 +34,22 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 				if ($oneitem->bindingType=="ITEM" && $oneitem->bindingID==$item->ID)
 				{
 					$prevtext = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$oneitem->ID);
-					echo('<input type="text" size="16" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
+					if ($oneitem->linebreak) echo("<br/>");
+					$width = $oneitem->width_left==0?200:$oneitem->width_left;
+					$possplit = strpos($oneitem->prepost, '%s');
+					if ($possplit===false)
+					{
+						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'">'.$prevtext.'</textarea>');
+						echo($oneitem->prepost);
+					}
+					else
+					{
+						echo(substr($oneitem->prepost,0,$possplit));
+						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
+						echo(substr($oneitem->prepost,$possplit+2));
+					}
 				}
 			}
 			echo('</p>');
