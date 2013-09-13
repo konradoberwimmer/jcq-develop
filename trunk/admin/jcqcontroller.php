@@ -481,7 +481,12 @@ class JcqController extends JController
 					$tableItem =& $this->getModel("items")->getTable("items");
 					$tableItem->load($bindeditem);
 					$tableItem->varname = JRequest::getVar('code'.$code['ID'].'tfvarname', null);
-					$tableItem->store();
+					$tableItem->datatype = JRequest::getVar('code'.$code['ID'].'tfdatatype', null);
+					$tableItem->prepost = JRequest::getVar('code'.$code['ID'].'tfprepost', null);
+					$tableItem->width_left = JRequest::getVar('code'.$code['ID'].'tfwidthleft', null);
+					$tableItem->rows = JRequest::getVar('code'.$code['ID'].'tfrows', null);
+					$tableItem->linebreak = isset($question['code'.$code['ID'].'tflinebreak']);
+					if (!$tableItem->store()) JError::raiseError(500, 'Error updating data: '.$tableItem->getError());
 				}
 			}
 			$codeaddrmtf = JRequest::getVar('codeaddrmtf', null, 'default', 'array' );
@@ -559,6 +564,11 @@ class JcqController extends JController
 					$tableItem =& $this->getModel("items")->getTable("items");
 					$tableItem->load($bindeditem);
 					$tableItem->varname = JRequest::getVar('item'.$item['ID'].'tfvarname', null);
+					$tableItem->datatype = JRequest::getVar('item'.$item['ID'].'tfdatatype', null);
+					$tableItem->prepost = JRequest::getVar('item'.$item['ID'].'tfprepost', null);
+					$tableItem->width_left = JRequest::getVar('item'.$item['ID'].'tfwidthleft', null);
+					$tableItem->rows = JRequest::getVar('item'.$item['ID'].'tfrows', null);
+					$tableItem->linebreak = isset($question['item'.$item['ID'].'tflinebreak']);
 					$tableItem->store();
 				}
 			}

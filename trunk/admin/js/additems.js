@@ -11,6 +11,7 @@ function addItem(addright)
 	
 	//create field for order
 	var newINPUTitemord = document.createElement("input");
+	newINPUTitemord.setAttribute("class","orderfield");
 	newINPUTitemord.setAttribute("type","text");
 	newINPUTitemord.setAttribute("name","itemord[]");
 	newINPUTitemord.setAttribute("value",table.rows.length);

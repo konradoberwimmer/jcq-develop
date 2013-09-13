@@ -168,8 +168,10 @@ class JcqModelItems extends JModel {
 				//if non exists so far, create one
 				$itemTableRow =& $this->getTable('items');
 				$itemTableRow->ord = 0;
+				$itemTableRow->datatype = 3;
 				$itemTableRow->varname = "question".$questionid."item".$oneID."text";
 				$itemTableRow->mandatory = 0;
+				$itemTableRow->prepost = "%s";
 				$itemTableRow->questionID = $questionid;
 				$itemTableRow->bindingType = "ITEM";
 				$itemTableRow->bindingID = $oneID;
