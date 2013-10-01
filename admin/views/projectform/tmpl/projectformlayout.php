@@ -185,7 +185,7 @@ if ($this->project->ID > 0) { ?>
 		</select>
 		</td></tr>
 		<tr style="border-top: 1px solid grey;"><td><input type="button" style="width:150px;" name="removeUsergroups" value="Remove usergroup(s)" onclick="submitbutton('removeUsergroups')"/></td><td><label><input type="checkbox" name="deleteanswers" value="1"/> Delete answers of usergroup(s)</label></td></tr>
-       	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="saveData" value="Save data" onclick="submitbutton('saveData')"/></td><td/></tr>
+       	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="saveData" value="Save data" onclick="submitbutton('saveData')"/></td><td><label><input type="checkbox" name="includeuserdata" value="1" checked/> Include information on user</label></td></tr>
     </table>
 </fieldset>
 

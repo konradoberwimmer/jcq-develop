@@ -146,7 +146,7 @@ class JcqModelProjects extends JModel {
 		}
 	}
 	
-	function saveData($projectID,$usergroupids)
+	function saveData($projectID,$usergroupids,$includeuserdata)
 	{
 		require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
 		$modelusergroups = new JcqModelUsergroups();
@@ -192,6 +192,8 @@ class JcqModelProjects extends JModel {
 				default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
 			}
 		}
+		//write user info variables
+		if ($includeuserdata) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "user_email (A32767) user_name (A32767) user_firstname (A32767) user_salutation (A32767) user_note (A32767)"));
 		//write system variables
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "sys_user (A32767) sys_usergroup (F8.0) sys_finished (F8.0) sys_lastpage (A32767) sys_duration (F8.2)"));
 		fwrite($file,".\n");
@@ -234,6 +236,41 @@ class JcqModelProjects extends JModel {
 					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
 				}
 			}
+			//write user info
+			if ($includeuserdata)
+			{
+				if ($row['groupID']<0) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+				else if ($row['groupID']==0)
+				{
+					//get user data from Joomla
+					$table = JUser::getTable();
+					$tablename = $table->getTableName();
+					$this->db->setQuery("SELECT * FROM $tablename WHERE username LIKE '".$row['userID']."'");
+					if (($user = $this->db->loadObject())!==null)
+					{
+						fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$user->email.";".$user->name.";;;"));
+					}
+					//if user cannot be found anymore
+					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+				}
+				else
+				{
+					//get user data from token
+					$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE val=".$row['groupID']." AND projectID=".$project->ID);
+					if (($ug = $this->db->loadObject())!==null)
+					{
+						$this->db->setQuery("SELECT * FROM jcq_token WHERE token LIKE '".$row['userID']."' AND usergroupID=".$ug->ID);
+						if (($token = $this->db->loadObject())!==null)
+						{
+							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$token->email.";".$token->name.";".$token->firstname.";".$token->salutation.";".$token->note));
+						}
+						//if token cannot be found anymore
+						else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+					}
+					//if user group cannot be found anymore
+					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+				}
+			}
 			//write UserID
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['userID'])));
 			//write GroupID
@@ -272,6 +309,15 @@ class JcqModelProjects extends JModel {
 			if ($i>0) fwrite($file,"/ ");
 			#TODO check for irregular characters
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $variables[$i]->extvarname." '".substr($variables[$i]->varlabel,0,256)."'\n"));
+		}
+		//set labels for user info variables
+		if ($includeuserdata)
+		{
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_email 'User email'\n"));
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_name 'User name (whole name of Joomla users)'\n"));
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_firstname 'User first name'\n"));
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_salutation 'User salutation'\n"));
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_note 'User note'\n"));
 		}
 		//set labels for system variables
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_user 'Token or Joomla user name (or empty if anonymous)'\n"));

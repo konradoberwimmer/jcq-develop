@@ -33,14 +33,14 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 					if ($possplit===false)
 					{
 						if ($item->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'" value="'.$prevtext.'"/>');
-						else echo('<textarea style="width: '.$width.'px;" rows="'.$item->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$item->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'">'.$prevtext.'</textarea>');
 						echo($item->prepost);
 					}
 					else
 					{
 						echo(substr($item->prepost,0,$possplit));
 						if ($item->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'" value="'.$prevtext.'"/>');
-						else echo('<textarea style="width: '.$width.'px;" rows="'.$item->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$item->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'">'.$prevtext.'</textarea>');
 						echo(substr($item->prepost,$possplit+2));
 					}
 				}

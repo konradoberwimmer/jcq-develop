@@ -971,9 +971,10 @@ class JcqController extends JController
 		$project = JRequest::get( 'POST' );
 		$projectid = $project['ID'];
 		$usergroupids = JRequest::getVar('ugchk', null, 'default', 'array' );
+		$includeuserdata = isset($_POST['includeuserdata']);
 		
 		$model = & $this->getModel('projects');
-		$filename = $model->saveData($projectid,$usergroupids);
+		$filename = $model->saveData($projectid,$usergroupids,$includeuserdata);
 
 		$app = &JFactory::getApplication();
 		$app->enqueueMessage("Data saved ...");
