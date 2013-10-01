@@ -47,7 +47,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 					{
 						echo(substr($oneitem->prepost,0,$possplit));
 						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
-						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'">'.$prevtext.'</textarea>');
 						echo(substr($oneitem->prepost,$possplit+2));
 					}
 				}
