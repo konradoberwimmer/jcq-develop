@@ -115,6 +115,12 @@ class JcqModelProjects extends JModel {
 		return $pages;
 	}
 	
+	function saveEditedCSS($projectID,$content)
+	{
+		$project = $this->getProject($projectID);
+		file_put_contents(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project->cssfile,$content);
+	}
+	
 	function getImports($projectID)
 	{
 		$this->db->setQuery('SELECT * FROM jcq_import WHERE projectID = '.$projectID.' ORDER BY ord');
