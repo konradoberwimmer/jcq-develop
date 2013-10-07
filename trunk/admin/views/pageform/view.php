@@ -39,6 +39,10 @@ class JcqViewPageform extends JView
 		$page = $model->getNewPage($projectID);
 		$this->assignRef('page', $page);
 
+		$path = 'administrator/components/com_jcq/js/';
+		$filename = 'overridesubmit.js';
+		JHTML::script($path.$filename, true);
+		
 		JToolBarHelper::title('JCQ: New page');
 		JToolBarHelper::save("savePage","Save");
 		JToolBarHelper::cancel("cancelAddPage","Cancel");

@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>
@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 
        <fieldset>
              <legend>Layout:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Width of question</td><td><input type="text" name="width_question" id="width_question" size="8" maxlength="250" value="<?php echo $this->question->width_question; ?>" /></td></tr>
                     <tr><td>Width of items</td><td><input type="text" name="width_items" id="width_items" size="8" maxlength="250" value="<?php echo $this->question->width_items; ?>" /></td></tr>
                     <tr><td>Width of scale options</td><td><input type="text" name="width_scale" id="width_scale" size="8" maxlength="250" value="<?php echo $this->question->width_scale; ?>" /></td></tr>
@@ -61,7 +61,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     foreach ($this->attachedscales as $row){
                     ?>
                     <tr>
-						<td><input type="text" name="scaleord[]" value="<?php echo($row->ord); ?>"/>
+						<td><input type="text" class="orderfield" name="scaleord[]" value="<?php echo($row->ord); ?>"/>
                         <td><select name="scaleids[]">
 	                    <?php 
 	                    	for ($j=0; $j<count($this->predefscales); $j++)
@@ -102,7 +102,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     foreach ($this->items as $row){
                     ?>
                     <tr>
-						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
+						<td><input type="text" class="orderfield" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
                         <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>       
                         <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>

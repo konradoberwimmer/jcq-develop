@@ -59,7 +59,7 @@ class JcqModelItems extends JModel {
 		if ($item['ID']==0)
 		{
 			$itemTableRow->mandatory=true;
-			$itemTableRow->varname="question".$itemTableRow->questionID."item".$itemTableRow->ID;
+			if (strlen($itemTableRow->varname)==0) $itemTableRow->varname="question".$itemTableRow->questionID."item".$itemTableRow->ID;
 			$itemTableRow->store();
 			if ($scales===null) $this->addColumnUserDataINT($pageid, $itemTableRow->questionID, $itemTableRow->ID);
 			else foreach ($scales as $scale) $this->addColumnUserDataINT($pageid, $itemTableRow->questionID, $itemTableRow->ID, $scale->ID);

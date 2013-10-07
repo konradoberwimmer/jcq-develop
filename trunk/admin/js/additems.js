@@ -43,4 +43,11 @@ function addItem(addright)
 		newINPUTitemtextright.setAttribute("size","64");
 		newTDtextright.appendChild(newINPUTitemtextright);
 	}
+	
+	//create field with varname
+	var newINPUTitemvarname = document.createElement("input");
+	newINPUTitemvarname.setAttribute("type","text");
+	newINPUTitemvarname.setAttribute("name","itemvarname[]");
+	newINPUTitemvarname.setAttribute("value","");
+	newTDvarname.appendChild(newINPUTitemvarname);
 }

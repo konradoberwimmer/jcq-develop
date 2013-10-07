@@ -68,7 +68,7 @@ if ($this->project->ID > 0) { ?>
                             <td><?php echo $checked; ?></td>
                             <td>
                             <?php if (!$row->isFinal) { ?>
-                            <input type="text" id="<?php echo("page".$row->ID."ord"); ?>" name="pageord[]" value="<?php echo $row->ord; ?>"/>
+                            <input type="text" class="orderfield" id="<?php echo("page".$row->ID."ord"); ?>" name="pageord[]" value="<?php echo $row->ord; ?>"/>
                             <?php } ?>
                             <input type="hidden" name="pageids[]" value="<?php echo $row->ID; ?>"/></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>

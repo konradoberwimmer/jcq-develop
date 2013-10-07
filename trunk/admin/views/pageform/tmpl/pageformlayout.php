@@ -14,13 +14,20 @@ addOnload(openPreview('<?php echo(JURI::root()."index.php?option=com_jcq"); ?>',
 <a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$this->page->ID,false);?>">Page &quot;<?php echo $this->page->name; ?>&quot;</a>
 </p>
 <?php } ?>
-<form action="index.php" method="POST" name="adminForm" id="adminForm">
+<form action="index.php" method="POST" name="adminForm" id="adminForm" onsubmit="return false;">
        <fieldset>
              <legend>Page definition:</legend>
              <table class="settings">
                     <tr>
                     	<td>Name</td>
-                    	<td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->page->name; ?>" /></td>
+                    	<td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->page->name; ?>"
+                    	<?php
+                    		if ($this->page->ID == 0) 
+                    		{  
+                    			echo(' autofocus="autofocus"');
+                    			echo(' onkeyup="if (event.keyCode == 13) { submitbutton(\'savePage\'); } return false;"');
+                    		}
+                    	?>/></td>
                     	<?php if ($this->page->ID > 0) { ?>
                     	<td><input type="button" name="previewPage" value="Preview" onclick="submitbutton('previewPage')"/></td>
                     	<?php } ?>
@@ -59,7 +66,7 @@ Page has <?php echo count($this->questions); ?> question(s).
                     ?>
                     <tr>
                             <td><?php echo $checked; ?></td>
-                            <td><input type="text" id="<?php echo("question".$row->ID."ord"); ?>" name="questionord[]" value="<?php echo $row->ord; ?>"/>
+                            <td><input type="text" class="orderfield" id="<?php echo("question".$row->ID."ord"); ?>" name="questionord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="questionids[]" value="<?php echo $row->ID; ?>"/></td>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
                             <td><?php 
