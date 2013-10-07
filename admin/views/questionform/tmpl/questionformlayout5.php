@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>
@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 
        <fieldset>
              <legend>Layout:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Width of question</td><td><input type="text" name="width_question" id="width_question" size="8" maxlength="250" value="<?php echo $this->question->width_question; ?>" /></td></tr>
                     <tr><td>Width of items</td><td><input type="text" name="width_items" id="width_items" size="8" maxlength="250" value="<?php echo $this->question->width_items; ?>" /></td></tr>
                     <tr><td>Width of scale options</td><td><input type="text" name="width_scale" id="width_scale" size="8" maxlength="250" value="<?php echo $this->question->width_scale; ?>" /></td></tr>
@@ -55,9 +55,9 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     foreach ($this->codes as $row){
                     ?>
                     <tr>
-						<td><input type="text" id="<?php echo("code".$row->ID."ord"); ?>" name="codeord[]" value="<?php echo $row->ord; ?>"/>
+						<td><input type="text" class="orderfield" id="<?php echo("code".$row->ID."ord"); ?>" name="codeord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="codeids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/></td>       
+                        <td><input type="text" class="valuefield" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/></td>       
                         <td><input type="text" id="<?php echo("code".$row->ID."label"); ?>" name="codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."missval"); ?>" name="codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
                         <td><input type="checkbox" id="<?php echo("code".$row->ID."delete"); ?>" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
@@ -93,7 +93,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     foreach ($this->items as $row){
                     ?>
                     <tr>
-						<td><input type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
+						<td><input type="text" class="orderfield" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
                             <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
                         <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo $row->textleft; ?>" size="64" /></td>       
                         <td><input type="text" id="<?php echo("item".$row->ID."textright"); ?>" name="itemtextright[]" value="<?php echo $row->textright; ?>" size="64" /></td>       

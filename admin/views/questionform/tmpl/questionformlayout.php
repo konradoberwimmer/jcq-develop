@@ -1,11 +1,11 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); ?>
 
-<form action="index.php" method="POST" name="adminForm" id="adminForm">
+<form action="index.php" method="POST" name="adminForm" id="adminForm" onsubmit="return false;">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
+             <table class="settings">
+                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" autofocus="autofocus"/></td></tr>
                     <tr><td>Type</td>
                     <td><select name="questtype" id="questtype">
                     <?php 

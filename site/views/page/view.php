@@ -22,10 +22,6 @@ class JcqViewPage extends JView
 		$this->assignRef('markmissing',$markmissing);
 		$this->assignRef('pageID',$pageID);
 		
-		if ($this->markmissing)
-		{
-			echo '<div class="questionalertmissing">Bitte beantworten Sie noch die rot markierten Fragen!</div>';
-		}
 		parent::display();
 	}
 	

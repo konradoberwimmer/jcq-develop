@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <form action="index.php" method="POST" name="adminForm" id="adminForm">
        <fieldset>
              <legend>Question definition:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>

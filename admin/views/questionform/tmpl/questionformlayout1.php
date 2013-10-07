@@ -39,7 +39,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 
        <fieldset>
              <legend>Layout:</legend>
-             <table>
+             <table class="settings">
                     <tr><td>Alternate background</td><td><input type="checkbox" name="alternate_bg" id="alternate_bg" value="1" <?php if ($this->question->alternate_bg > 0) echo("checked"); ?>/></td></tr>
              </table>
        </fieldset>

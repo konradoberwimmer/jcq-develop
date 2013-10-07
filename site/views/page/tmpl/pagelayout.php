@@ -8,6 +8,10 @@ defined('_JEXEC') or die('Restricted access'); ?>
 </table>
 <form action="<?php echo(JFactory::getURI()->toString()); ?>" method="POST" name="inputForm">
 	<?php 
+		if ($this->markmissing)
+		{
+			echo '<div class="questionalertmissing">Bitte beantworten Sie noch die rot markierten Fragen!</div>';
+		}
 		$questions = $this->pagemodel->getQuestions();
 		for ($i=0;$i<count($questions);$i++)
 		{

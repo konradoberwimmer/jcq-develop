@@ -25,3 +25,7 @@ if ($taskresult===false) JError::raiseError(500, 'No code for this task!');
 
 // Redirect if set by the controller
 $controller->redirect();
+
+#TODO project-specific alerts (mandatory questions, incorrect answer format, ...)
+#TODO make it work with the browsers back button
+#TODO layout-settings: header, footer, title, icon progress bar
