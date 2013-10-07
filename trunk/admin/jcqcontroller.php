@@ -97,12 +97,7 @@ class JcqController extends JController
 		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
 		if (isset($project['cssfile'])&&strlen($project['cssfile'])>0)
 		{
-			if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile']))
-			{
-				$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile'], 'w');
-				fwrite($filehandle,"@CHARSET \"UTF-8\";\n");
-				fclose($filehandle);
-			}
+			if (!file_exists(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile'])) copy(JPATH_COMPONENT_SITE.DS.'jcq.css',JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project['cssfile']);
 		}
 
 		//set page order if edited
@@ -173,6 +168,36 @@ class JcqController extends JController
 		$view->display($importID);
 	}
 
+	function editCSS()
+	{
+		if (($projectID = JRequest::getVar('ID',null))===null) JError::raiseError(500, 'Project ID missing');
+		
+		$view = & $this->getView('editcss');
+		if ($model =& $this->getModel('projects')) $view->setModel($model, true);
+		else JError::raiseError(500, 'Model not found');
+	
+		$view->setLayout('editcsslayout');
+		$view->display($projectID);
+	}
+	
+	function saveEditedCSS()
+	{
+		if (($projectID = JRequest::getVar('ID',null))===null) JError::raiseError(500, 'Project ID missing');
+		
+		$model = & $this->getModel('projects');
+		$model->saveEditedCSS($projectID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
+	
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editCSS&ID='.$projectID,false);
+		$this->setRedirect($redirectTo, 'CSS file saved!');
+	}
+	
+	function cancelEditCSS()
+	{
+		$thepost = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, 'Cancelled ...');
+	}
+	
 	function saveEditedImport()
 	{
 		$importID = JRequest::getVar('importID', null); //Reads cid as an arra

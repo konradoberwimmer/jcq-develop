@@ -1,11 +1,16 @@
 //Overrides the Joomla standard submitbutton function for JToolbarHelper buttons
-function submitbutton(pressbutton) 
+Joomla.submitbutton = function(pressbutton)
 {
-	if (pressbutton=='saveProject' && !checkproject())
-	{
-		alert('Project definition incorrect: check classfile and classname!');
-		return;
-	} else if (pressbutton=='previewPage')
+	if (pressbutton=='saveProject' && !checkproject()) return;
+	
+	document.adminForm.task.value=pressbutton;
+	submitform(pressbutton);
+}
+
+//function for nun-toolbar submitbuttons
+function submitbutton(pressbutton)
+{
+	if (pressbutton=='previewPage')
 	{
 		var previewPage = document.getElementById('previewPage');
 		previewPage.setAttribute("value","1");
@@ -83,7 +88,11 @@ function checkproject()
 	{
 		var regex_cssfile = new RegExp(/[a-zA-Z]+[a-zA-Z_0-9]*\.css/);
 		var correct = regex_cssfile.exec(cssfile.value);
-		if (correct==null || correct[0].length<cssfile.value.length) return false;
+		if (correct==null || correct[0].length<cssfile.value.length)
+		{
+			alert("User error: incorrect css filename!");
+			return false;
+		}
 	}
 	return true;
 }

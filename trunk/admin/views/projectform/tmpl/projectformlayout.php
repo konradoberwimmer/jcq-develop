@@ -23,7 +23,11 @@ if ($this->project->ID > 0) { ?>
              <legend>Project definition:</legend>
              <table class="settings">
                     <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->project->name; ?>" /></td></tr>
-                    <tr><td>CSS-File (optional)</td><td><input type="text" name="cssfile" id="cssfile" size="32" maxlength="250" value="<?php echo $this->project->cssfile; ?>" /></td></tr>
+                    <tr><td>CSS-File (optional)</td><td><input type="text" name="cssfile" id="cssfile" size="32" maxlength="250" value="<?php echo $this->project->cssfile; ?>" />
+                    <?php if ($this->project->ID > 0 && strlen($this->project->cssfile)>0) { ?>
+                    	<input style="width: 150px;" type="button" name="editCSS" value="Edit CSS" onclick="submitbutton('editCSS')"/>
+                    <?php } ?>
+                    </td></tr>
                     <tr><td>Description</td><td><input type="text" name="description" id="description" size="64" maxlength="5000" value="<?php echo $this->project->description; ?>" /></td></tr>
                     <tr><td>Anonymous answers</td><td><input type="checkbox" name="anonymous" id="anonymous" value="1" <?php if ($this->project->anonymous > 0) echo("checked"); ?>/></td></tr>
              		<tr><td>Allow Joomla users</td><td><input type="checkbox" name="allowjoomla" id="allowjoomla" value="1" <?php if ($this->project->allowjoomla > 0) echo("checked"); ?>/></td></tr>
