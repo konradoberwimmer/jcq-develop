@@ -173,7 +173,6 @@ class JcqModelProjects extends JModel {
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n"));
 	
 		//Define Data.
-		#TODO add sessionID, duration etc.
 		fwrite($file,"DATA LIST LIST (\";\") / ");
 		for ($i=0;$i<$varcnt;$i++)
 		{

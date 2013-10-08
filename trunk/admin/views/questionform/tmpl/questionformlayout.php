@@ -22,6 +22,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
        </fieldset>
 
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
+       <input type="hidden" name="ord" value="<?php echo $this->question->ord; ?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->question->ID; ?>"/>
        <input type="hidden" name="pageID" value="<?php echo $this->question->pageID; ?>"/>
        <input type="hidden" name="task" value=""/>
