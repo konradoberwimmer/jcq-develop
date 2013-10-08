@@ -2,6 +2,7 @@
 Joomla.submitbutton = function(pressbutton)
 {
 	if (pressbutton=='saveProject' && !checkproject()) return;
+	else if (pressbutton=='saveQuestion' && !checkvarnames()) return;
 	
 	document.adminForm.task.value=pressbutton;
 	submitform(pressbutton);
@@ -92,6 +93,25 @@ function checkproject()
 		{
 			alert("User error: incorrect css filename!");
 			return false;
+		}
+	}
+	return true;
+}
+
+function checkvarnames()
+{
+	var inputfields = document.getElementsByTagName("input");
+	var regex_varname = new RegExp(/[a-zA-Z]+[a-zA-Z0-9_$]*/);
+	for (var i=0; i<inputfields.length; i++)
+	{
+		if (inputfields[i].getAttribute('name') != null && inputfields[i].getAttribute('name').indexOf('varname')!=-1)
+		{
+			var correct = regex_varname.exec(inputfields[i].value);
+			if (correct==null || correct[0].length<inputfields[i].value.length)
+			{
+				alert("User error: incorrect or missing variable name '"+inputfields[i].value+"'!");
+				return false;
+			}
 		}
 	}
 	return true;

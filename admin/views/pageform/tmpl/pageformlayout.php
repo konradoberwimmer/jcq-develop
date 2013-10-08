@@ -38,6 +38,7 @@ addOnload(openPreview('<?php echo(JURI::root()."index.php?option=com_jcq"); ?>',
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="previewPage" id="previewPage" value="0"/>
        <input type="hidden" name="ID" value="<?php echo $this->page->ID; ?>"/>
+       <input type="hidden" name="ord" value="<?php echo $this->page->ord; ?>"/>
        <input type="hidden" name="isFinal" value="<?php echo $this->page->isFinal; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->page->projectID; ?>"/>
        <input type="hidden" name="task" value=""/>

@@ -6,7 +6,15 @@ jimport('joomla.application.component.model');
 class JcqModelPages extends JModel {
 
 	//TODO: secure against insertion
-
+	
+	private $db;
+	
+	function __construct()
+	{
+		parent::__construct();
+		$this->db = $this->getDBO();
+	}
+	
 	function getPage($ID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$ID;
@@ -54,7 +62,10 @@ class JcqModelPages extends JModel {
 		$pageTableRow =& $this->getTable('pages');
 		$pageTableRow->ID = 0;
 		$pageTableRow->name = '';
-		$pageTableRow->ord = 0; //FIXME should be set to highest value
+		$this->db->setQuery("SELECT ord FROM jcq_page WHERE projectID=$projectID AND isFinal=0 ORDER BY ord DESC");
+		$pages = $this->db->loadObjectList();
+		if ($pages!==null) $pageTableRow->ord = $pages[0]->ord + 1;
+		else $pageTableRow->ord = 1;
 		$pageTableRow->projectID = $projectID;
 		$pageTableRow->isFinal = 0;
 		return $pageTableRow;

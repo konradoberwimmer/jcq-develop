@@ -100,6 +100,8 @@ class JcqViewQuestionform extends JView
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		foreach ($filenames as $filename) JHTML::script($path.$filename, true);
+		$filename = 'overridesubmit.js';
+		JHTML::script($path.$filename, true);
 		
 		parent::display();
 	}
