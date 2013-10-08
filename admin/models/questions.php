@@ -8,6 +8,14 @@ class JcqModelQuestions extends JModel {
 
 	//TODO: secure against insertion
 
+	private $db;
+	
+	function __construct()
+	{
+		parent::__construct();
+		$this->db = $this->getDBO();
+	}
+	
 	static function getQuestionTypes()
 	{
 		$questtypes = array();
@@ -66,7 +74,10 @@ class JcqModelQuestions extends JModel {
 		$questionTableRow =& $this->getTable('questions');
 		$questionTableRow->ID = 0;
 		$questionTableRow->name = '';
-		$questionTableRow->ord = 0; //FIXME should be set to highest value
+		$this->db->setQuery("SELECT ord FROM jcq_question WHERE pageID=$pageID ORDER BY ord DESC");
+		$questions = $this->db->loadObjectList();
+		if ($questions!==null) $questionTableRow->ord = $questions[0]->ord + 1;
+		else $questionTableRow->ord = 1;
 		$questionTableRow->pageID = $pageID;
 		return $questionTableRow;
 	}
