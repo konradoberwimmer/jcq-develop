@@ -50,9 +50,8 @@ class JcqModelQuestions extends JModel {
 	function getQuestion($ID)
 	{
 		$query = 'SELECT * FROM jcq_question WHERE ID = '.$ID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		$question = $db->loadObject();
+		$this->db->setQuery($query);
+		$question = $this->db->loadObject();
 			
 		if ($question === null) JError::raiseError(500, 'Question with ID: '.$ID.' not found.');
 		else return $question;
@@ -61,9 +60,8 @@ class JcqModelQuestions extends JModel {
 	function getTypeFromQuestion($ID)
 	{
 		$query = 'SELECT questtype FROM jcq_question WHERE ID = '.$ID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		$question = $db->loadObject();
+		$this->db->setQuery($query);
+		$question = $this->db->loadObject();
 			
 		if ($question === null) JError::raiseError(500, 'Question with ID: '.$ID.' not found.');
 		else return $question->questtype;
@@ -162,47 +160,22 @@ class JcqModelQuestions extends JModel {
 			$page = $this->getPageFromQuestion($oneID);
 			$project = $this->getProjectFromPage($page->ID);
 
-			switch ($question->questtype)
+			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."_q".$question->ID."_%';";
+			$this->db->setQuery($statementquery);
+			$sqlresult = $this->db->loadResult();
+			if ($sqlresult!=null)
 			{
-				case TEXTFIELD:
-					{
-						$query = "ALTER TABLE jcq_proj".$project->ID." DROP COLUMN p".$page->ID."q".$oneID;
-						$db = $this->getDBO();
-						$db->setQuery($query);
-						if (!$db->query()){
-							$errorMessage = $this->getDBO()->getErrorMsg();
-							JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-						}
-						break;
-					}
-				case SINGLECHOICE: case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
-					{
-						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."q".$question->ID."%';";
-						$db = $this->getDBO();
-						$db->setQuery($statementquery);
-						$sqlresult = $db->loadResult();
-						if ($sqlresult!=null)
-						{
-							$db->setQuery($sqlresult);
-							if (!$db->query()){
-								$errorMessage = $this->getDBO()->getErrorMsg();
-								JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-							}
-						}
-						break;
-					}
-				case TEXTANDHTML:
-					{
-						break;
-					}
-				default: JError::raiseError(500, 'FATAL: Code for deleting question of type '.$question->questtype.' is missing!!!');
+				$this->db->setQuery($sqlresult);
+				if (!$this->db->query()){
+					$errorMessage = $this->getDBO()->getErrorMsg();
+					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
+				}
 			}
 		}
 
 		$query = "DELETE FROM jcq_question WHERE ID IN (".implode(',', $arrayIDs).")";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
+		$this->db->setQuery($query);
+		if (!$this->db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error deleting questions: '.$errorMessage);
 		}
@@ -213,9 +186,8 @@ class JcqModelQuestions extends JModel {
 		for ($i=0;$i<count($questionids);$i++)
 		{
 			$query = "UPDATE jcq_question SET ord=".$questionord[$i]." WHERE ID=".$questionids[$i];
-			$db = $this->getDBO();
-			$db->setQuery($query);
-			if (!$db->query()){
+			$this->db->setQuery($query);
+			if (!$this->db->query()){
 				$errorMessage = $this->getDBO()->getErrorMsg();
 				JError::raiseError(500, 'Error setting question order: '.$errorMessage);
 			}
@@ -225,17 +197,15 @@ class JcqModelQuestions extends JModel {
 	function getPageFromQuestion($questionID)
 	{
 		$query = 'SELECT * FROM jcq_question WHERE ID = '.$questionID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		$question = $db->loadObject();
+		$this->db->setQuery($query);
+		$question = $this->db->loadObject();
 			
 		if ($question === null) JError::raiseError(500, 'Question with ID: '.$questionID.' not found.');
 		else
 		{
 			$query = 'SELECT * FROM jcq_page WHERE ID = '.$question->pageID;
-			$db = $this->getDBO();
-			$db->setQuery($query);
-			$page = $db->loadObject();
+			$this->db->setQuery($query);
+			$page = $this->db->loadObject();
 
 			if ($page === null) JError::raiseError(500, 'Page with ID: '.$question->pageID.' not found.');
 			else return $page;
@@ -245,17 +215,15 @@ class JcqModelQuestions extends JModel {
 	function getProjectFromPage($pageID)
 	{
 		$query = 'SELECT * FROM jcq_page WHERE ID = '.$pageID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		$page = $db->loadObject();
+		$this->db->setQuery($query);
+		$page = $this->db->loadObject();
 			
 		if ($page === null) JError::raiseError(500, 'Page with ID: '.$pageID.' not found.');
 		else
 		{
 			$query = 'SELECT * FROM jcq_project WHERE ID = '.$page->projectID;
-			$db = $this->getDBO();
-			$db->setQuery($query);
-			$project = $db->loadObject();
+			$this->db->setQuery($query);
+			$project = $this->db->loadObject();
 
 			if ($project === null) JError::raiseError(500, 'Project with ID: '.$page->projectID.' not found.');
 			else return $project;
@@ -284,9 +252,8 @@ class JcqModelQuestions extends JModel {
 			}
 		}
 		$query = "INSERT INTO jcq_questionscales (questionID, scaleID) VALUES (".$questionID.",".$newscale->ID.")";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
+		$this->db->setQuery($query);
+		if (!$this->db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error inserting scale: '.$errorMessage);
 		}
@@ -330,10 +297,9 @@ class JcqModelQuestions extends JModel {
 	function addColumnUserDataINT($pageID,$questionID)
 	{
 		$project = $this->getProjectFromPage($pageID);
-		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID." INT";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query())
+		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_ INT";
+		$this->db->setQuery($query);
+		if (!$this->db->query())
 		{
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
@@ -343,10 +309,9 @@ class JcqModelQuestions extends JModel {
 	function addColumnUserDataTEXT($pageID,$questionID)
 	{
 		$project = $this->getProjectFromPage($pageID);
-		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID." TEXT";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query())
+		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_ TEXT";
+		$this->db->setQuery($query);
+		if (!$this->db->query())
 		{
 			$errorMessage = $this->getDBO()->getErrorMsg();
 			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
