@@ -69,7 +69,7 @@ class JcqModelItems extends JModel {
 			//just ignore the errors
 			foreach ($scales as $scale)
 			{
-				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN p".$pageid."q".$itemTableRow->questionID."i".$itemTableRow->ID."s".$scale->ID." INT";
+				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN p".$pageid."_q".$itemTableRow->questionID."_i".$itemTableRow->ID."_s".$scale->ID."_ INT";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -105,7 +105,7 @@ class JcqModelItems extends JModel {
 			$modelquestions = new JcqModelQuestions();
 			$pageID = $modelquestions->getPageFromQuestion($questionID)->ID;
 			$projectID = $modelquestions->getProjectFromPage($pageID)->ID;
-			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'p".$pageID."q".$questionID."i".$oneID."%';";
+			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'p".$pageID."_q".$questionID."_i".$oneID."_%';";
 			$this->db->setQuery($statementquery);
 			$sqlresult = $this->db->loadResult();
 			if ($sqlresult!=null)
@@ -131,8 +131,8 @@ class JcqModelItems extends JModel {
 		require_once( JPATH_COMPONENT.DS.'models'.DS.'questions.php' );
 		$modelquestions = new JcqModelQuestions();
 		$project = $modelquestions->getProjectFromPage($pageID);
-		if ($scaleID===null) $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID."i".$itemID." INT";
-		else $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."q".$questionID."i".$itemID."s".$scaleID." INT";
+		if ($scaleID===null) $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_i".$itemID."_ INT";
+		else $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ INT";
 		$this->db->setQuery($query);
 		if (!$this->db->query())
 		{
@@ -160,7 +160,7 @@ class JcqModelItems extends JModel {
 					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
 					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
 					//also delete data column
-					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."_q".$question->ID."_i".$bindeditem->ID."_");
 					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
 				}
 			} else
@@ -177,7 +177,7 @@ class JcqModelItems extends JModel {
 				$itemTableRow->bindingID = $oneID;
 				if (!$itemTableRow->store()) JError::raiseError(500, 'Error inserting textfield: '.$itemTableRow->getError());
 				//also create the userdata table column
-				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."q".$question->ID."i".$itemTableRow->ID." TEXT");
+				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."_q".$question->ID."_i".$itemTableRow->ID."_ TEXT");
 				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
 			}
 		}

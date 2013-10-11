@@ -169,7 +169,7 @@ class JcqModelScales extends JModel {
 					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
 					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
 					//also delete data column
-					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."_q".$question->ID."_i".$bindeditem->ID."_");
 					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
 				}
 			}
@@ -211,7 +211,7 @@ class JcqModelScales extends JModel {
 					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
 					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
 					//also delete data column
-					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."q".$question->ID."i".$bindeditem->ID);
+					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."_q".$question->ID."_i".$bindeditem->ID."_");
 					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
 				}
 			} else
@@ -228,7 +228,7 @@ class JcqModelScales extends JModel {
 				$itemTableRow->bindingID = $oneID;
 				if (!$itemTableRow->store()) JError::raiseError(500, 'Error inserting textfield: '.$itemTableRow->getError());
 				//also create the userdata table column
-				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."q".$question->ID."i".$itemTableRow->ID." TEXT");
+				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."_q".$question->ID."_i".$itemTableRow->ID."_ TEXT");
 				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());	
 			}
 		}

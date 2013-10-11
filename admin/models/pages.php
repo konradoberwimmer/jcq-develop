@@ -134,7 +134,7 @@ class JcqModelPages extends JModel {
 		foreach ($arrayIDs as $oneID)
 		{
 			$project = $this->getProjectFromPage($oneID);
-			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$oneID."%';";
+			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$oneID."_%';";
 			$db = $this->getDBO();
 			$db->setQuery($statementquery);
 			$sqlresult = $db->loadResult();

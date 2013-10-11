@@ -537,7 +537,7 @@ class JcqController extends JController
 					//else destroy any userdata columns there may be
 					else
 					{
-						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'p".$pageid."q".$questionid."i%s".$scaleids[$i]."';";
+						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'p".$pageid."_q".$questionid."_i%_s".$scaleids[$i]."_';";
 						$db = JFactory::getDBO();
 						$db->setQuery($statementquery);
 						$sqlresult = $db->loadResult();
