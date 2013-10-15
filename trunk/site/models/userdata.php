@@ -34,20 +34,20 @@ function getStoredValue ($varname)
 					{
 						case SINGLECHOICE:
 							{
-								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
+								if ($question->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_";
 								//look for additional textfields
 								$db->setQuery('SELECT * FROM jcq_item WHERE questionID='.$question->ID);
 								$items = $db->loadObjectList();
 								for ($k=0;$k<count($items);$k++)
 								{
 									$item=$items[$k];
-									if ($item->varname==$varname) $intvarname="p".$page->ID."q".$question->ID."i".$item->ID;
+									if ($item->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_i".$item->ID."_";
 								}
 								break;
 							}
 						case TEXTFIELD:
 							{
-								if ($question->varname==$varname) $intvarname="p".$page->ID."q".$question->ID;
+								if ($question->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_";
 								break;
 							}
 						case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH:
@@ -57,7 +57,7 @@ function getStoredValue ($varname)
 								for ($k=0;$k<count($items);$k++)
 								{
 									$item=$items[$k];
-									if ($item->varname==$varname) $intvarname="p".$page->ID."q".$question->ID."i".$item->ID;
+									if ($item->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_i".$item->ID."_";
 								}
 								break;
 							}
@@ -73,7 +73,7 @@ function getStoredValue ($varname)
 									for ($l=0;$l<count($scales);$l++)
 									{
 										$scale=$scales[$l];
-										if ($item->varname."_s".$scale->ID==$varname) $intvarname = "p".$page->ID."q".$question->ID."i".$item->ID."s".$scale->ID;
+										if ($item->varname."_s".$scale->ID==$varname) $intvarname = "p".$page->ID."_q".$question->ID."_i".$item->ID."_s".$scale->ID."_";
 									}
 								}
 								break;
@@ -335,7 +335,7 @@ class JcqModelUserdata extends JModel
 									//if mandatory and no value stored so far --> set missing
 									if ($question->mandatory==1)
 									{
-										$sqlgetvalue = "SELECT p".$page->ID."q".$question->ID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+										$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 										$db->setQuery($sqlgetvalue);
 										$answer = $db->loadResult();
 										if ($answer["p".$page->ID."q".$question->ID]==null) $hasmissings=true;
@@ -401,14 +401,14 @@ class JcqModelUserdata extends JModel
 								//if mandatory and no value stored so far --> set missing
 								if ($question->mandatory==1)
 								{
-									$sqlgetvalue = "SELECT p".$page->ID."q".$question->ID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+									$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 									$db->setQuery($sqlgetvalue);
 									$answer = $db->loadResult();
 									if ($answer==null || strlen($answer)<1) $hasmissings=true;
 								}
 								//if data type does not match --> set missing
-								if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'q'.$question->ID) != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
-								if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'q'.$question->ID) != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+								if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
 								#TODO decimal seperator for locale
 								break;
 							}
@@ -433,7 +433,7 @@ class JcqModelUserdata extends JModel
 										//if mandatory and no value stored so far --> set missing
 										if ($item->mandatory==1)
 										{
-											$sqlgetvalue = "SELECT p".$page->ID."q".$question->ID."i".$item->ID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+											$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_i".$item->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 											$db->setQuery($sqlgetvalue);
 											$answer = $db->loadResult();
 											if ($answer["p".$page->ID."q".$question->ID."i".$item->ID]==null) $hasmissings=true;
@@ -450,7 +450,7 @@ class JcqModelUserdata extends JModel
 								{
 									foreach($scales as $scale)
 									{
-										$varname = 'p'.$page->ID.'q'.$question->ID.'i'.$item->ID.'s'.$scale->ID;
+										$varname = 'p'.$page->ID.'_q'.$question->ID.'_i'.$item->ID.'_s'.$scale->ID.'_';
 										if (JRequest::getVar($varname,null)!=null && is_numeric(JRequest::getVar($varname)))
 										{
 											//numeric value is posted --> store
@@ -584,7 +584,7 @@ class JcqModelUserdata extends JModel
 
 	function hasStoredValueQuestion($pageID,$questionID)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
@@ -593,8 +593,8 @@ class JcqModelUserdata extends JModel
 
 	function hasStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
 	{
-		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		else $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID."s".$scaleID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
@@ -611,7 +611,7 @@ class JcqModelUserdata extends JModel
 
 	function getStoredValueQuestion($pageID,$questionID)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."q".$questionID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();
@@ -620,8 +620,8 @@ class JcqModelUserdata extends JModel
 
 	function getStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
 	{
-		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		else $sqlgetvalue = "SELECT p".$pageID."q".$questionID."i".$itemID."s".$scaleID." FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 		$db = $this->getDBO();
 		$db->setQuery($sqlgetvalue);
 		$answer = $db->loadResult();

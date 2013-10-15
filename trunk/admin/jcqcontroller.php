@@ -252,7 +252,7 @@ class JcqController extends JController
 				$tableQuestion->load($question->ID);
 				jtableToXmlWithoutIDs($tableQuestion, $xmldoc, $questionnode);
 				//adding items
-				$items =& $this->getModel("items")->getItems($question->ID);
+				$items =& $this->getModel("questions")->getItems($question->ID);
 				foreach ($items as $item)
 				{
 					$itemnode=$xmldoc->createElement("item");
@@ -417,7 +417,7 @@ class JcqController extends JController
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
 		$model = & $this->getModel('pages');
-		$model->deletePages($arrayIDs);
+		foreach ($arrayIDs as $pageID) $model->deletePage($pageID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' page(s)');
@@ -470,60 +470,64 @@ class JcqController extends JController
 
 	function saveQuestion()
 	{
-		$question = JRequest::get( 'POST' , JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW);
-			
-		$model = & $this->getModel('questions');
-		$questionid = $model->saveQuestion($question);
+		$thepost = JRequest::get('POST',JREQUEST_ALLOWHTML|JREQUEST_ALLOWRAW);
+		
+		//dividing the post
+		$post_question = array();
+		$post_items = array();
+		$post_codes = array();
+		foreach ($thepost as $key=>$value)
+		{
+			if (strpos($key,'_question_')!==false) $post_question[str_replace('_question_', '', $key)] = $value;
+			else if (strpos($key,'_item_')!==false)
+			{
+				$itemid = str_replace('_item_', '', $key);
+				$itemid = intval(substr($itemid, 0, strpos($itemid, '_')));
+				//build new array for item if it does not yet exist in the item array
+				if (!key_exists($itemid, $post_items)) $post_items[$itemid]=array();
+				$newkey = str_replace('_item_'.$itemid.'_', '', $key);
+				$post_items[$itemid][$newkey]=$value;
+			}
+			else if (strpos($key,'_code_')!==false)
+			{
+				$codeid = str_replace('_code_', '', $key);
+				$codeid = intval(substr($codeid, 0, strpos($codeid, '_')));
+				//build new array for code if it does not yet exist in the item array
+				if (!key_exists($codeid, $post_codes)) $post_codes[$codeid]=array();
+				$newkey = str_replace('_code_'.$codeid.'_', '', $key);
+				$post_codes[$codeid][$newkey]=$value;
+			}
+		}
+		
+		//save question itself
+		$modelquestions = & $this->getModel('questions');
+		$questionid = $modelquestions->saveQuestion($post_question);
+		
+		//save items
+		$modelitems = & $this->getModel('items');
+		foreach ($post_items as $post_item) $itemid = $modelitems->saveItem($post_item);
+				
+		//save codes
+		$modelscales = & $this->getModel('scales');
+		foreach ($post_codes as $post_code) $codeid = $modelscales->saveCode($post_code);
+
+		//add/remove textfields for codes
+		$codeaddrmtfids = JRequest::getVar('codeaddrmtf', null, 'default', 'array' );
+		if ($codeaddrmtfids!==null) foreach ($codeaddrmtfids as $codeaddrmtfid) $modelscales->addrmTextfields($codeaddrmtfid,$questionid);
+		
+		//delete codes
+		$codedeleteids = JRequest::getVar('codedelete', null, 'default', 'array' );
+		if ($codedeleteids!==null) foreach ($codedeleteids as $codedeleteid) $modelscales->deleteCode($codedeleteid);
+		
+		/*
+		
 		$pageid = $model->getPageFromQuestion($questionid)->ID;
 		$projectid = $model->getProjectFromPage($pageid)->ID;
 
-		$scalemodel = & $this->getModel('scales');
-
-		//save the scale(s) if question has any
-		if (isset($question['scaleID']))
-		{
-			//has to be in this order: 1. save codes 2. add/remove textfields 3. delete codes; otherwise errors for missing IDs
-			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
-			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
-			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
-			$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
-			$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
-			for ($i=0;$i<count($codeids);$i++)
-			{
-				$code = array();
-				$code['ID']=$codeids[$i];
-				$code['ord']=$codeord[$i];
-				$code['code']=$codevalue[$i];
-				$code['label']=$codelabel[$i];
-				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
-				else $code['missval']=0;
-				$code['scaleID']=$question['scaleID'];
-				$scalemodel->saveCode($code);
-				//save binded items if any
-				$bindeditem = JRequest::getVar('code'.$code['ID'].'tfID', null);
-				if ($bindeditem!=null)
-				{
-					$tableItem =& $this->getModel("items")->getTable("items");
-					$tableItem->load($bindeditem);
-					$tableItem->varname = JRequest::getVar('code'.$code['ID'].'tfvarname', null);
-					$tableItem->datatype = JRequest::getVar('code'.$code['ID'].'tfdatatype', null);
-					$tableItem->prepost = JRequest::getVar('code'.$code['ID'].'tfprepost', null);
-					$tableItem->width_left = JRequest::getVar('code'.$code['ID'].'tfwidthleft', null);
-					$tableItem->rows = JRequest::getVar('code'.$code['ID'].'tfrows', null);
-					$tableItem->linebreak = isset($question['code'.$code['ID'].'tflinebreak']);
-					if (!$tableItem->store()) JError::raiseError(500, 'Error updating data: '.$tableItem->getError());
-				}
-			}
-			$codeaddrmtf = JRequest::getVar('codeaddrmtf', null, 'default', 'array' );
-			if ($codeaddrmtf!=null) $scalemodel->addrmTextfields($codeaddrmtf,$questionid);
-			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
-		}
-
 		//special case question type MULTISCALE: save the attached scales
-		if ($question['questtype']==MULTISCALE)
+		if ($thepost['questtype']==MULTISCALE)
 		{
-			$scalemodel->clearAttachedScales($question['ID']);
+			$scalemodel->clearAttachedScales($thepost['ID']);
 			$scaleids = JRequest::getVar('scaleids', null, 'default', 'array' );
 			$scaleord = JRequest::getVar('scaleord', null, 'default', 'array' );
 			$scaledelete = JRequest::getVar('scaledelete', null, 'default', 'array' );
@@ -533,11 +537,11 @@ class JcqController extends JController
 				for ($i=0;$i<count($scaleids);$i++)
 				{
 					//(re-)attach if scaleid is not on delete list
-					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($question['ID'],$scaleids[$i],$scaleord[$i],in_array($scaleids[$i], $scalemandatory));
+					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($thepost['ID'],$scaleids[$i],$scaleord[$i],in_array($scaleids[$i], $scalemandatory));
 					//else destroy any userdata columns there may be
 					else
 					{
-						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'p".$pageid."_q".$questionid."_i%_s".$scaleids[$i]."_';";
+						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'i%_s".$scaleids[$i]."_';";
 						$db = JFactory::getDBO();
 						$db->setQuery($statementquery);
 						$sqlresult = $db->loadResult();
@@ -553,55 +557,7 @@ class JcqController extends JController
 				}
 			}
 		}
-
-		//save the items if question has any
-		if (isset($question['itemspresent']))
-		{
-			$itemsmodel = & $this->getModel('items');
-			//has to be in this order: 1. save items 2. delete items; otherwise errors for missing IDs
-			$itemids = JRequest::getVar('itemids', null, 'default', 'array' );
-			$itemord = JRequest::getVar('itemord', null, 'default', 'array' );
-			$itemtextleft = JRequest::getVar('itemtextleft', null, 'default', 'array' );
-			$itemtextright = JRequest::getVar('itemtextright', null, 'default', 'array' );
-			$itemvarname = JRequest::getVar('itemvarname', null, 'default', 'array' );
-			$itemmandatory = JRequest::getVar('itemmandatory', null, 'default', 'array' );
-			for ($i=0;$i<count($itemids);$i++)
-			{
-				$item = array();
-				$item['ID']=$itemids[$i];
-				$item['ord']=$itemord[$i];
-				$item['textleft']=$itemtextleft[$i];
-				if ($itemtextright!=null) $item['textright']=$itemtextright[$i];
-				$item['varname']=$itemvarname[$i];
-				if ($itemmandatory!=null && in_array($itemids[$i],$itemmandatory)) $item['mandatory']=1;
-				else $item['mandatory']=0;
-				$item['questionID']=$question['ID'];
-				if ($question['questtype']==MULTISCALE)
-				{
-					$scales=$scalemodel->getScales($question['ID']);
-					$itemsmodel->saveItem($item, $scales);
-				}
-				else $itemsmodel->saveItem($item);
-				//save binded items if any
-				$bindeditem = JRequest::getVar('item'.$item['ID'].'tfID', null);
-				if ($bindeditem!=null)
-				{
-					$tableItem =& $this->getModel("items")->getTable("items");
-					$tableItem->load($bindeditem);
-					$tableItem->varname = JRequest::getVar('item'.$item['ID'].'tfvarname', null);
-					$tableItem->datatype = JRequest::getVar('item'.$item['ID'].'tfdatatype', null);
-					$tableItem->prepost = JRequest::getVar('item'.$item['ID'].'tfprepost', null);
-					$tableItem->width_left = JRequest::getVar('item'.$item['ID'].'tfwidthleft', null);
-					$tableItem->rows = JRequest::getVar('item'.$item['ID'].'tfrows', null);
-					$tableItem->linebreak = isset($question['item'.$item['ID'].'tflinebreak']);
-					$tableItem->store();
-				}
-			}
-			$itemaddrmtf = JRequest::getVar('itemaddrmtf', null, 'default', 'array' );
-			if ($itemaddrmtf!=null) $itemsmodel->addrmTextfields($itemaddrmtf,$questionid);
-			$itemdelete = JRequest::getVar('itemdelete', null, 'default', 'array' );
-			if ($itemdelete!=null) $itemsmodel->deleteItems($itemdelete);
-		}
+		*/
 
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$questionid,false);
 		$this->setRedirect($redirectTo, 'Question saved!');
@@ -615,7 +571,7 @@ class JcqController extends JController
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
 		$model = & $this->getModel('questions');
-		$model->deleteQuestions($arrayIDs);
+		foreach ($arrayIDs as $questionID) $model->deleteQuestion($questionID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' question(s)');
@@ -683,7 +639,7 @@ class JcqController extends JController
 				$scalemodel->saveCode($code);
 			}
 			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-			if ($codedelete!=null) $scalemodel->deleteCodes($codedelete);
+			if ($codedelete!=null) foreach ($codedelete as $codeID) $scalemodel->deleteCode($codeID);
 		}
 
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editScale&scaleid='.$scaleid,false);
@@ -696,7 +652,7 @@ class JcqController extends JController
 		if($scaleIDs === null) JError::raiseError(500, 'scaledelid parameter missing');
 			
 		$model = & $this->getModel('scales');
-		$model->deleteScales($scaleIDs);
+		foreach ($scaleIDs as $scaleID)	$model->deleteScale($scaleID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
 		$this->setRedirect($redirectTo, 'Removed '.count($scaleIDs).' scale(s)');

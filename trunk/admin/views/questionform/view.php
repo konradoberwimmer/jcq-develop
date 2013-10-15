@@ -56,18 +56,9 @@ class JcqViewQuestionform extends JView
 			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
 		}
 		
-		//attach item(s) according to questiontype
-		switch ($this->question->questtype)
-		{
-			case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH: case MULTISCALE:
-				{
-					$items = $this->getModel('items')->getItems($this->question->ID);
-					$this->assignRef('items', $items);
-					break;
-				}
-			case SINGLECHOICE: case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
-			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
-		}
+		//attach item(s)
+		$items = $this->getModel()->getItems($this->question->ID);
+		$this->assignRef('items', $items);
 		
 		//add javascript functionality according to questtype
 		$path = 'administrator/components/com_jcq/js/';
