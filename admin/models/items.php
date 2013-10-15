@@ -2,6 +2,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'questions.php');
 
 class JcqModelItems extends JModel {
 
@@ -14,21 +15,14 @@ class JcqModelItems extends JModel {
 		parent::__construct();
 		$this->db = $this->getDBO();
 	}
-	
+
 	function getItem($itemID)
 	{
 		$query = 'SELECT * FROM jcq_item WHERE ID='.$itemID;
 		$this->db->setQuery($query);
 		return $this->db->loadObject();
 	}
-	
-	function getItems($questionID)
-	{
-		$query = 'SELECT * FROM jcq_item WHERE questionID = '.$questionID.' ORDER BY ord';
-		$this->db->setQuery($query);
-		return $this->db->loadObjectList();
-	}
-	
+
 	function getItembindedItems($itemID)
 	{
 		$this->db->setQuery("SELECT * FROM jcq_item WHERE bindingType='ITEM' AND bindingID=".$itemID);
@@ -37,12 +31,27 @@ class JcqModelItems extends JModel {
 		else return $sqlresult;
 	}
 
+	function buildNewItem($questionID,$datatype,$scales=null)
+	{
+		$itemTableRow =& $this->getTable();
+		$itemTableRow->questionID = $questionID;
+		$itemTableRow->datatype = $datatype;
+		$this->db->setQuery("SELECT ord FROM jcq_item WHERE questionID=$questionID ORDER BY ord DESC");
+		$items = $this->db->loadObjectList();
+		if ($items!==null) $itemTableRow->ord = $items[0]->ord + 1;
+		else $itemTableRow->ord = 1;
+		if ($itemTableRow->store())
+		{
+			//add user data column
+			if ($scales===null) $this->addUserDataColumn($datatype, $itemTableRow->ID);
+			else foreach ($scales as $scale) $this->addUserDataColumn($datatype, $itemTableRow->ID, $scale->ID);
+		}
+		else JError::raiseError(500, 'FATAL: '.$itemTableRow->getError());
+		return $itemTableRow;
+	}
+
 	function saveItem(array $item, array $scales=null)
 	{
-				//uses model questions to get pageID
-		require_once( JPATH_COMPONENT.DS.'models'.DS.'questions.php' );
-		$modelquestions = new JcqModelQuestions();
-		
 		$itemTableRow =& $this->getTable('items');
 		if (!$itemTableRow->bind($item)) JError::raiseError(500, 'Error binding data');
 		if (!$itemTableRow->check()) JError::raiseError(500, 'Invalid data');
@@ -51,96 +60,67 @@ class JcqModelItems extends JModel {
 			$errorMessage = $itemTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
-		
+	
+		//uses model questions to get pageID
+		$modelquestions = new JcqModelQuestions();
 		$pageid = $modelquestions->getPageFromQuestion($itemTableRow->questionID)->ID;
 		$projectid = $modelquestions->getProjectFromPage($pageid)->ID;
-		
+
 		//set default values for new item and add user data column;
 		if ($item['ID']==0)
 		{
-			$itemTableRow->mandatory=true;
-			if (strlen($itemTableRow->varname)==0) $itemTableRow->varname="question".$itemTableRow->questionID."item".$itemTableRow->ID;
-			$itemTableRow->store();
-			if ($scales===null) $this->addColumnUserDataINT($pageid, $itemTableRow->questionID, $itemTableRow->ID);
-			else foreach ($scales as $scale) $this->addColumnUserDataINT($pageid, $itemTableRow->questionID, $itemTableRow->ID, $scale->ID);
+			if ($scales===null) $this->addUserDataColumn($itemTableRow->datatype, $itemTableRow->ID);
+			else foreach ($scales as $scale) $this->addUserDataColumn($itemTableRow->datatype, $scale->ID);
 		} else if ($scales!==null)
 		{
 			//stupidly try to add userdata columns if there are scales (question type MULTISCALE)
-			//just ignore the errors
+			#FIXME just ignore the errors
 			foreach ($scales as $scale)
 			{
-				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN p".$pageid."_q".$itemTableRow->questionID."_i".$itemTableRow->ID."_s".$scale->ID."_ INT";
+				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN i".$itemTableRow->ID."_s".$scale->ID."_ INT";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
 		}
 	}
-	
-	function getQuestionFromItem($itemID)
+
+	function deleteItem($ID)
 	{
-		$query = 'SELECT * FROM jcq_item WHERE ID = '.$itemID;
-		$this->db->setQuery($query);
-		$item = $this->db->loadObject();
-			
-		if ($item === null) JError::raiseError(500, 'Item with ID: '.$itemID.' not found.');
-		else
+		//first remove user data column(s)
+		$model_questions = new JcqModelQuestions();
+		$questionID = $this->getItem($ID)->questionID;
+		$pageID = $model_questions->getPageFromQuestion($questionID)->ID;
+		$projectID = $model_questions->getProjectFromPage($pageID)->ID;
+		$this->db->setQuery("SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'i".$ID."_%';");
+		$sqlresult = $this->db->loadResult();
+		if ($sqlresult!=null)
 		{
-			$query = 'SELECT * FROM jcq_question WHERE ID = '.$item->questionID;
-			$this->db->setQuery($query);
-			$question = $this->db->loadObject();
-	
-			if ($question === null) JError::raiseError(500, 'Question with ID: '.$itemID->questionID.' not found.');
-			else return $question;
+			$this->db->setQuery($sqlresult);
+			if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 		}
+		//then remove item binded items (if any)
+		$bindeditems = $this->getItembindedItems($ID);
+		if ($bindeditems!==null) foreach ($bindeditems as $bindeditem) $this->deleteItem($bindeditem->ID);
+		//then delete the item itself
+		$this->db->setQuery("DELETE FROM jcq_item WHERE ID = $ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
-	
-	function deleteItems($arrayIDs)
+
+	function addUserDataColumn($datatype, $itemID, $scaleID=null)
 	{
-		//first remove user data columns!
-		foreach ($arrayIDs as $oneID)
-		{
-			$questionID = $this->getQuestionFromItem($oneID)->ID;
-			//use model questions to get pageID and projectID
-			require_once( JPATH_COMPONENT.DS.'models'.DS.'questions.php' );
-			$modelquestions = new JcqModelQuestions();
-			$pageID = $modelquestions->getPageFromQuestion($questionID)->ID;
-			$projectID = $modelquestions->getProjectFromPage($pageID)->ID;
-			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'p".$pageID."_q".$questionID."_i".$oneID."_%';";
-			$this->db->setQuery($statementquery);
-			$sqlresult = $this->db->loadResult();
-			if ($sqlresult!=null)
-			{
-				$this->db->setQuery($sqlresult);
-				if (!$this->db->query()){
-					$errorMessage = $this->getDBO()->getErrorMsg();
-					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-				}
-			}
-		}		
-		$query = "DELETE FROM jcq_item WHERE ID IN (".implode(',', $arrayIDs).")";
+		$model_questions = new JcqModelQuestions();
+		$questionID = $this->getItem($itemID)->questionID;
+		$pageID = $model_questions->getPageFromQuestion($questionID)->ID;
+		$projectID = $model_questions->getProjectFromPage($pageID)->ID;
+		//expect field type INT as default
+		$fieldtype = "INT";
+		if ($datatype!=1) $fieldtype = "TEXT";
+		if ($scaleID===null) $query = "ALTER TABLE jcq_proj$projectID ADD COLUMN i".$itemID."_ $fieldtype";
+		else $query = "ALTER TABLE jcq_proj$projectID ADD COLUMN i".$itemID."_s".$scaleID."_ INT";
 		$this->db->setQuery($query);
-		if (!$this->db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting items: '.$errorMessage);
-		}
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
-	
-	function addColumnUserDataINT($pageID,$questionID,$itemID,$scaleID=null)
-	{
-		//use model questions to get projectID
-		require_once( JPATH_COMPONENT.DS.'models'.DS.'questions.php' );
-		$modelquestions = new JcqModelQuestions();
-		$project = $modelquestions->getProjectFromPage($pageID);
-		if ($scaleID===null) $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_i".$itemID."_ INT";
-		else $query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ INT";
-		$this->db->setQuery($query);
-		if (!$this->db->query())
-		{
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-		}
-	}
-	
+
 	function addrmTextfields($arrayIDs,$questionid)
 	{
 		foreach($arrayIDs as $oneID)

@@ -2,6 +2,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'questions.php');
 
 class JcqModelPages extends JModel {
 
@@ -115,7 +116,7 @@ class JcqModelPages extends JModel {
 		// if a new page is created, also create the timestamp in the user data table
 		if ($page['ID']==0)
 		{
-			$query = "ALTER TABLE jcq_proj".$pageTableRow->projectID." ADD COLUMN p".$pageTableRow->ID."timestamp BIGINT";
+			$query = "ALTER TABLE jcq_proj".$pageTableRow->projectID." ADD COLUMN p".$pageTableRow->ID."_timestamp BIGINT";
 			$db = $this->getDBO();
 			$db->setQuery($query);
 			if (!$db->query()){
@@ -127,35 +128,19 @@ class JcqModelPages extends JModel {
 		return $pageTableRow->ID;
 	}
 
-	function deletePages($arrayIDs)
+	function deletePage($ID)
 	{
-		// drop timestamp as well as columns of questions and items of this page in the user data table by naming convention
-		// now this is really neat, the database will create the ALTER TABLE statement :-)
-		foreach ($arrayIDs as $oneID)
-		{
-			$project = $this->getProjectFromPage($oneID);
-			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$oneID."_%';";
-			$db = $this->getDBO();
-			$db->setQuery($statementquery);
-			$sqlresult = $db->loadResult();
-			if ($sqlresult!=null)
-			{
-				$db->setQuery($sqlresult);
-				if (!$db->query()){
-					$errorMessage = $this->getDBO()->getErrorMsg();
-					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-				}
-			}
-		}
-		// delete the page itself
-		$query = "DELETE FROM jcq_page WHERE ID IN (".implode(',', $arrayIDs).")";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting pages: '.$errorMessage);
-		}
-
+		//remove the timestamp variable from the user data table
+		$page = $this->getPage($ID);
+		$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."_timestamp");
+		//first delete all the questions belonging to the page
+		$model_questions = new JcqModelQuestions();
+		$this->db->setQuery("SELECT ID FROM jcq_question WHERE pageID = $ID");
+		$questions = $this->db->loadObjectList();
+		if ($questions!==null) foreach ($questions as $question) $model_questions->deleteQuestion($question->ID);
+		//delete the page itself
+		$this->db->setQuery("DELETE FROM jcq_page WHERE ID = $ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 
 	function setPageOrder(array $pageids,array $pageord)

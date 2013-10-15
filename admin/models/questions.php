@@ -2,7 +2,8 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
-
+require_once(JPATH_COMPONENT.DS.'models'.DS.'items.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'scales.php');
 
 class JcqModelQuestions extends JModel {
 
@@ -13,7 +14,7 @@ class JcqModelQuestions extends JModel {
 	function __construct()
 	{
 		parent::__construct();
-		$this->db = $this->getDBO();
+		$this->db = $this->getDBO();		
 	}
 	
 	static function getQuestionTypes()
@@ -66,7 +67,28 @@ class JcqModelQuestions extends JModel {
 		if ($question === null) JError::raiseError(500, 'Question with ID: '.$ID.' not found.');
 		else return $question->questtype;
 	}
-
+	
+	function getItems($questionID)
+	{
+		$query = 'SELECT * FROM jcq_item WHERE questionID = '.$questionID.' ORDER BY ord';
+		$this->db->setQuery($query);
+		return $this->db->loadObjectList();
+	}
+	
+	function getScales($questionID)
+	{
+		$query = "SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND jcq_questionscales.questionID = $questionID ORDER BY ord";
+		$this->db->setQuery($query);
+		return $this->db->loadObjectList();
+	}
+	
+	function detachScale($questionID,$scaleID)
+	{
+		$query = "DELETE FROM jcq_questionscales WHERE jcq_questionscales.scaleID = $scaleID AND jcq_questionscales.questionID = $questionID";
+		$this->db->setQuery($query);
+		if (!$this->db->query($query)) JError::raiseError(500, "FATAL: ".$this->db->getErrorMsg());
+	}
+	
 	function getNewQuestion($pageID)
 	{
 		$questionTableRow =& $this->getTable('questions');
@@ -83,13 +105,8 @@ class JcqModelQuestions extends JModel {
 	function saveQuestion($question)
 	{
 		$questionTableRow =& $this->getTable();
-			
-		// Bind the form fields to the greetings table
 		if (!$questionTableRow->bind($question)) JError::raiseError(500, 'Error binding data');
-
-		// Make sure the greetings record is valid
 		if (!$questionTableRow->check()) JError::raiseError(500, 'Invalid data');
-			
 		if (!$questionTableRow->store())
 		{
 			$errorMessage = $questionTableRow->getError();
@@ -101,40 +118,34 @@ class JcqModelQuestions extends JModel {
 		// Explanation: object question has ID=0 if new question, the questionTableRow is updated with the new ID after store()
 		if ($question['ID']==0)
 		{
+			$model_items = new JcqModelItems();
 			switch ($questionTableRow->questtype)
 			{
 				case SINGLECHOICE:
 					{
-						$questionTableRow->varname = 'question'.$questionTableRow->ID;
-						$questionTableRow->store();
+						$model_items->buildNewItem($questionTableRow->ID, 1);
 						$this->buildScalePrototype($questionTableRow->ID);
-						$this->addColumnUserDataINT($questionTableRow->pageID,$questionTableRow->ID);
 						break;
 					}
 				case MULTICHOICE:
 					{
-						$this->buildItemPrototype($questionTableRow->ID,1);
+						for ($i=1;$i<=5;$i++) $model_items->buildNewItem($questionTableRow->ID, 1);
 						break;
 					}
 				case TEXTFIELD:
 					{
-						$questionTableRow->varname = 'question'.$questionTableRow->ID;
-						$questionTableRow->datatype = 3;
-						$questionTableRow->prepost = "%s";
-						$questionTableRow->width_items = "50";
-						$questionTableRow->store();
-						$this->addColumnUserDataTEXT($questionTableRow->pageID,$questionTableRow->ID);
+						$model_items->buildNewItem($questionTableRow->ID, 3);
 						break;
 					}
 				case MATRIX_LEFT: case MATRIX_BOTH:
 					{
+						for ($i=1;$i<=5;$i++) $model_items->buildNewItem($questionTableRow->ID, 1);
 						$this->buildScalePrototype($questionTableRow->ID);
-						$this->buildItemPrototype($questionTableRow->ID,1);
 						break;
 					}
 				case MULTISCALE:
 					{
-						$this->buildItemPrototype($questionTableRow->ID,1,array());
+						for ($i=1;$i<=5;$i++) $model_items->buildNewItem($questionTableRow->ID, 1, array());
 						break;						
 					}
 				case TEXTANDHTML:
@@ -151,34 +162,23 @@ class JcqModelQuestions extends JModel {
 		return $questionTableRow->ID;
 	}
 
-	function deleteQuestions($arrayIDs)
+	function deleteQuestion($ID)
 	{
-		// beforehand delete the user data columns if necessary (otherwise page ID is unknown)
-		foreach ($arrayIDs as $oneID)
+		//first delete all the items belonging to the question
+		$model_items = new JcqModelItems();
+		$items = $this->getItems($ID);
+		if ($items!==null) foreach ($items as $item) $model_items->deleteItem($item->ID);
+		//then remove all but predefined scales of this question
+		$model_scales = new JcqModelScales();
+		$scales = $this->getScales($ID);
+		if ($scales!==null) foreach ($scales as $scale) if (!$scale->predefined)
 		{
-			$question = $this->getQuestion($oneID);
-			$page = $this->getPageFromQuestion($oneID);
-			$project = $this->getProjectFromPage($page->ID);
-
-			$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj".$project->ID." ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj".$project->ID."' AND column_name LIKE 'p".$page->ID."_q".$question->ID."_%';";
-			$this->db->setQuery($statementquery);
-			$sqlresult = $this->db->loadResult();
-			if ($sqlresult!=null)
-			{
-				$this->db->setQuery($sqlresult);
-				if (!$this->db->query()){
-					$errorMessage = $this->getDBO()->getErrorMsg();
-					JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-				}
-			}
+			$this->detachScale($ID,$scale->ID);
+			$model_scales->deleteScale($scale->ID);
 		}
-
-		$query = "DELETE FROM jcq_question WHERE ID IN (".implode(',', $arrayIDs).")";
-		$this->db->setQuery($query);
-		if (!$this->db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting questions: '.$errorMessage);
-		}
+		//delete the question itself
+		$this->db->setQuery("DELETE FROM jcq_question WHERE ID = $ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 
 	function setQuestionOrder(array $questionids,array $questionord)
@@ -259,62 +259,4 @@ class JcqModelQuestions extends JModel {
 		}
 	}
 
-	function buildItemPrototype($questionID,$datatype,$scales=null)
-	{
-		for ($i=1;$i<=5;$i++)
-		{
-			$newitem =& $this->getTable('items');
-			$newitem->questionID = $questionID;
-			$newitem->ord = $i;
-			$newitem->varname = "question".$questionID;
-			if (!$newitem->store())
-			{
-				$errorMessage = $newitem->getError();
-				JError::raiseError(500, 'Error inserting data: '.$errorMessage);
-			}
-			else
-			{
-				//refine varname now that ID is known
-				$newitem->varname = "question".$questionID."item".$newitem->ID;
-				$newitem->store();
-				//use model items to add user data columns
-				require_once( JPATH_COMPONENT.DS.'models'.DS.'items.php' );
-				$modelitems = new JcqModelItems();
-				switch ($datatype)
-				{
-					case 1:
-						{
-							if ($scales===null) $modelitems->addColumnUserDataINT($this->getPageFromQuestion($questionID)->ID, $questionID, $newitem->ID);
-							else foreach ($scales as $scale) $modelitems->addColumnUserDataINT($this->getPageFromQuestion($questionID)->ID, $questionID, $newitem->ID, $scale->ID);
-							break;
-						}
-					default: JError::raiseError(500, 'FATAL: code for adding user data column of datatype '.$datatype.' is missing!');
-				}
-			}
-		}
-	}
-
-	function addColumnUserDataINT($pageID,$questionID)
-	{
-		$project = $this->getProjectFromPage($pageID);
-		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_ INT";
-		$this->db->setQuery($query);
-		if (!$this->db->query())
-		{
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-		}
-	}
-	
-	function addColumnUserDataTEXT($pageID,$questionID)
-	{
-		$project = $this->getProjectFromPage($pageID);
-		$query = "ALTER TABLE jcq_proj".$project->ID." ADD COLUMN p".$pageID."_q".$questionID."_ TEXT";
-		$this->db->setQuery($query);
-		if (!$this->db->query())
-		{
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-		}
-	}
 }

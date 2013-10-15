@@ -5,9 +5,9 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Question definition:</legend>
              <table class="settings">
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" autofocus="autofocus"/></td></tr>
+                    <tr><td>Name</td><td><input type="text" name="_question_name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" autofocus="autofocus"/></td></tr>
                     <tr><td>Type</td>
-                    <td><select name="questtype" id="questtype">
+                    <td><select name="_question_questtype">
                     <?php 
                     	$questtypes = $this->getModel()->getQuestionTypes();
                     	foreach ($questtypes as $typeid=>$typename)
@@ -22,8 +22,8 @@ defined('_JEXEC') or die('Restricted access'); ?>
        </fieldset>
 
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
-       <input type="hidden" name="ord" value="<?php echo $this->question->ord; ?>"/>
-       <input type="hidden" name="ID" value="<?php echo $this->question->ID; ?>"/>
-       <input type="hidden" name="pageID" value="<?php echo $this->question->pageID; ?>"/>
+       <input type="hidden" name="_question_ord" value="<?php echo $this->question->ord; ?>"/>
+       <input type="hidden" name="_question_ID" value="<?php echo $this->question->ID; ?>"/>
+       <input type="hidden" name="_question_pageID" value="<?php echo $this->question->pageID; ?>"/>
        <input type="hidden" name="task" value=""/>
 </form>
