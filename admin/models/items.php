@@ -52,6 +52,7 @@ class JcqModelItems extends JModel {
 
 	function saveItem(array $item, array $scales=null)
 	{
+		if ($item['ID']<0) $item['ID']=0;
 		$itemTableRow =& $this->getTable('items');
 		if (!$itemTableRow->bind($item)) JError::raiseError(500, 'Error binding data');
 		if (!$itemTableRow->check()) JError::raiseError(500, 'Invalid data');
@@ -121,45 +122,21 @@ class JcqModelItems extends JModel {
 		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 
-	function addrmTextfields($arrayIDs,$questionid)
+	function addrmTextfields($itemID,$questionID)
 	{
-		foreach($arrayIDs as $oneID)
+		$bindeditems = $this->getItembindedItems($itemID);
+		//Delete if a textfield is already there
+		if ($bindeditems!==null && count($bindeditems)>0)
 		{
-			$this->db->setQuery("SELECT * FROM jcq_question WHERE ID=".$questionid);
-			$question = $this->db->loadObject();
-			if (!$question) JError::raiseError(500, 'Error getting question: '.$this->db->getErrorMsg());
-			$this->db->setQuery("SELECT * FROM jcq_page WHERE ID=".$question->pageID);
-			$page = $this->db->loadObject();
-			if (!$page) JError::raiseError(500, 'Error getting page: '.$this->db->getErrorMsg());
-			//Delete if a textfield is already there
-			$bindeditems = $this->getItembindedItems($oneID);
-			if ($bindeditems!=null && count($bindeditems)>0)
-			{
-				foreach ($bindeditems as $bindeditem)
-				{
-					$this->db->setQuery("DELETE FROM jcq_item WHERE ID=".$bindeditem->ID);
-					if (!$this->db->query()) JError::raiseError(500, 'Error deleting textfield: '.$this->db->getErrorMsg());
-					//also delete data column
-					$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." DROP COLUMN p".$page->ID."_q".$question->ID."_i".$bindeditem->ID."_");
-					if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
-				}
-			} else
-			{
-				//if non exists so far, create one
-				$itemTableRow =& $this->getTable('items');
-				$itemTableRow->ord = 0;
-				$itemTableRow->datatype = 3;
-				$itemTableRow->varname = "question".$questionid."item".$oneID."text";
-				$itemTableRow->mandatory = 0;
-				$itemTableRow->prepost = "%s";
-				$itemTableRow->questionID = $questionid;
-				$itemTableRow->bindingType = "ITEM";
-				$itemTableRow->bindingID = $oneID;
-				if (!$itemTableRow->store()) JError::raiseError(500, 'Error inserting textfield: '.$itemTableRow->getError());
-				//also create the userdata table column
-				$this->db->setQuery("ALTER TABLE jcq_proj".$page->projectID." ADD COLUMN p".$page->ID."_q".$question->ID."_i".$itemTableRow->ID."_ TEXT");
-				if (!$this->db->query()) JError::raiseError(500, 'Error altering userdata table: '.$this->db->getErrorMsg());
-			}
+			foreach ($bindeditems as $bindeditem) $this->deleteItem($bindeditem->ID);
+		}
+		else //insert a textfield
+		{
+			$newitem = $this->buildNewItem($questionID, 3);
+			$newitem->mandatory = 0;
+			$newitem->bindingType = "ITEM";
+			$newitem->bindingID = $itemID;
+			if (!$newitem->store()) JError::raiseError(500, 'FATAL: '.$newitem->getError());
 		}
 	}
 }

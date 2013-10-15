@@ -506,7 +506,15 @@ class JcqController extends JController
 		//save items
 		$modelitems = & $this->getModel('items');
 		foreach ($post_items as $post_item) $itemid = $modelitems->saveItem($post_item);
-				
+
+		//add/remove textfields for items
+		$itemaddrmtfids = JRequest::getVar('itemaddrmtf', null, 'default', 'array' );
+		if ($itemaddrmtfids!==null) foreach ($itemaddrmtfids as $itemaddrmtfid) $modelitems->addrmTextfields($itemaddrmtfid,$questionid);
+		
+		//delete items
+		$itemdeleteids = JRequest::getVar('itemdelete', null, 'default', 'array' );
+		if ($itemdeleteids!==null) foreach ($itemdeleteids as $itemdeleteid) $modelitems->deleteItem($itemdeleteid);
+		
 		//save codes
 		$modelscales = & $this->getModel('scales');
 		foreach ($post_codes as $post_code) $codeid = $modelscales->saveCode($post_code);

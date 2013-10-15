@@ -127,6 +127,7 @@ foreach ($this->items as $oneitem) if ($oneitem->bindingType=='QUESTION') { $mai
        <input type="hidden" name="_question_ID" value="<?php echo $this->question->ID; ?>"/>
        <input type="hidden" name="_question_questtype" value="<?php echo $this->question->questtype; ?>"/>
        <input type="hidden" name="_question_pageID" value="<?php echo $this->question->pageID; ?>"/>
+       <input type="hidden" name="_question_ord" value="<?php echo $this->question->ord; ?>"/>
        <input type="hidden" name="_item_<?php echo($mainitem->ID); ?>_ID" value="<?php echo $mainitem->ID; ?>"/>
        <input type="hidden" name="_item_<?php echo($mainitem->ID); ?>_datatype" value="<?php echo $mainitem->datatype; ?>"/>
        <input type="hidden" name="_item_<?php echo($mainitem->ID); ?>_questionID" value="<?php echo $this->question->ID; ?>"/>
