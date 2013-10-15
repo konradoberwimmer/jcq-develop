@@ -5,7 +5,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Question definition:</legend>
              <table class="settings">
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
+                    <tr><td>Name</td><td><input type="text" name="_question_name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" /></td></tr>
                     <tr><td>Type</td>
                     <td>
                     <?php 
@@ -17,13 +17,13 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     <td>
                     <?php 
                     	$datatypes = $this->getModel()->getDataTypes();
-                    	echo $datatypes[$this->question->datatype];
+                    	echo $datatypes[1];
                     ?>
                     </td></tr>
-                    <tr><td>Question text</td><td><textarea name="text" id="text" cols="64" rows="3"><?php echo $this->question->text; ?></textarea></tr>
-                    <tr><td>Advise text</td><td><textarea name="advise" id="advise" cols="64" rows="3"><?php echo $this->question->advise; ?></textarea></tr>
+                    <tr><td>Question text</td><td><textarea name="_question_text" cols="64" rows="3"><?php echo $this->question->text; ?></textarea></tr>
+                    <tr><td>Advise text</td><td><textarea name="_question_advise" cols="64" rows="3"><?php echo $this->question->advise; ?></textarea></tr>
                     <tr><td>Mandatory</td>
-                    <td><select name="mandatory" id="mandatory">
+                    <td><select name="_question_mandatory">
                     <?php 
                     	$mandatorytypes = $this->getModel()->getMandatoryTypes();
                     	foreach ($mandatorytypes as $typeid=>$typename)
@@ -39,13 +39,14 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Layout:</legend>
              <table class="settings">
-                    <tr><td>Alternate background</td><td><input type="checkbox" name="alternate_bg" id="alternate_bg" value="1" <?php if ($this->question->alternate_bg > 0) echo("checked"); ?>/></td></tr>
+                    <tr><td>Alternate background</td><td><input type="checkbox" name="_question_alternate_bg" value="1" <?php if ($this->question->alternate_bg > 0) echo("checked"); ?>/></td></tr>
              </table>
        </fieldset>
        
        <fieldset>
              <legend>Items:</legend>
-             <input type="hidden" name="itemspresent" value="1"/>
+             <input type="hidden" id="tmpitemid" name="tmpitemid" value="-1"/>
+             <input type="hidden" id="questionid" name="questionid" value="<?php echo $this->question->ID; ?>"/>
              <table class="list">
                     <thead>
                     <tr>
@@ -66,40 +67,50 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     	if ($row->bindingType != "QUESTION") continue;
                     ?>
                     <tr>
-						<td><input class="orderfield" type="text" id="<?php echo("item".$row->ID."ord"); ?>" name="itemord[]" value="<?php echo $row->ord; ?>"/>
-                            <input type="hidden" name="itemids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("item".$row->ID."textleft"); ?>" name="itemtextleft[]" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>
-                        <td><input type="text" id="<?php echo("item".$row->ID."varname"); ?>" name="itemvarname[]" value="<?php echo $row->varname; ?>"/></td>
+						<td><input type="text" name="_item_<?php echo $row->ID; ?>_ord" value="<?php echo $row->ord; ?>" class="orderfield"/>
+                            <input type="hidden" name="_item_<?php echo $row->ID; ?>_ID" value="<?php echo $row->ID; ?>"/>
+                            <input type="hidden" name="_item_<?php echo $row->ID; ?>_questionID" value="<?php echo $row->questionID; ?>"/>
+                            <input type="hidden" name="_item_<?php echo $row->ID; ?>_datatype" value="1"/>
+                            <input type="hidden" name="_item_<?php echo $row->ID; ?>_mandatory" value="0"/>
+                            <input type="hidden" name="_item_<?php echo $row->ID; ?>_bindingtype" value="QUESTION"/></td>
+                        <td><input type="text" name="_item_<?php echo $row->ID; ?>_textleft" value="<?php echo (str_replace("\"", "&quot;", $row->textleft)); ?>" size="128" /></td>
+                        <td><input type="text" name="_item_<?php echo $row->ID; ?>_varname" value="<?php echo $row->varname; ?>"/></td>
                         <td></td>            
-                        <td><input type="checkbox" id="<?php echo("item".$row->ID."delete"); ?>" name="itemdelete[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="checkbox" id="<?php echo("item".$row->ID."addrmtf"); ?>" name="itemaddrmtf[]" value="<?php echo $row->ID; ?>"/></td>
+                        <td><input type="checkbox" name="itemdelete[]" value="<?php echo $row->ID; ?>"/></td>
+                        <td><input type="checkbox" name="itemaddrmtf[]" value="<?php echo $row->ID; ?>"/></td>
                     </tr>
                     <?php
                     $bindeditems = $this->getModel('items')->getItembindedItems($row->ID);
                     if ($bindeditems!=null && count($bindeditems)>0)
                     {
+                    	$bindeditem = $bindeditems[0];
                     	?>
                     <tr>
                     	<td align="right">Including textfield:</td>
-                    	<td><input type="hidden" name="<?php echo("item".$row->ID."tfID"); ?>" value="<?php echo $bindeditems[0]->ID; ?>"/>
+                    	<td><input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_ID" value="<?php echo($bindeditem->ID); ?>"/>
+                    		<input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_questionID" value="<?php echo($bindeditem->questionID); ?>"/>
+                    		<input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_bindingType" value="<?php echo($bindeditem->bindingType); ?>"/>
+                    		<input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_bindingID" value="<?php echo($bindeditem->bindingID); ?>"/>
+                    		<input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_ord" value="<?php echo($bindeditem->ord); ?>"/>
+                    		<input type="hidden" name="_item_<?php echo($bindeditem->ID); ?>_mandatory" value="<?php echo($bindeditem->mandatory); ?>"/>
                     		<table>
-                    		<tr><td>Variable name</td><td><input type="text" name="<?php echo("item".$row->ID."tfvarname"); ?>" value="<?php echo $bindeditems[0]->varname; ?>"/></td>
-                    			<td>Width</td><td><input class="widthfield" type="text" name="<?php echo("item".$row->ID."tfwidthleft"); ?>" value="<?php echo $bindeditems[0]->width_left; ?>" /></td>
+                    		<tr><td>Variable name</td><td><input type="text" name="_item_<?php echo($bindeditem->ID); ?>_varname" value="<?php echo($bindeditem->varname); ?>"/></td>
+                    			<td>Width</td><td><input class="widthfield" type="text" name="_item_<?php echo($bindeditem->ID); ?>_width_left" value="<?php echo($bindeditem->width_left); ?>" /></td>
                     		</tr>
                     		<tr><td>Data type</td><td>
-                    			<select name="<?php echo("item".$row->ID."tfdatatype"); ?>">
+                    			<select name="_item_<?php echo($bindeditem->ID); ?>_datatype">
 			                    <?php 
 			                    	$datatypes = $this->getModel()->getDataTypes();
 			                    	for ($i=1; $i<=3; $i++)
 			                    	{
-			                    		echo '<option value="'.$i.'" '.($bindeditems[0]->datatype==$i?'selected':'').'>'.$datatypes[$i].'</option>';
+			                    		echo '<option value="'.$i.'" '.($bindeditem->datatype==$i?'selected':'').'>'.$datatypes[$i].'</option>';
 			                    	}
 			                    ?>
                     			</select></td>
-                    		    <td>Rows</td><td><input class="widthfield" type="text" name="<?php echo("item".$row->ID."tfrows"); ?>" value="<?php echo $bindeditems[0]->rows; ?>" /></td>
+                    		    <td>Rows</td><td><input class="widthfield" type="text" name="_item_<?php echo($bindeditem->ID); ?>_rows" value="<?php echo $bindeditem->rows; ?>" /></td>
               				</tr>
-                    		<tr><td>Text surrounding</td><td><input type="text" name="<?php echo("item".$row->ID."tfprepost"); ?>" value="<?php echo $bindeditems[0]->prepost; ?>"/>
-                    			<td>Add linebreak</td><td><input type="checkbox" name="<?php echo("item".$row->ID."tflinebreak"); ?>" value="1" <?php if($bindeditems[0]->linebreak) echo "checked"; ?>/></td>
+                    		<tr><td>Text surrounding</td><td><input type="text" name="_item_<?php echo($bindeditem->ID); ?>_prepost" value="<?php echo $bindeditem->prepost; ?>"/>
+                    			<td>Add linebreak</td><td><input type="checkbox" name="_item_<?php echo($bindeditem->ID); ?>_linebreak" value="1" <?php if($bindeditem->linebreak) echo "checked"; ?>/></td>
                     		</tr>
                     		</table>
                     	</td>
@@ -121,9 +132,9 @@ defined('_JEXEC') or die('Restricted access'); ?>
        </fieldset>
        
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
-       <input type="hidden" name="ID" value="<?php echo $this->question->ID; ?>"/>
-       <input type="hidden" name="questtype" value="<?php echo $this->question->questtype; ?>"/>
-       <input type="hidden" name="datatype" value="<?php echo $this->question->datatype; ?>"/>
-       <input type="hidden" name="pageID" value="<?php echo $this->question->pageID; ?>"/>
+       <input type="hidden" name="_question_ID" value="<?php echo $this->question->ID; ?>"/>
+       <input type="hidden" name="_question_questtype" value="<?php echo $this->question->questtype; ?>"/>
+       <input type="hidden" name="_question_pageID" value="<?php echo $this->question->pageID; ?>"/>
+       <input type="hidden" name="_question_ord" value="<?php echo $this->question->ord; ?>"/>
        <input type="hidden" name="task" value=""/>
 </form>
