@@ -1,36 +1,42 @@
 function addScale() 
 {
-	var listscalebody = document.getElementById("listscalesbody");
-	var newTR = document.createElement("tr");
-	var newTDord = document.createElement("td");
-	var newTDid = document.createElement("td");
-	var newTDdelete = document.createElement("td");
+	var numpredefscalesfield = document.getElementById("numpredefscales");
+	var numpredefscales = numpredefscalesfield.value;
+	if (numpredefscales=="0")
+	{
+		alert('Error: JCQ component contains no predefined scales.');
+		return false;
+	}
+	var tmpscaleidfield = document.getElementById("tmpscaleid");
+	var tmpscaleid = tmpscaleidfield.value;
+	tmpscaleidfield.value = tmpscaleid-1;
+	
+	var table = document.getElementById("listscalesbody");
+	var newTR = table.insertRow(table.rows.length);
+	var newTDord = newTR.insertCell(0);
+	var newTDid = newTR.insertCell(1);
+	var newTDmandatory = newTR.insertCell(2);
+	var newTDdelete = newTR.insertCell(3);
 	
 	//create field for order
 	var newINPUTscaleord = document.createElement("input");
-	var newINPUTscaleordTYPE = document.createAttribute("type");
-	newINPUTscaleordTYPE.nodeValue = "text";
-	newINPUTscaleord.setAttributeNode(newINPUTscaleordTYPE);
-	var newINPUTscaleordNAME = document.createAttribute("name");
-	newINPUTscaleordNAME.nodeValue = "scaleord[]";
-	newINPUTscaleord.setAttributeNode(newINPUTscaleordNAME);
-	var newINPUTscaleordVALUE = document.createAttribute("value");
-	//TODO find lowest available value > 0
-	newINPUTscaleordVALUE.nodeValue = "0";
-	newINPUTscaleord.setAttributeNode(newINPUTscaleordVALUE);
-	
-	//create selector with ids
-	var newINPUTscaleid = document.getElementById("scaleidTEMPLATE").cloneNode(true);
-	var newINPUTscaleidNAME = document.createAttribute("name");
-	newINPUTscaleidNAME.nodeValue = "scaleids[]";
-	newINPUTscaleid.setAttributeNode(newINPUTscaleidNAME);
-	newINPUTscaleid.removeAttribute("ID");
-	newINPUTscaleid.removeAttribute("style");
-	
+	newINPUTscaleord.setAttribute("type","text");
+	newINPUTscaleord.setAttribute("name","_scale_"+tmpscaleid+"_ord");
+	newINPUTscaleord.setAttribute("value",table.rows.length);
+	newINPUTscaleord.setAttribute("class","orderfield");
 	newTDord.appendChild(newINPUTscaleord);
-	newTR.appendChild(newTDord);
-	newTDid.appendChild(newINPUTscaleid);
-	newTR.appendChild(newTDid);
-	newTR.appendChild(newTDdelete);
-	listscalebody.appendChild(newTR);
+		
+	//create selector with select box
+	var newINPUTscaleselect = document.getElementById("scaleidTEMPLATE").cloneNode(true);
+	newINPUTscaleselect.setAttribute("name","_scale_"+tmpscaleid+"_ID");
+	newINPUTscaleselect.removeAttribute("ID");
+	newINPUTscaleselect.removeAttribute("style");
+	newTDid.appendChild(newINPUTscaleselect);
+
+	//create field with mandatory
+	var newINPUTscalemandatory = document.createElement("input");
+	newINPUTscalemandatory.setAttribute("type","checkbox");
+	newINPUTscalemandatory.setAttribute("name","_scale_"+tmpscaleid+"_mandatory");
+	newINPUTscalemandatory.setAttribute("value",1);
+	newTDmandatory.appendChild(newINPUTscalemandatory);
 }

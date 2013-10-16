@@ -82,11 +82,51 @@ class JcqModelQuestions extends JModel {
 		return $this->db->loadObjectList();
 	}
 	
+	
+	
 	function detachScale($questionID,$scaleID)
 	{
 		$query = "DELETE FROM jcq_questionscales WHERE jcq_questionscales.scaleID = $scaleID AND jcq_questionscales.questionID = $questionID";
 		$this->db->setQuery($query);
 		if (!$this->db->query($query)) JError::raiseError(500, "FATAL: ".$this->db->getErrorMsg());
+	}
+	
+	
+	function addAttachedScale($questionID,$scaleID,$ord,$mandatory)
+	{
+		//first make sure that scale is not already attached
+		$scales = $this->getScales($questionID);
+		if ($scales!==null) foreach ($scales as $scale) if ($scale->scaleID == $scaleID) return null;
+		//then add the attached scale
+		$this->db->setQuery("INSERT INTO jcq_questionscales (questionID, scaleID, ord, mandatory) VALUES ($questionID,$scaleID,$ord,".($mandatory?"1":"0").")");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
+		//also insert user data columns for all items
+		$model_items = new JcqModelItems();
+		$items = $this->getItems($questionID);
+		if ($items!==null) foreach ($items as $item) $model_items->addUserDataColumn(1, $item->ID, $scaleID);
+	}
+	
+	function saveAttachedScale($questionID,$scaleID,$ord,$mandatory)
+	{
+		$this->db->setQuery("UPDATE jcq_questionscales SET ord = $ord, mandatory = $mandatory WHERE questionID = $questionID AND scaleID = $scaleID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
+	}
+	
+	function clearAttachedScale($questionID,$scaleID)
+	{
+		//first remove the user data column(s)
+		$pageID = $this->getPageFromQuestion($questionID)->ID;
+		$projectID = $this->getProjectFromPage($pageID)->ID;
+		$this->db->setQuery("SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'i%_s".$scaleID."_';");
+		$sqlresult = $this->db->loadResult();
+		if ($sqlresult!=null)
+		{
+			$this->db->setQuery($sqlresult);
+			if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
+		}
+		//then delete the attached scale from question
+		$this->db->setQuery("DELETE FROM jcq_questionscales WHERE questionID = $questionID AND scaleID = $scaleID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 	
 	function getNewQuestion($pageID)
@@ -114,7 +154,6 @@ class JcqModelQuestions extends JModel {
 		}
 
 		// Add default values, items and scales for different question types
-		// Alter the user data table if question is new
 		// Explanation: object question has ID=0 if new question, the questionTableRow is updated with the new ID after store()
 		if ($question['ID']==0)
 		{
@@ -150,7 +189,6 @@ class JcqModelQuestions extends JModel {
 					}
 				case TEXTANDHTML:
 					{
-						$questionTableRow->datatype = 4;
 						$questionTableRow->mandatory = false;
 						$questionTableRow->store();
 						break;

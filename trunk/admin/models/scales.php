@@ -67,17 +67,6 @@ class JcqModelScales extends JModel {
 		else return count($codes);
 	}
 	
-	function addAttachedScale($questionID,$scaleID,$ord,$mandatory)
-	{
-		$query = "INSERT INTO jcq_questionscales (questionID, scaleID, ord, mandatory) VALUES ($questionID,$scaleID,$ord,".($mandatory?"1":"0").")";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error adding attached scales: '.$errorMessage);
-		}
-	}
-	
 	function saveScale($scale)
 	{
 		
@@ -127,17 +116,6 @@ class JcqModelScales extends JModel {
 		{
 			$errorMessage = $codeTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
-		}
-	}
-	
-	function clearAttachedScales($questionID)
-	{
-		$query = "DELETE FROM jcq_questionscales WHERE questionID = ".$questionID;
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting attached scales: '.$errorMessage);
 		}
 	}
 	
