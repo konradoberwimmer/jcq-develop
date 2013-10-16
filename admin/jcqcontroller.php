@@ -476,6 +476,7 @@ class JcqController extends JController
 		$post_question = array();
 		$post_items = array();
 		$post_codes = array();
+		$post_scales = array();
 		foreach ($thepost as $key=>$value)
 		{
 			if (strpos($key,'_question_')!==false) $post_question[str_replace('_question_', '', $key)] = $value;
@@ -497,6 +498,15 @@ class JcqController extends JController
 				$newkey = str_replace('_code_'.$codeid.'_', '', $key);
 				$post_codes[$codeid][$newkey]=$value;
 			}
+			else if (strpos($key,'_scale_')!==false)
+			{
+				$scaleid = str_replace('_scale_', '', $key);
+				$scaleid = intval(substr($scaleid, 0, strpos($scaleid, '_')));
+				//build new array for scale if it does not yet exist in the item array
+				if (!key_exists($scaleid, $post_scales)) $post_scales[$scaleid]=array();
+				$newkey = str_replace('_scale_'.$scaleid.'_', '', $key);
+				$post_scales[$scaleid][$newkey]=$value;
+			}
 		}
 		
 		//save question itself
@@ -505,7 +515,16 @@ class JcqController extends JController
 		
 		//save items
 		$modelitems = & $this->getModel('items');
-		foreach ($post_items as $post_item) $itemid = $modelitems->saveItem($post_item);
+		foreach ($post_items as $post_item)
+		{
+			if ($post_question['questtype']!=MULTISCALE) $itemid = $modelitems->saveItem($post_item);
+			else
+			{
+				$scales = $modelquestions->getScales($questionid);
+				if ($scales===null) $scales=array();
+				$itemid = $modelitems->saveItem($post_item, $scales);
+			}
+		}
 
 		//add/remove textfields for items
 		$itemaddrmtfids = JRequest::getVar('itemaddrmtf', null, 'default', 'array' );
@@ -527,46 +546,19 @@ class JcqController extends JController
 		$codedeleteids = JRequest::getVar('codedelete', null, 'default', 'array' );
 		if ($codedeleteids!==null) foreach ($codedeleteids as $codedeleteid) $modelscales->deleteCode($codedeleteid);
 		
-		/*
-		
-		$pageid = $model->getPageFromQuestion($questionid)->ID;
-		$projectid = $model->getProjectFromPage($pageid)->ID;
-
-		//special case question type MULTISCALE: save the attached scales
-		if ($thepost['questtype']==MULTISCALE)
+		//handle attached scales
+		foreach ($post_scales as $key=>$scale)
 		{
-			$scalemodel->clearAttachedScales($thepost['ID']);
-			$scaleids = JRequest::getVar('scaleids', null, 'default', 'array' );
-			$scaleord = JRequest::getVar('scaleord', null, 'default', 'array' );
-			$scaledelete = JRequest::getVar('scaledelete', null, 'default', 'array' );
-			$scalemandatory = JRequest::getVar('scalemandatory', null, 'default', 'array' );
-			if ($scaleids!=null)
-			{
-				for ($i=0;$i<count($scaleids);$i++)
-				{
-					//(re-)attach if scaleid is not on delete list
-					if (!in_array($i, $scaledelete)) $scalemodel->addAttachedScale($thepost['ID'],$scaleids[$i],$scaleord[$i],in_array($scaleids[$i], $scalemandatory));
-					//else destroy any userdata columns there may be
-					else
-					{
-						$statementquery = "SELECT CONCAT('ALTER TABLE jcq_proj$projectid ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectid' AND column_name LIKE 'i%_s".$scaleids[$i]."_';";
-						$db = JFactory::getDBO();
-						$db->setQuery($statementquery);
-						$sqlresult = $db->loadResult();
-						if ($sqlresult!=null)
-						{
-							$db->setQuery($sqlresult);
-							if (!$db->query()){
-								$errorMessage = $this->getDBO()->getErrorMsg();
-								JError::raiseError(500, 'Error altering user data table: '.$errorMessage);
-							}
-						}
-					}
-				}
-			}
+			//add attached scale
+			if ($key<0) $modelquestions->addAttachedScale($questionid,$scale['ID'],$scale['ord'],(isset($scale['mandatory'])?1:0));
+			//update attached scale
+			else $modelquestions->saveAttachedScale($questionid,$scale['ID'],$scale['ord'],(isset($scale['mandatory'])?1:0));
 		}
-		*/
-
+		
+		//delete attached scales
+		$scaledeleteids = JRequest::getVar('scaledelete', null, 'default', 'array' );
+		if ($scaledeleteids!==null) foreach ($scaledeleteids as $scaledeleteid) $modelquestions->clearAttachedScale($questionid,$scaledeleteid);
+		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$questionid,false);
 		$this->setRedirect($redirectTo, 'Question saved!');
 	}

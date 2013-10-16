@@ -42,7 +42,6 @@ class JcqModelItems extends JModel {
 		else $itemTableRow->ord = 1;
 		if ($itemTableRow->store())
 		{
-			//add user data column
 			if ($scales===null) $this->addUserDataColumn($datatype, $itemTableRow->ID);
 			else foreach ($scales as $scale) $this->addUserDataColumn($datatype, $itemTableRow->ID, $scale->ID);
 		}
@@ -62,26 +61,11 @@ class JcqModelItems extends JModel {
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
 	
-		//uses model questions to get pageID
-		$modelquestions = new JcqModelQuestions();
-		$pageid = $modelquestions->getPageFromQuestion($itemTableRow->questionID)->ID;
-		$projectid = $modelquestions->getProjectFromPage($pageid)->ID;
-
-		//set default values for new item and add user data column;
+		//add user data column(s)
 		if ($item['ID']==0)
 		{
 			if ($scales===null) $this->addUserDataColumn($itemTableRow->datatype, $itemTableRow->ID);
-			else foreach ($scales as $scale) $this->addUserDataColumn($itemTableRow->datatype, $scale->ID);
-		} else if ($scales!==null)
-		{
-			//stupidly try to add userdata columns if there are scales (question type MULTISCALE)
-			#FIXME just ignore the errors
-			foreach ($scales as $scale)
-			{
-				$query = "ALTER TABLE jcq_proj$projectid ADD COLUMN i".$itemTableRow->ID."_s".$scale->ID."_ INT";
-				$this->db->setQuery($query);
-				$this->db->query();
-			}
+			else foreach ($scales as $scale) $this->addUserDataColumn($itemTableRow->datatype, $itemTableRow->ID, $scale->ID);
 		}
 	}
 
