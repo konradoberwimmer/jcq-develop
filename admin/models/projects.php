@@ -2,6 +2,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'pages.php');
 
 class SPSSVariable
 {
@@ -90,21 +91,18 @@ class JcqModelProjects extends JModel {
 		return $projectTableRow->ID;
 	}
 
-	function deleteProjects($arrayIDs)
+	function deleteProject($ID)
 	{
-		$query = "DELETE FROM jcq_project WHERE ID IN (".implode(',', $arrayIDs).")";
-		$this->db->setQuery($query);
-		if (!$this->db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting projects: '.$errorMessage);
-		}
-		// delete the answer tables too ...
-		#FIXME User should definitely by reminded to store before that ;-)
-		foreach ($arrayIDs as $oneID)
-		{
-			$this->db->setQuery("DROP TABLE jcq_proj".$oneID);
-			if (!$this->db->query()) JError::raiseError(500, 'Error deleting projects: '.$this->getDBO()->getErrorMsg());
-		}
+		//first delete all the pages (invoking further clean-up code)
+		$model_pages = new JcqModelPages();
+		$pages = $this->getPages($ID);
+		if ($pages!==null) foreach ($pages as $page) $model_pages->deletePage($page->ID);
+		//delete the user response table
+		$this->db->setQuery("DROP TABLE jcq_proj$ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
+		//delete project itself
+		$this->db->setQuery("DELETE FROM jcq_project WHERE ID = $ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 
 	function getPages($projectID)

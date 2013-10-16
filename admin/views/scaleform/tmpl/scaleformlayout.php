@@ -12,15 +12,17 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Scale definition:</legend>
              <table>
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->scale->name; ?>" /></td></tr>
-                    <tr><td>Text before and after the field</td><td><input type="text" name="prepost" id="prepost" size="32" maxlength="250" value="<?php echo $this->scale->prepost; ?>" /></td></tr>
-             		<tr><td>Default value</td><td><input type="text" name="defval" id="defval" size="8" value="<?php echo $this->scale->defval; ?>" /></td></tr>
+                    <tr><td>Name</td><td><input type="text" name="_scale_name" size="32" maxlength="250" value="<?php echo $this->scale->name; ?>" /></td></tr>
+                    <tr><td>Text before and after the field</td><td><input type="text" name="_scale_prepost" size="32" maxlength="250" value="<?php echo $this->scale->prepost; ?>" /></td></tr>
+             		<tr><td>Default value</td><td><input type="text" name="_scale_defval" size="8" value="<?php echo $this->scale->defval; ?>" /></td></tr>
              </table>
        </fieldset>
 
 <?php if ($this->scale->ID > 0) { ?>
        <fieldset>
              <legend>Scale:</legend>
+             <input type="hidden" id="tmpcodeid" name="tmpcodeid" value="-1"/>
+             <input type="hidden" id="scaleid" name="scaleid" value="<?php echo $this->scale->ID; ?>"/>
              <table class="list">
                     <thead>
                     <tr>
@@ -32,22 +34,17 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     </tr>               
              </thead>
              <tbody id="listscalebody">
-                    <?php
-                    $k = 0;
-                    $i = 0;
-                    foreach ($this->codes as $row){
-                    ?>
+                    <?php foreach ($this->codes as $row) { ?>
                     <tr>
-						<td><input type="text" id="<?php echo("code".$row->ID."ord"); ?>" name="codeord[]" value="<?php echo $row->ord; ?>"/>
-                            <input type="hidden" name="codeids[]" value="<?php echo $row->ID; ?>"/></td>
-                        <td><input type="text" id="<?php echo("code".$row->ID."value"); ?>" name="codevalue[]" value="<?php echo $row->code; ?>"/></td>       
-                        <td><input type="text" id="<?php echo("code".$row->ID."label"); ?>" name="codelabel[]" value="<?php echo $row->label; ?>" size="128"/></td>
-                        <td><input type="checkbox" id="<?php echo("code".$row->ID."missval"); ?>" name="codemissval[]" value="<?php echo $row->ID; ?>" <?php if ($row->missval) echo("checked"); ?> /></td>            
-                        <td><input type="checkbox" id="<?php echo("code".$row->ID."delete"); ?>" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
+						<td><input type="text" name="_code_<?php echo $row->ID; ?>_ord" value="<?php echo $row->ord; ?>" class="orderfield"/>
+                            <input type="hidden" name="_code_<?php echo $row->ID; ?>_ID" value="<?php echo $row->ID; ?>"/>
+                            <input type="hidden" name="_code_<?php echo $row->ID; ?>_scaleID" value="<?php echo $this->scale->ID; ?>"/></td>
+                        <td><input type="text" name="_code_<?php echo $row->ID; ?>_code" value="<?php echo $row->code; ?>" class="valuefield"/></td>       
+                        <td><input type="text" name="_code_<?php echo $row->ID; ?>_label" value="<?php echo $row->label; ?>" size="128"/></td>
+                        <td><input type="checkbox" name="_code_<?php echo $row->ID; ?>_missval" value="1" <?php if ($row->missval) echo("checked"); ?> /></td>            
+                        <td><input type="checkbox" name="codedelete[]" value="<?php echo $row->ID; ?>"/></td>
                     </tr>
-                    <?php
-                    	$k = 1 - $k;
-                    	$i++;
+                    <?php 
                     }
                     ?>
              </tbody>
@@ -57,8 +54,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <?php } ?>
        
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
-       <input type="hidden" name="ID" value="<?php echo $this->scale->ID; ?>"/>
-       <input type="hidden" name="scaleid" value="<?php echo $this->scale->ID; ?>"/>
-       <input type="hidden" name="predefined" value="<?php echo $this->scale->predefined; ?>"/>
+       <input type="hidden" name="_scale_ID" value="<?php echo $this->scale->ID; ?>"/>
+       <input type="hidden" name="_scale_predefined" value="<?php echo $this->scale->predefined; ?>"/>
        <input type="hidden" name="task" value=""/>
 </form>
