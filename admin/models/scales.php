@@ -30,6 +30,13 @@ class JcqModelScales extends JModel {
 		return $db->loadObjectList();
 	}
 
+	function checkScaleUsed($scaleID)
+	{
+		$this->db->setQuery("SELECT scaleID FROM jcq_questionscales WHERE scaleID = $scaleID");
+		if ($this->db->loadObjectList()==null) return false;
+		else return true;
+	}
+	
 	function getPredefinedScales()
 	{
 		$query = 'SELECT * FROM jcq_scale WHERE jcq_scale.predefined = 1';

@@ -653,10 +653,19 @@ class JcqController extends JController
 		if($scaleIDs === null) JError::raiseError(500, 'scaledelid parameter missing');
 			
 		$model = & $this->getModel('scales');
-		foreach ($scaleIDs as $scaleID)	$model->deleteScale($scaleID);
+		$cntremoved = 0;
+		foreach ($scaleIDs as $scaleID)
+		{
+			if (!$model->checkScaleUsed($scaleID))
+			{
+				$model->deleteScale($scaleID);
+				$cntremoved++;
+			}
+			else JFactory::getApplication()->enqueueMessage("ERROR: Cannot remove a predefined scale that is in use.");
+		}
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
-		$this->setRedirect($redirectTo, 'Removed '.count($scaleIDs).' scale(s)');
+		$this->setRedirect($redirectTo, 'Removed '.$cntremoved.' scale(s)');
 	}
 
 	function cancelAddScale()
