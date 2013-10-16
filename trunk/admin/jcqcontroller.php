@@ -138,7 +138,7 @@ class JcqController extends JController
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
 		$model = & $this->getModel('projects');
-		$model->deleteProjects($arrayIDs);
+		foreach ($arrayIDs as $oneID) $model->deleteProject($oneID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, 'Removed '.count($arrayIDs).' project(s)');
@@ -580,8 +580,8 @@ class JcqController extends JController
 
 	function cancelAddQuestion()
 	{
-		$question = JRequest::get( 'POST' );
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$question['pageID'],false);
+		$thepost = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['_question_pageID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 
@@ -612,36 +612,37 @@ class JcqController extends JController
 
 	function saveScale()
 	{
-		$scale = JRequest::get( 'POST' , JREQUEST_ALLOWHTML);
-			
-		$scalemodel = & $this->getModel('scales');
-		$scaleid = $scalemodel->saveScale($scale);
-
-		//also save the codes if it is no new scale;
-		if ($scale['ID']!=0)
+		$thepost = JRequest::get('POST',JREQUEST_ALLOWHTML|JREQUEST_ALLOWRAW);
+		
+		//dividing the post
+		$post_scale = array();
+		$post_codes = array();
+		foreach ($thepost as $key=>$value)
 		{
-			//has to be in this order: 1. save codes 2. delete codes; otherwise errors for missing IDs
-			$codeids = JRequest::getVar('codeids', null, 'default', 'array' );
-			$codeord = JRequest::getVar('codeord', null, 'default', 'array' );
-			$codevalue = JRequest::getVar('codevalue', null, 'default', 'array' );
-			$codelabel = JRequest::getVar('codelabel', null, 'default', 'array' );
-			$codemissval = JRequest::getVar('codemissval', null, 'default', 'array' );
-			for ($i=0;$i<count($codeids);$i++)
+			if (strpos($key,'_scale_')!==false) $post_scale[str_replace('_scale_', '', $key)] = $value;
+			else if (strpos($key,'_code_')!==false)
 			{
-				$code = array();
-				$code['ID']=$codeids[$i];
-				$code['ord']=$codeord[$i];
-				$code['code']=$codevalue[$i];
-				$code['label']=$codelabel[$i];
-				if ($codemissval!=null && in_array($codeids[$i],$codemissval)) $code['missval']=1;
-				else $code['missval']=0;
-				$code['scaleID']=$scaleid;
-				$scalemodel->saveCode($code);
+				$codeid = str_replace('_code_', '', $key);
+				$codeid = intval(substr($codeid, 0, strpos($codeid, '_')));
+				//build new array for code if it does not yet exist in the item array
+				if (!key_exists($codeid, $post_codes)) $post_codes[$codeid]=array();
+				$newkey = str_replace('_code_'.$codeid.'_', '', $key);
+				$post_codes[$codeid][$newkey]=$value;
 			}
-			$codedelete = JRequest::getVar('codedelete', null, 'default', 'array' );
-			if ($codedelete!=null) foreach ($codedelete as $codeID) $scalemodel->deleteCode($codeID);
 		}
+		
+		//save scale itself
+		$modelscales = & $this->getModel('scales');
+		$scaleid = $modelscales->saveScale($post_scale);
 
+		//save codes
+		$modelscales = & $this->getModel('scales');
+		foreach ($post_codes as $post_code) $codeid = $modelscales->saveCode($post_code);
+		
+		//delete codes
+		$codedeleteids = JRequest::getVar('codedelete', null, 'default', 'array' );
+		if ($codedeleteids!==null) foreach ($codedeleteids as $codedeleteid) $modelscales->deleteCode($codedeleteid);
+		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editScale&scaleid='.$scaleid,false);
 		$this->setRedirect($redirectTo, 'Scale saved!');
 	}
