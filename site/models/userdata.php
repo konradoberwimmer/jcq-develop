@@ -1,14 +1,15 @@
 <?php
 defined('_JEXEC') or die( 'Restricted access' );
 
+jimport('joomla.application.component.model');
+require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
+
 function val_is_int($input) {
 	if ($input[0] == '-') {
 		return ctype_digit(substr($input, 1));
 	}
 	return ctype_digit($input);
 }
-
-jimport('joomla.application.component.model');
 
 function getStoredValue ($varname)
 {
@@ -100,11 +101,13 @@ class JcqModelUserdata extends JModel
 	private $db;
 	private $projectID = null;
 	private $sessionID = null;
+	private $model_page;
 
 	function __construct()
 	{
 		parent::__construct();
 		$this->db = $this->getDBO();
+		$this->model_page = new JcqModelPage();
 	}
 
 	function setProjectID($id)
@@ -147,7 +150,7 @@ class JcqModelUserdata extends JModel
 		if ($project==null) JError::raiseError(500, 'Project with ID '.$projectID.' not found!');
 
 		$user =& JFactory::getUser();
-		
+
 		//case 1: a token is in the httprequest
 		if (($token = JRequest::getVar('token', null))!==null)
 		{
@@ -168,7 +171,7 @@ class JcqModelUserdata extends JModel
 						break;
 					}
 				}
-				if ($foundvalidtoken) break;				
+				if ($foundvalidtoken) break;
 			}
 			//not a valid token --> return false (error)
 			if (!$foundvalidtoken) return false;
@@ -205,7 +208,7 @@ class JcqModelUserdata extends JModel
 			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='".$user->username."'";
 			$db->setQuery($sqlsessions);
 			$sessions = $db->loadObjectList();
-			
+				
 			//case 2a: no session exists for user or multiple answers are permitted --> create session
 			if ($sessions==null || $project->multiple==1)
 			{
@@ -283,46 +286,144 @@ class JcqModelUserdata extends JModel
 		else return $session->curpage;
 	}
 
-	//requires a session to be loaded
-	function storeAndContinue()
+	function storeValue($intvarname, $response, $datatype=1)
 	{
-		// use model page to get the items to the question
-		require_once( JPATH_COMPONENT.DS.'models'.DS.'page.php' );
-		$modelpage = new JcqModelPage();
-
-		$sqlsession = "SELECT * FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		$db = $this->getDBO();
-		$db->setQuery($sqlsession);
-		$session = $db->loadObject();
-
-		$sqlpages = "SELECT * FROM jcq_page WHERE projectID=".$this->projectID." ORDER BY ord";
-		$db->setQuery($sqlpages);
-		$pages = $db->loadObjectList();
-		$foundpage = false;
-		for ($i=0;$i<count($pages);$i++)
+		if ($datatype==1) $this->db->setQuery("UPDATE jcq_proj".$this->projectID." SET $intvarname = $response WHERE sessionID='".$this->sessionID."'");
+		elseif ($datatype==3) $this->db->setQuery("UPDATE jcq_proj".$this->projectID." SET $intvarname = '$response' WHERE sessionID='".$this->sessionID."'");
+		else JError::raiseError(500, "FATAL: code for storing value of datatype $datatype is missing");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
+	}
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $questions
+	 * @return boolean true if all mandatory items are answered
+	 */
+	function storeResponses($questions)
+	{
+		$allthere = true;
+		foreach ($questions as $question)
 		{
-			if ($pages[$i]->ID==$session->curpage)
+			$items = $this->model_page->getItemsToQuestion($question->ID);
+			switch ($question->questtype)
 			{
-				$foundpage = true;
-				$hasmissings = false;
-
-				$page = $pages[$i];
-
-				//store (TODO: should be in a separate function)
-				$sqlquestions = "SELECT * FROM jcq_question WHERE pageID=".$page->ID;
-				$db->setQuery($sqlquestions);
-				$questions = $db->loadObjectList();
-				foreach ($questions as $question)
-				{
-					//handle questions according to questiontype
-					switch ($question->questtype)
+				case SINGLECHOICE:
 					{
-						case SINGLECHOICE:
+						$mainitem = null;
+						foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
+						if ($mainitem===null) JError::raiseError(500, "FATAL: corrupt question definition for '".$this->question->name."'");
+						
+						$intvarname = 'i'.$mainitem->ID.'_';
+						$response = JRequest::getVar($intvarname,null);
+						if ($response!=null && is_numeric($response)) $this->storeValue($intvarname, $response);
+						else if ($mainitem->mandatory==1 && $this->getStoredValue($mainitem->ID)===null) $allthere=false;
+						//handle textfields
+						#TODO control if text is only entered when corresponding choice has been made
+						#TODO check that a text is entered if mandatory
+						#TODO check datatype of this text
+						foreach ($items as $item)
+						{
+							if ($item->bindingType!="CODE") continue;
+							$intvarname = 'i'.$item->ID.'_';
+							$response = JRequest::getVar($intvarname,null);
+							if ($response!==null && strlen($response)>0) $this->storeValue($intvarname, $response, 3);
+						}
+						break;
+					}
+				case MULTICHOICE:
+					{
+						$foundchecked = false;
+						foreach ($items as $item)
+						{
+							if ($item->bindingType!="QUESTION") continue;
+							$intvarname = 'i'.$item->ID.'_';
+							$response = 0;
+							if (JRequest::getVar($intvarname,null)!=null) { $response = 1; $foundchecked = true; }
+							$this->storeValue($intvarname, $response);
+						}
+						//if mandatory and no item checked --> set missing
+						if ($question->mandatory==1 && !$foundchecked) $allthere=false;
+						//handle textfields
+						#TODO control if text is only entered when corresponding choice has been made
+						#TODO check that a text is entered if mandatory
+						#TODO check datatype of this text
+						foreach ($items as $item)
+						{
+							if ($item->bindingType!="ITEM") continue;
+							$intvarname = 'i'.$item->ID.'_';
+							$response = JRequest::getVar($intvarname,null);
+							if ($response!==null && strlen($response)>0) $this->storeValue($intvarname, $response, 3);
+						}
+						break;
+					}
+				case TEXTFIELD:
+					{
+						//always store
+						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID)."' WHERE sessionID='".$this->sessionID."'";
+						$db->setQuery($sqlstore);
+						if (!$db->query())
+						{
+							$errorMessage = $this->getDBO()->getErrorMsg();
+							JError::raiseError(500, 'Error saving value: '.$errorMessage);
+						}
+						//if mandatory and no value stored so far --> set missing
+						if ($question->mandatory==1)
+						{
+							$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+							$db->setQuery($sqlgetvalue);
+							$answer = $db->loadResult();
+							if ($answer==null || strlen($answer)<1) $hasmissings=true;
+						}
+						//if data type does not match --> set missing
+						if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+						if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+						#TODO decimal seperator for locale
+						break;
+					}
+				case MATRIX_LEFT: case MATRIX_BOTH:
+					{
+						$items = $modelpage->getItemsToQuestion($question->ID);
+						foreach ($items as $item)
+						{
+							if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)))
 							{
-								if (JRequest::getVar('p'.$page->ID.'q'.$question->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID)))
+								//numeric value is posted --> store
+								$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)." WHERE sessionID='".$this->sessionID."'";
+								$db->setQuery($sqlstore);
+								if (!$db->query())
+								{
+									$errorMessage = $this->getDBO()->getErrorMsg();
+									JError::raiseError(500, 'Error saving value: '.$errorMessage);
+								}
+							}
+							else
+							{
+								//if mandatory and no value stored so far --> set missing
+								if ($item->mandatory==1)
+								{
+									$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_i".$item->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+									$db->setQuery($sqlgetvalue);
+									$answer = $db->loadResult();
+									if ($answer["p".$page->ID."q".$question->ID."i".$item->ID]==null) $hasmissings=true;
+								}
+							}
+						}
+						break;
+					}
+				case MULTISCALE:
+					{
+						$items = $modelpage->getItemsToQuestion($question->ID);
+						$scales = $modelpage->getScalesToQuestion($question->ID);
+						foreach ($items as $item)
+						{
+							foreach($scales as $scale)
+							{
+								$varname = 'p'.$page->ID.'_q'.$question->ID.'_i'.$item->ID.'_s'.$scale->ID.'_';
+								if (JRequest::getVar($varname,null)!=null && is_numeric(JRequest::getVar($varname)))
 								{
 									//numeric value is posted --> store
-									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."=".JRequest::getVar('p'.$page->ID.'q'.$question->ID)." WHERE sessionID='".$this->sessionID."'";
+									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET $varname =".JRequest::getVar($varname)." WHERE sessionID='".$this->sessionID."'";
 									$db->setQuery($sqlstore);
 									if (!$db->query())
 									{
@@ -333,166 +434,52 @@ class JcqModelUserdata extends JModel
 								else
 								{
 									//if mandatory and no value stored so far --> set missing
-									if ($question->mandatory==1)
+									if ($item->mandatory==1 && $scale->mandatory==1)
 									{
-										$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+										$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
 										$db->setQuery($sqlgetvalue);
 										$answer = $db->loadResult();
-										if ($answer["p".$page->ID."q".$question->ID]==null) $hasmissings=true;
+										if ($answer==null) $hasmissings=true;
 									}
 								}
-								#TODO control if text is only entered when corresponding choice has been made
-								#TODO check that a text is entered if mandatory
-								$items = $modelpage->getItemsToQuestion($question->ID);
-								foreach ($items as $item)
-								{
-									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
-									{
-										$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)."' WHERE sessionID='".$this->sessionID."'";
-										$db->setQuery($sqlstore);
-										if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
-									}
-								}
-								break;
 							}
-						case MULTICHOICE:
-							{
-								$items = $modelpage->getItemsToQuestion($question->ID);
-								$foundchecked = false;
-								foreach ($items as $item)
-								{
-									if ($item->bindingType!="QUESTION") continue;
-									$value = 0;
-									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
-									{
-										$foundchecked = true;
-										$value = 1;
-									}
-									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".$value." WHERE sessionID='".$this->sessionID."'";
-									$db->setQuery($sqlstore);
-									if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
-								}
-								//if mandatory and no item checked --> set missing
-								if ($question->mandatory==1 && !$foundchecked) $hasmissings=true;
-								#TODO control if text is only entered when corresponding choice has been made
-								#TODO check that a text is entered if mandatory
-								foreach ($items as $item)
-								{
-									if ($item->bindingType!="ITEM") continue;
-									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null)
-									{
-										$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)."' WHERE sessionID='".$this->sessionID."'";
-										$db->setQuery($sqlstore);
-										if (!$db->query()) JError::raiseError(500, 'Error saving value: '.$this->getDBO()->getErrorMsg());
-									}
-								}
-								break;
-							}
-						case TEXTFIELD:
-							{
-								//always store
-								$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID)."' WHERE sessionID='".$this->sessionID."'";
-								$db->setQuery($sqlstore);
-								if (!$db->query())
-								{
-									$errorMessage = $this->getDBO()->getErrorMsg();
-									JError::raiseError(500, 'Error saving value: '.$errorMessage);
-								}
-								//if mandatory and no value stored so far --> set missing
-								if ($question->mandatory==1)
-								{
-									$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-									$db->setQuery($sqlgetvalue);
-									$answer = $db->loadResult();
-									if ($answer==null || strlen($answer)<1) $hasmissings=true;
-								}
-								//if data type does not match --> set missing
-								if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
-								if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
-								#TODO decimal seperator for locale
-								break;
-							}
-						case MATRIX_LEFT: case MATRIX_BOTH:
-							{
-								$items = $modelpage->getItemsToQuestion($question->ID);
-								foreach ($items as $item)
-								{
-									if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)))
-									{
-										//numeric value is posted --> store
-										$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)." WHERE sessionID='".$this->sessionID."'";
-										$db->setQuery($sqlstore);
-										if (!$db->query())
-										{
-											$errorMessage = $this->getDBO()->getErrorMsg();
-											JError::raiseError(500, 'Error saving value: '.$errorMessage);
-										}
-									}
-									else
-									{
-										//if mandatory and no value stored so far --> set missing
-										if ($item->mandatory==1)
-										{
-											$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_i".$item->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-											$db->setQuery($sqlgetvalue);
-											$answer = $db->loadResult();
-											if ($answer["p".$page->ID."q".$question->ID."i".$item->ID]==null) $hasmissings=true;
-										}
-									}
-								}
-								break;
-							}
-						case MULTISCALE:
-							{
-								$items = $modelpage->getItemsToQuestion($question->ID);
-								$scales = $modelpage->getScalesToQuestion($question->ID);
-								foreach ($items as $item)
-								{
-									foreach($scales as $scale)
-									{
-										$varname = 'p'.$page->ID.'_q'.$question->ID.'_i'.$item->ID.'_s'.$scale->ID.'_';
-										if (JRequest::getVar($varname,null)!=null && is_numeric(JRequest::getVar($varname)))
-										{
-											//numeric value is posted --> store
-											$sqlstore = "UPDATE jcq_proj".$this->projectID." SET $varname =".JRequest::getVar($varname)." WHERE sessionID='".$this->sessionID."'";
-											$db->setQuery($sqlstore);
-											if (!$db->query())
-											{
-												$errorMessage = $this->getDBO()->getErrorMsg();
-												JError::raiseError(500, 'Error saving value: '.$errorMessage);
-											}
-										}
-										else
-										{
-											//if mandatory and no value stored so far --> set missing
-											if ($item->mandatory==1 && $scale->mandatory==1)
-											{
-												$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-												$db->setQuery($sqlgetvalue);
-												$answer = $db->loadResult();
-												if ($answer==null) $hasmissings=true;
-											}
-										}
-									}
-								}
-								break;
-							}
-						case TEXTANDHTML: break;
-						default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
+						}
+						break;
 					}
-				}
+				case TEXTANDHTML: break;
+				default: JError::raiseError(500, 'FATAL: Code is missing for storing values of question type '.$question->questtype);
+			}
+		}
+		return $allthere;
+	}
 
+	//requires a session to be loaded
+	function storeAndContinue()
+	{
+		$this->db->setQuery("SELECT * FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'");
+		$session = $this->db->loadObject();
+		$this->db->setQuery("SELECT * FROM jcq_page WHERE projectID=".$this->projectID." ORDER BY ord");
+		$pages = $this->db->loadObjectList();
+
+		$foundpage = false;
+		for ($i=0;$i<count($pages);$i++)
+		{
+			if ($pages[$i]->ID==$session->curpage)
+			{
+				$foundpage = true;
+				$page = $pages[$i];
+
+				$this->db->setQuery("SELECT * FROM jcq_question WHERE pageID=".$page->ID);
+				$questions = $this->db->loadObjectList();
+
+				$hasmissings = !$this->storeResponses($questions);
+				
 				//go to next page if all mandatory questions/items answered
 				if (!$hasmissings)
 				{
 					//set timestamp on this page
-					$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."timestamp=".time()." WHERE sessionID='".$this->sessionID."'";
-					$db->setQuery($sqlstore);
-					if (!$db->query())
-					{
-						$errorMessage = $this->getDBO()->getErrorMsg();
-						JError::raiseError(500, 'Error saving timestamp: '.$errorMessage);
-					}
+					$this->db->setQuery("UPDATE jcq_proj".$this->projectID." SET p".$page->ID."_timestamp=".time()." WHERE sessionID='".$this->sessionID."'");
+					if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 					//search for next unfiltered page
 					$foundnextpage = false;
 					while (++$i < count($pages))
@@ -509,26 +496,16 @@ class JcqModelUserdata extends JModel
 					{
 						$nextpage = -1;
 						//FIXME minor bug: finished=1 is not set, when projet has only the final page
-						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET finished=1, timestampEnd=".time()." WHERE sessionID='".$this->sessionID."'";
-						$db->setQuery($sqlstore);
-						if (!$db->query())
-						{
-							$errorMessage = $this->getDBO()->getErrorMsg();
-							JError::raiseError(500, 'Error saving: '.$errorMessage);
-						}
+						$this->db->setQuery("UPDATE jcq_proj".$this->projectID." SET finished=1, timestampEnd=".time()." WHERE sessionID='".$this->sessionID."'");
+						if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 					}
-					$sqlnextpage = "UPDATE jcq_proj".$this->projectID." SET curpage=".$nextpage." WHERE sessionID='".$this->sessionID."'";
-					$db->setQuery($sqlnextpage);
-					if (!$db->query())
-					{
-						$errorMessage = $this->getDBO()->getErrorMsg();
-						JError::raiseError(500, 'Error going next page: '.$errorMessage);
-					}
+					$this->db->setQuery("UPDATE jcq_proj".$this->projectID." SET curpage=".$nextpage." WHERE sessionID='".$this->sessionID."'");
+					if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 				}
 				break;
 			}
 		}
-		if (!foundpage) JError::raiseError(500, 'Error: could not find page with ID'.$session->curpage);
+		if (!foundpage) JError::raiseError(500, 'FATAL: could not find page with ID '.$session->curpage);
 		return !$hasmissings;
 	}
 
@@ -582,22 +559,12 @@ class JcqModelUserdata extends JModel
 		return ($answer!=null);
 	}
 
-	function hasStoredValueQuestion($pageID,$questionID)
+	function hasStoredValue($itemID,$scaleID=null)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		$db = $this->getDBO();
-		$db->setQuery($sqlgetvalue);
-		$answer = $db->loadResult();
-		return ($answer!=null);
-	}
-
-	function hasStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
-	{
-		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		else $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		$db = $this->getDBO();
-		$db->setQuery($sqlgetvalue);
-		$answer = $db->loadResult();
+		if ($scaleID===null) $sqlgetvalue = "SELECT i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$this->db->setQuery($sqlgetvalue);
+		$answer = $this->db->loadResult();
 		return ($answer!=null);
 	}
 
@@ -609,22 +576,12 @@ class JcqModelUserdata extends JModel
 		return $answer;
 	}
 
-	function getStoredValueQuestion($pageID,$questionID)
+	function getStoredValue($itemID,$scaleID=null)
 	{
-		$sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		$db = $this->getDBO();
-		$db->setQuery($sqlgetvalue);
-		$answer = $db->loadResult();
-		return $answer;
-	}
-
-	function getStoredValueItem($pageID,$questionID,$itemID,$scaleID=null)
-	{
-		if ($scaleID===null) $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		else $sqlgetvalue = "SELECT p".$pageID."_q".$questionID."_i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-		$db = $this->getDBO();
-		$db->setQuery($sqlgetvalue);
-		$answer = $db->loadResult();
+		if ($scaleID===null) $sqlgetvalue = "SELECT i".$itemID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		else $sqlgetvalue = "SELECT i".$itemID."_s".$scaleID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
+		$this->db->setQuery($sqlgetvalue);
+		$answer = $this->db->loadResult();
 		return $answer;
 	}
 
