@@ -1,13 +1,14 @@
 <?php
-defined('_JEXEC') or die( 'Restricted access' ); ?>
+defined('_JEXEC') or die( 'Restricted access' ); 
+$items = $this->pagemodel->getItemsToQuestion($this->question->ID);
+?>
 <div class="question2">
 	<?php
-		$items = $this->pagemodel->getItemsToQuestion($this->question->ID);
 		$foundchecked = false;
 		foreach ($items as $item)
 		{
 			if ($item->bindingType!="QUESTION") continue;
-			if ($this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$item->ID)==1) $foundchecked = true;
+			if ($this->userdata->getStoredValue($item->ID)!=0) { $foundchecked = true; break; }
 		}
 		if ($this->markmissing && $this->question->mandatory==1 && !$foundchecked)
 		{ ?>
@@ -26,28 +27,28 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		{
 			$item=$items[$j];
 			if ($item->bindingType!="QUESTION") continue;
-			$prevanswer = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$item->ID);
+			$prevanswer = $this->userdata->getStoredValue($item->ID);
 			echo('<p>');
-			echo('<input type="checkbox" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$item->ID.'" '.($prevanswer==1?"checked":"").'>'.$item->textleft.'</input>');
+			echo('<input type="checkbox" name="i'.$item->ID.'_" '.($prevanswer!=0?"checked":"").'>'.$item->textleft.'</input>');
 			foreach ($items as $oneitem)
 			{
 				if ($oneitem->bindingType=="ITEM" && $oneitem->bindingID==$item->ID)
 				{
-					$prevtext = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$oneitem->ID);
+					$prevtext = $this->userdata->getStoredValue($oneitem->ID);
 					if ($oneitem->linebreak) echo("<br/>");
 					$width = $oneitem->width_left==0?200:$oneitem->width_left;
 					$possplit = strpos($oneitem->prepost, '%s');
 					if ($possplit===false)
 					{
-						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
-						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'">'.$prevtext.'</textarea>');
+						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="i'.$oneitem->ID.'_" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="i'.$oneitem->ID.'_">'.$prevtext.'</textarea>');
 						echo($oneitem->prepost);
 					}
 					else
 					{
 						echo(substr($oneitem->prepost,0,$possplit));
-						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'" value="'.$prevtext.'"/>');
-						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$oneitem->ID.'">'.$prevtext.'</textarea>');
+						if ($oneitem->rows<=1) echo('<input type="text" style="width: '.$width.'px;" name="i'.$oneitem->ID.'_" value="'.$prevtext.'"/>');
+						else echo('<textarea style="width: '.$width.'px;" rows="'.$oneitem->rows.'" name="i'.$oneitem->ID.'_">'.$prevtext.'</textarea>');
 						echo(substr($oneitem->prepost,$possplit+2));
 					}
 				}
