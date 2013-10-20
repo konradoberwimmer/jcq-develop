@@ -8,7 +8,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		foreach ($items as $item)
 		{
 			foreach($scales as $scale)
-			if ($item->mandatory==1 && $scale->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID,$scale->ID))
+			if ($item->mandatory==1 && $scale->mandatory==1 && !$this->userdata->hasStoredValue($item->ID,$scale->ID))
 			{
 				$missings=true;
 				break;
@@ -40,8 +40,8 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 			$prevanswers=array();
 			for ($i=0;$i<count($scales);$i++)
 			{
-				$prevanswers[$i]=$this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$items[$k]->ID,$scales[$i]->ID);
-				if ($this->markmissing && $items[$k]->mandatory==1 && $scales[$i]->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$items[$k]->ID,$scales[$i]->ID)) $itemmissing=true;
+				$prevanswers[$i]=$this->userdata->getStoredValue($items[$k]->ID,$scales[$i]->ID);
+				if ($this->markmissing && $items[$k]->mandatory==1 && $scales[$i]->mandatory==1 && !$this->userdata->hasStoredValue($items[$k]->ID,$scales[$i]->ID)) $itemmissing=true;
 			}
 			if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question6itemAlt" style="'.$width_items.'">');
 			else echo('<td class="question6item" style="'.$width_items.'">');
@@ -56,7 +56,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 				else echo('<td class="question6button" style="'.$width_scale.'">');
 				$possplit = strpos($scales[$j]->prepost, '%i');
 				if ($possplit!==false) echo(substr($scales[$j]->prepost,0,$possplit));
-				echo('<select name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'s'.$scales[$j]->ID.'">');
+				echo('<select name="i'.$items[$k]->ID.'_s'.$scales[$j]->ID.'_">');
 				if ($scales[$j]->defval==null) echo('<option></option>');
 				$codes = $this->pagemodel->getCodesToScale($scales[$j]->ID);
 				for ($i=0;$i<count($codes);$i++)

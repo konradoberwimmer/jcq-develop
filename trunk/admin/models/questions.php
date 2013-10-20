@@ -82,7 +82,35 @@ class JcqModelQuestions extends JModel {
 		return $this->db->loadObjectList();
 	}
 	
+	function isMandatory($questionID)
+	{
+		$question = $this->getQuestion($questionID);
+		if ($question->questtype==MULTICHOICE) return ($question->mandatory?true:false);
+		else
+		{
+			$items = $this->getItems($questionID);
+			if ($items!==null) foreach ($items as $item) if ($item->mandatory) return true;
+			return false;
+		}
+	}
 	
+	function getVariableNamesString($questionID)
+	{
+		$items = $this->getItems($questionID);
+		if ($items===null || count($items)==0) return "[NONE]";
+		else if (count($items)==1) return $items[0]->varname;
+		else
+		{
+			$varnames = "{ ";
+			for ($i=0;$i<count($items);$i++)
+			{
+				if ($i>0) $varnames .= "; ";
+				$varnames .= $items[$i]->varname;
+			}
+			$varnames .= " }";
+			return $varnames;
+		}
+	}
 	
 	function detachScale($questionID,$scaleID)
 	{

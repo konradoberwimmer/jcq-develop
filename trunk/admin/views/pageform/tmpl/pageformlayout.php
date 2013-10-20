@@ -54,7 +54,7 @@ Page has <?php echo count($this->questions); ?> question(s).
                            <th>Name</th>
                            <th>Type</th>
                            <th>Mandatory</th>
-                           <th>Variable Name</th>
+                           <th>Variable Name(s)</th>
                     </tr>               
              </thead>
              <tbody>
@@ -76,8 +76,15 @@ Page has <?php echo count($this->questions); ?> question(s).
                             else echo "Error: unknown question type";
                             ?>
                             </td>
-                            <td><input type="checkbox" <?php if ($row->mandatory) echo("checked"); ?> disabled/></td>
-                            <td><?php echo strlen($row->varname)>0?$row->varname:"[None or defined by items]"; ?></td>
+                            <td><input type="checkbox" <?php if ($this->getModel('questions')->isMandatory($row->ID)) echo("checked"); ?> disabled/></td>
+                            <td>
+                            <?php 
+                            	$varnames = $this->getModel('questions')->getVariableNamesString($row->ID);
+                            	$printvarnames = $varnames;
+                            	if (strlen($varnames)>75) $printvarnames = substr($varnames,0,72)." ...";
+                            	echo("<span title='$varnames'>$printvarnames</span>");  
+                            ?>
+                            </td>
                     </tr>
                     <?php
                     	$k = 1 - $k;
