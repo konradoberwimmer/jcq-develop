@@ -2,7 +2,7 @@ function addConjugation(number)
 {
 	var table = document.getElementById("tableAND"+number);
 	var cntconjugationselem = document.getElementById("cntconjugations"+number);
-	cntconjugationselem.value = cntconjugationselem.value+1;
+	cntconjugationselem.value = Number(cntconjugationselem.value)+1;
 	
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
@@ -14,7 +14,6 @@ function addConjugation(number)
     var cellVAR = row.insertCell(1);
     var varselector = document.getElementById("varidTEMPLATE").cloneNode(true);
     varselector.setAttribute("style","width: 250px;");
-    varselector.setAttribute("id","variable"+number+"_"+cntconjugationselem.value);
     varselector.setAttribute("name","variable"+number+"_"+cntconjugationselem.value);
     cellVAR.appendChild(varselector);
     
@@ -57,14 +56,14 @@ function removeConjugation(numberOR,numberAND)
 {
 	var table = document.getElementById("tableAND"+numberOR);
 	var row = document.getElementById("tableAND"+numberOR+"row"+numberAND);
-	table.removeChild(row);
+	table.deleteRow(row.rowIndex);
 }
 
 function addDisjunction() 
 {
 	var table = document.getElementById("filtertable");
 	var cntdisjunctionselem = document.getElementById("cntdisjunctions");
-	cntdisjunctionselem.value = intval(cntdisjunctionselem.value)+1;
+	cntdisjunctionselem.value = Number(cntdisjunctionselem.value)+1;
 	
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
@@ -106,6 +105,6 @@ function removeDisjunction(number)
 {
 	var table = document.getElementById("filtertable");
 	var row = document.getElementById("tableORrow"+number);
-	table.removeChild(row);
+	table.deleteRow(row.rowIndex);
 	if (table.rows.length>0) table.rows[0].cells[0].innerHTML="";
 }

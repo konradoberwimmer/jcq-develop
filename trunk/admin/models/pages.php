@@ -65,7 +65,7 @@ class JcqModelPages extends JModel {
 		$pageTableRow->name = '';
 		$this->db->setQuery("SELECT ord FROM jcq_page WHERE projectID=$projectID AND isFinal=0 ORDER BY ord DESC");
 		$pages = $this->db->loadObjectList();
-		if ($pages!==null) $pageTableRow->ord = $pages[0]->ord + 1;
+		if ($pages!==null && count($pages)>0) $pageTableRow->ord = $pages[0]->ord + 1;
 		else $pageTableRow->ord = 1;
 		$pageTableRow->projectID = $projectID;
 		$pageTableRow->isFinal = 0;
@@ -82,13 +82,24 @@ class JcqModelPages extends JModel {
 		if ($page['ID']>0) //handle filter information
 		{
 			$filter="";
-			for ($i=0; $i<$page['cntdisjunctions']; $i++)
+			$hasdisjunction = false;
+			for ($i=1; $i<=$page['cntdisjunctions']; $i++)
 			{
-				if ($i>0) $filter .= "|";
+				//check if disjunction really extists
+				if (!isset($page['cntconjugations'.$i])) continue;
+				//if disjunction really exists add it to the filter
+				if (!$hasdisjunction) $hasdisjunction=true;
+				else $filter .= "|";
+				$hasconjunction = false;
 				$filter .= "(";
-				for ($j=0; $j<$page['cntconjugations'.$i]; $j++)
+				for ($j=1; $j<=$page['cntconjugations'.$i]; $j++)
 				{
-					if ($j>0) $filter .= "&";
+					
+					//check if conjunction really extists
+					if (!isset($page['variable'.$i.'_'.$j])) continue;
+					//if conjunction really exists add it to the filter
+					if (!$hasconjunction) $hasconjunction=true;
+					else $filter .= "&";
 					$filter .= ("$".$page['variable'.$i.'_'.$j]."$");
 					$op="==";
 					if ($page['operator'.$i.'_'.$j]==2) $op="!=";
