@@ -129,22 +129,22 @@ if ($this->page->ID > 0 && !$this->page->isFinal)
 	for ($i=0; $i<$cntdisjunctions; $i++)
 	{
 		?>
-		<tr style="border-bottom: 1px solid grey; border-top: 1px solid grey;">
+		<tr id="tableORrow<?php echo($i+1); ?>" style="border-bottom: 1px solid grey; border-top: 1px solid grey;">
 			<td><?php if ($i>0) echo("OR"); ?></td>
 			<td>
 			<?php 
 				$conjugations = explode("&", $disjunctions[$i]);
 				$cntconjugations = count($conjugations);
 			?>
-				<table>
+				<table id="tableAND<?php echo($i+1); ?>">
 				<?php 
 				for ($j=0; $j<$cntconjugations; $j++)
 				{
 				?>
-					<tr>
+					<tr id="tableAND<?php echo($i+1); ?>row<?php echo($j+1); ?>">
 					<td><?php if ($j>0) echo("AND"); ?></td>
 					<td>
-						<select id="variable<?php echo($i."_".$j); ?>" name="variable<?php echo($i."_".$j); ?>" style="width: 250px;">
+						<select name="variable<?php echo(($i+1)."_".($j+1)); ?>" style="width: 250px;">
 						<?php 
 							foreach ($this->variables as $variable)
 							{
@@ -166,7 +166,7 @@ if ($this->page->ID > 0 && !$this->page->isFinal)
 							if (strpos($conjugations[$j],">=")!==false) $opval=5;
 							elseif (strpos($conjugations[$j],">")!==false) $opval=6;
 						?>
-						<select id="operator<?php echo($i."_".$j); ?>" name="operator<?php echo($i."_".$j); ?>">
+						<select name="operator<?php echo(($i+1)."_".($j+1)); ?>">
 							<option value="1" <?php if ($opval==1) echo("selected"); ?>>==</option>
 							<option value="2" <?php if ($opval==2) echo("selected"); ?>>!=</option>
 							<option value="3" <?php if ($opval==3) echo("selected"); ?>>&lt;</option>
@@ -186,21 +186,21 @@ if ($this->page->ID > 0 && !$this->page->isFinal)
 							if ($opval==6) $val = substr($conjugations[$j], strpos($conjugations[$j],">")+1);
 							$val = str_replace(")", "", $val);
 						?>
-						<input type="text" size="8" id="val<?php echo($i."_".$j); ?>" name="val<?php echo($i."_".$j); ?>" value="<?php echo($val); ?>"/>
+						<input type="text" size="8" name="<?php echo(($i+1)."_".($j+1)); ?>" value="<?php echo($val); ?>"/>
 					</td>
 					<td>
 					<?php if ($j>0) { ?>
-					<input type="button" id="removeANDbutton<?php echo($i."_".$j); ?>" value="Remove AND" onclick="removeConjugation(<?php echo($i.",".$j); ?>)"/></td>
+					<input type="button" value="Remove AND" onclick="removeConjugation(<?php echo(($i+1).",".($j+1)); ?>)"/></td>
 					<?php } ?>
 					</tr>
 				<?php 
 				}
 				?>
 				</table>
-				<input type="hidden" id="cntconjugations<?php echo($i); ?>" name="cntconjugations<?php echo($i); ?>" value="<?php echo($cntconjugations); ?>"/>
-				<input type="button" id="addANDbutton<?php echo($i); ?>" value="Add AND" onclick="addConjugation(<?php echo($i); ?>)"/>
+				<input type="hidden" id="cntconjugations<?php echo($i+1); ?>" name="cntconjugations<?php echo($i+1); ?>" value="<?php echo($cntconjugations); ?>"/>
+				<input type="button" value="Add AND" onclick="addConjugation(<?php echo($i+1); ?>)"/>
 			</td>
-			<td><input type="button" id="removeORbutton<?php echo($i); ?>" value="Remove OR" onclick="removeDisjunction(<?php echo($i); ?>)"/></td>
+			<td><input type="button" value="Remove OR" onclick="removeDisjunction(<?php echo($i+1); ?>)"/></td>
 		</tr>
 		<?php 
 	}

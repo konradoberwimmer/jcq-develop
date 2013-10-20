@@ -164,7 +164,7 @@ class JcqModelQuestions extends JModel {
 		$questionTableRow->name = '';
 		$this->db->setQuery("SELECT ord FROM jcq_question WHERE pageID=$pageID ORDER BY ord DESC");
 		$questions = $this->db->loadObjectList();
-		if ($questions!==null) $questionTableRow->ord = $questions[0]->ord + 1;
+		if ($questions!==null && count($questions)>0) $questionTableRow->ord = $questions[0]->ord + 1;
 		else $questionTableRow->ord = 1;
 		$questionTableRow->pageID = $pageID;
 		return $questionTableRow;

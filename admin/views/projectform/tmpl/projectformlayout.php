@@ -1,7 +1,7 @@
 <?php
 defined('_JEXEC') or die('Restricted access'); 
 
-if ($this->download!==null)
+if (isset($this->download) && $this->download!==null)
 { 
 	#FIXME unsave path!
 ?>
