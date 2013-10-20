@@ -3,6 +3,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 jimport('joomla.application.component.model');
 require_once(JPATH_COMPONENT.DS.'models'.DS.'pages.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'questions.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'scales.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
 
 class SPSSVariable
 {
@@ -12,10 +15,6 @@ class SPSSVariable
 	public $varlabel;
 	public $valuelabels;
 	public $codes = null;
-	public $pageID;
-	public $questionID;
-	public $itemID = null;
-	public $scaleID = null;
 }
 
 class JcqModelProjects extends JModel {
@@ -152,12 +151,8 @@ class JcqModelProjects extends JModel {
 	
 	function saveData($projectID,$usergroupids,$includeuserdata)
 	{
-		require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
 		$modelusergroups = new JcqModelUsergroups();
-		require_once(JPATH_COMPONENT.DS.'models'.DS.'pages.php');
 		$modelpages = new JcqModelPages();
-		require_once(JPATH_COMPONENT.DS.'models'.DS.'usergroups.php');
-		$modelusergroups = new JcqModelUsergroups();
 		
 		#FIXME just for now: create a file to write to
 		$filename = "data_proj$projectID"."_".time().".sps";
@@ -389,168 +384,143 @@ class JcqModelProjects extends JModel {
 		$variables = array();
 		$varcnt = 0;
 
-		$this->db->setQuery('SELECT * FROM jcq_page WHERE isFinal = 0 AND projectID = '.$projectID.' ORDER BY ord');
-		$pages = $this->db->loadObjectList();
-		if ($pages!=null)
+		$model_pages = new JcqModelPages();
+		$model_questions = new JcqModelQuestions();
+		$model_scales = new JcqModelScales();
+		
+		$pages = $this->getPages($projectID);
+		if ($pages!==null) for ($i=0;$i<count($pages);$i++)
 		{
-			for ($i=0;$i<count($pages);$i++)
+			$page=$pages[$i];
+			$questions = $model_pages->getQuestions($page->ID);
+			if ($questions!==null) for ($j=0;$j<count($questions);$j++)
 			{
-				$page=$pages[$i];
-				$this->db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$page->ID.' ORDER BY ord');
-				$questions = $this->db->loadObjectList();
-				if ($questions!=null)
+				$question=$questions[$j];
+				$items = $model_questions->getItems($question->ID);
+				$mainitem = null;
+				if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
+				$scales = $model_questions->getScales($question->ID);
+				$mainscale = null;
+				if ($scales!==null && count($scales)>0) $mainscale = $scales[0];
+				switch ($question->questtype)
 				{
-					for ($j=0;$j<count($questions);$j++)
-					{
-						$question=$questions[$j];
-						switch ($question->questtype)
+					case SINGLECHOICE:
 						{
-							case SINGLECHOICE:
+							if ($mainitem===null || $mainscale===null) JError::raiseError(500, "FATAL: question '".$question->name."' incorrectly defined");
+							$newvar = new SPSSVariable();
+							$newvar->datatype = 1;
+							$newvar->extvarname = $mainitem->varname;
+							$newvar->intvarname = "i".$mainitem->ID."_";
+							$newvar->varlabel = $question->text;
+							$codes = $model_scales->getCodes($mainscale->ID);
+							if ($codes===null || count($codes)==0) break;
+							else $newvar->codes = $codes;
+							$variables[$varcnt++]=$newvar;
+							//look for additional textfields
+							for ($k=0;$k<count($items);$k++)
+							{
+								$item=$items[$k];
+								if ($item->bindingType!="CODE") continue;
+								$newvar = new SPSSVariable();
+								$newvar->datatype = 3;
+								$newvar->extvarname = $item->varname;
+								$newvar->intvarname = "i".$item->ID."_";
+								$newvar->varlabel = $question->text; #FIXME should be more informative
+								$variables[$varcnt++]=$newvar;
+							}
+							break;
+						}
+					case MULTICHOICE:
+						{
+							if ($items!==null) for ($k=0;$k<count($items);$k++)
+							{
+								$item=$items[$k];
+								if ($item->bindingType!="QUESTION") continue;
+								$newvar = new SPSSVariable();
+								$newvar->datatype = 1;
+								$newvar->extvarname = $item->varname;
+								$newvar->intvarname = "i".$item->ID."_";
+								$newvar->varlabel = $item->textleft." ".$item->textright;
+								$code0 = $this->getTable('codes');
+								$code0->code = 0;
+								$code0->label = "not selected";
+								$code1 = $this->getTable('codes');
+								$code1->code = 1;
+								$code1->label = "selected";
+								$newvar->codes = array($code0,$code1);
+								$variables[$varcnt++]=$newvar;
+							}
+							//look for additional textfields
+							if ($items!==null) for ($k=0;$k<count($items);$k++)
+							{
+								$item=$items[$k];
+								if ($item->bindingType!="ITEM") continue;
+								$newvar = new SPSSVariable();
+								$newvar->datatype = 3;
+								$newvar->extvarname = $item->varname;
+								$newvar->intvarname = "i".$item->ID."_";
+								$newvar->varlabel = $question->text; #FIXME should be more informative
+								$variables[$varcnt++]=$newvar;
+							}
+							break;
+						}
+					case TEXTFIELD:
+						{
+							if ($mainitem===null) JError::raiseError(500, "FATAL: question '".$question->name."' incorrectly defined");
+							$newvar = new SPSSVariable();
+							$newvar->datatype = $mainitem->datatype;
+							$newvar->extvarname = $mainitem->varname;
+							$newvar->intvarname = "i".$mainitem->ID."_";
+							$newvar->varlabel = $question->text;
+							$variables[$varcnt++]=$newvar;
+							break;
+						}
+					case MATRIX_LEFT: case MATRIX_BOTH:
+						{
+							if ($mainscale===null) JError::raiseError(500, "FATAL: question '".$question->name."' incorrectly defined");
+							if ($items!==null) for ($k=0;$k<count($items);$k++)
+							{
+								$item=$items[$k];
+								$newvar = new SPSSVariable();
+								$newvar->datatype = 1;
+								$newvar->extvarname = $item->varname;
+								$newvar->intvarname = "i".$item->ID."_";
+								$newvar->varlabel = $item->textleft." ".$item->textright;
+								$codes = $model_scales->getCodes($mainscale->ID);
+								if ($codes===null || count($codes)==0) break;
+								else $newvar->codes = $codes;
+								$variables[$varcnt++]=$newvar;
+							}
+							break;
+						}
+					case MULTISCALE:
+						{
+							if ($items!==null) for ($k=0;$k<count($items);$k++)
+							{
+								$item=$items[$k];
+								if ($scales!==null) for ($l=0;$l<count($scales);$l++)
 								{
+									$scale=$scales[$l];
 									$newvar = new SPSSVariable();
 									$newvar->datatype = 1;
-									$newvar->extvarname = $question->varname;
-									$newvar->intvarname = "p".$page->ID."q".$question->ID;
-									$newvar->varlabel = $question->text;
-									$newvar->pageID = $page->ID;
-									$newvar->questionID = $question->ID;
-									$this->db->setQuery('SELECT * FROM jcq_questionscales WHERE questionID = '.$question->ID);
-									$scales = $this->db->loadObjectList();
-									$newvar->scaleID = $scales[0]->scaleID;
-									$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
-									$newvar->codes = $this->db->loadObjectList();
+									#TODO give external varname postfix to predefined scales
+									$newvar->extvarname = $item->varname."_s".$scale->ID;
+									$newvar->intvarname = "i".$item->ID."_s".$scale->ID."_";
+									$newvar->varlabel = $item->textleft." (".$scale->name.")";
+									$codes = $model_scales->getCodes($scale->ID);
+									if ($codes===null || count($codes)==0) break;
+									else $newvar->codes = $codes;
 									$variables[$varcnt++]=$newvar;
-									//look for additional textfields
-									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID='.$question->ID);
-									$items = $this->db->loadObjectList();
-									for ($k=0;$k<count($items);$k++)
-									{
-										$item=$items[$k];
-										$newvar = new SPSSVariable();
-										$newvar->datatype = 3;
-										$newvar->extvarname = $item->varname;
-										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
-										$newvar->varlabel = $question->text; #FIXME should be more informative
-										$newvar->pageID = $page->ID;
-										$newvar->questionID = $question->ID;
-										$newvar->itemID = $item->ID;
-										$variables[$varcnt++]=$newvar;
-									}
-									break;
 								}
-							case MULTICHOICE:
-								{
-									$this->db->setQuery('SELECT * FROM jcq_item WHERE bindingType="QUESTION" AND questionID = '.$question->ID.' ORDER BY ord');
-									$items = $this->db->loadObjectList();
-									for ($k=0;$k<count($items);$k++)
-									{
-										$item=$items[$k];
-										$newvar = new SPSSVariable();
-										$newvar->datatype = 1;
-										$newvar->extvarname = $item->varname;
-										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
-										$newvar->varlabel = $item->textleft." ".$item->textright;
-										$newvar->pageID = $page->ID;
-										$newvar->questionID = $question->ID;
-										$newvar->itemID = $item->ID;
-										$code0 = $this->getTable('codes');
-										$code0->code = 0;
-										$code0->label = "not selected";
-										$code1 = $this->getTable('codes');
-										$code1->code = 1;
-										$code1->label = "selected";
-										$newvar->codes = array($code0,$code1);
-										$variables[$varcnt++]=$newvar;
-										//look for additional textfields
-										$this->db->setQuery('SELECT * FROM jcq_item WHERE bindingType="ITEM" AND bindingID='.$item->ID);
-										$bindeditems = $this->db->loadObjectList();
-										foreach ($bindeditems as $bindeditem)
-										{
-											$newvar = new SPSSVariable();
-											$newvar->datatype = 3;
-											$newvar->extvarname = $bindeditem->varname;
-											$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$bindeditem->ID;
-											$newvar->varlabel = $question->text; #FIXME should be more informative
-											$newvar->pageID = $page->ID;
-											$newvar->questionID = $question->ID;
-											$newvar->itemID = $bindeditem->ID;
-											$variables[$varcnt++]=$newvar;
-										}
-									}
-									break;
-								}
-							case TEXTFIELD:
-								{
-									$newvar = new SPSSVariable();
-									$newvar->datatype = $question->datatype;
-									$newvar->extvarname = $question->varname;
-									$newvar->intvarname = "p".$page->ID."q".$question->ID;
-									$newvar->varlabel = $question->text;
-									$newvar->pageID = $page->ID;
-									$newvar->questionID = $question->ID;
-									$variables[$varcnt++]=$newvar;
-									break;
-								}
-							case MATRIX_LEFT: case MATRIX_BOTH:
-								{
-									$this->db->setQuery('SELECT * FROM jcq_questionscales WHERE questionID = '.$question->ID);
-									$scales = $this->db->loadObjectList();
-									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
-									$items = $this->db->loadObjectList();
-									for ($k=0;$k<count($items);$k++)
-									{
-										$item=$items[$k];
-										$newvar = new SPSSVariable();
-										$newvar->datatype = 1;
-										$newvar->extvarname = $item->varname;
-										$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID;
-										$newvar->varlabel = $item->textleft." ".$item->textright;
-										$newvar->pageID = $page->ID;
-										$newvar->questionID = $question->ID;
-										$newvar->itemID = $item->ID;
-										$newvar->scaleID = $scales[0]->ID;
-										$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scales[0]->scaleID.' ORDER BY ord');
-										$newvar->codes = $this->db->loadObjectList();
-										$variables[$varcnt++]=$newvar;
-									}
-									break;
-								}
-							case MULTISCALE:
-								{
-									$this->db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
-									$scales = $this->db->loadObjectList();
-									$this->db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
-									$items = $this->db->loadObjectList();
-									for ($k=0;$k<count($items);$k++)
-									{
-										$item=$items[$k];
-										for ($l=0;$l<count($scales);$l++)
-										{
-											$scale=$scales[$l];
-											$newvar = new SPSSVariable();
-											$newvar->datatype = 1;
-											#TODO give external varname postfix to predefined scales
-											$newvar->extvarname = $item->varname."_s".$scale->ID;
-											$newvar->intvarname = "p".$page->ID."q".$question->ID."i".$item->ID."s".$scale->ID;
-											$newvar->varlabel = $item->textleft." (".$scale->name.")";
-											$newvar->pageID = $page->ID;
-											$newvar->questionID = $question->ID;
-											$newvar->itemID = $item->ID;
-											$newvar->scaleID = $scale->ID;
-											$this->db->setQuery('SELECT * FROM jcq_code WHERE scaleID = '.$scale->ID.' ORDER BY ord');
-											$newvar->codes = $this->db->loadObjectList();
-											$variables[$varcnt++]=$newvar;
-										}
-									}
-									break;
-								}
-							case TEXTANDHTML: break;
-							default: JError::raiseError(500, 'FATAL: Code for generating variable list for question of type '.$question->questtype.' is missing!!!');
+							}
+							break;
 						}
-					}
+					case TEXTANDHTML: break;
+					default: JError::raiseError(500, 'FATAL: Code for generating variable list for question of type '.$question->questtype.' is missing!!!');
 				}
 			}
 		}
+	
 		
 		return $variables;
 	}

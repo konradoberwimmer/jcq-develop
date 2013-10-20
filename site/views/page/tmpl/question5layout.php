@@ -6,7 +6,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		$missings=false;
 		foreach ($items as $item)
 		{
-			if ($item->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID))
+			if ($item->mandatory==1 && !$this->userdata->hasStoredValue($item->ID))
 			{
 				$missings=true;
 				break;
@@ -53,11 +53,11 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		for ($k=0;$k<count($items);$k++)
 		{
 			echo("<tr>");
-			$prevanswer = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$items[$k]->ID);
+			$prevanswer = $this->userdata->getStoredValue($items[$k]->ID);
 			//text left
 			if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question5itemAlt" style="'.$width_items.'">');
 			else echo('<td class="question5item" style="'.$width_items.'">');
-			if (!$this->markmissing || $prevanswer!=null || $items[$k]->mandatory==0) echo($items[$k]->textleft);
+			if (!$this->markmissing || $prevanswer!==null || $items[$k]->mandatory==0) echo($items[$k]->textleft);
 			else echo('<span class="question5itemmissing">'.$items[$k]->textleft.'</span>');
 			echo('</td>');
 			//scale
@@ -65,12 +65,12 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 			{
 				if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question5buttonAlt">');
 				else echo('<td class="question5button">');
-				echo('<input type="radio" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'/></td>');
+				echo('<input type="radio" name="i'.$items[$k]->ID.'_" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'/></td>');
 			}
 			//text right
 			if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question5itemAlt" style="'.$width_items.'">');
 			else echo('<td class="question5item" style="'.$width_items.'">');
-			if (!$this->markmissing || $prevanswer!=null || $items[$k]->mandatory==0) echo($items[$k]->textright);
+			if (!$this->markmissing || $prevanswer!==null || $items[$k]->mandatory==0) echo($items[$k]->textright);
 			else echo('<span class="question5itemmissing">'.$items[$k]->textright.'</span>');
 			echo('</td>');
 			echo("</tr>");

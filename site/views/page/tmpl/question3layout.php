@@ -1,11 +1,17 @@
 <?php
 defined('_JEXEC') or die( 'Restricted access' ); 
-
+$items = $this->pagemodel->getItemsToQuestion($this->question->ID);
+$mainitem = null;
+foreach ($items as $item) if ($item->bindingType=="QUESTION") {
+	$mainitem = $item; break;
+}
+if ($mainitem===null) JError::raiseError(500, "FATAL: corrupt question definition for '".$this->question->name."'");
+$prevanswer = $this->userdata->getStoredValue($mainitem->ID);
 ?>
 <div class="question3">
 	<?php
 		$ismissing = false;
-		if ($this->markmissing && $this->question->mandatory==1 && (!$this->userdata->hasStoredValueQuestion($this->pageID,$this->question->ID) || strlen($this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID))<1))
+		if ($this->markmissing && $mainitem->mandatory==1 && (!$this->userdata->hasStoredValue($mainitem->ID) || strlen($prevanswer)==0))
 		{ 
 			$ismissing = true;
 			?>
@@ -20,27 +26,26 @@ defined('_JEXEC') or die( 'Restricted access' );
 	?>
 	<?php if ($this->question->advise != null) echo '<p class="question3advise">'.$this->question->advise.'</p>'; ?>
 	<?php 
-		$prevanswer = $this->userdata->getStoredValueQuestion($this->pageID,$this->question->ID);
-		if ($this->markmissing && !$ismissing && $prevanswer!=null && $this->question->datatype==1 && !val_is_int($prevanswer)) echo '<div class="questionalertmissing">Bitte hier eine ganze Zahl eingeben!</div>';
-		if ($this->markmissing && !$ismissing && $prevanswer!=null && $this->question->datatype==2 && !is_numeric($prevanswer)) echo '<div class="questionalertmissing">Bitte hier eine Zahl eingeben!</div>';
+		if ($this->markmissing && !$ismissing && $prevanswer!=null && $mainitem->datatype==1 && !val_is_int($prevanswer)) echo '<div class="questionalertmissing">Bitte hier eine ganze Zahl eingeben!</div>';
+		if ($this->markmissing && !$ismissing && $prevanswer!=null && $mainitem->datatype==2 && !is_numeric($prevanswer)) echo '<div class="questionalertmissing">Bitte hier eine Zahl eingeben!</div>';
 		$width = 50;
 		if ($this->question->width_items > 0) $width = $this->question->width_items;	
-		$possplit = strpos($this->question->prepost, '%s');
+		$possplit = strpos($mainitem->prepost, '%s');
 		if ($possplit===false)
 		{ 
-			echo('<p><input type="text" name="p'.$this->pageID.'q'.$this->question->ID.'" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
-			if (!$ismissing) echo($this->question->prepost);
-			else echo('<span class="question3missing">'.$this->question->prepost.'</span>');
+			echo('<p><input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			if (!$ismissing) echo($mainitem->prepost);
+			else echo('<span class="question3missing">'.$mainitem->prepost.'</span>');
 			echo('</p>');
 		}
 		else
 		{
 			echo('<p>');
-			if (!$ismissing) echo(substr($this->question->prepost,0,$possplit));
-			else echo('<span class="question3missing">'.substr($this->question->prepost,0,$possplit).'</span>');
-			echo('<input type="text" name="p'.$this->pageID.'q'.$this->question->ID.'" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
-			if (!$ismissing) echo(substr($this->question->prepost,$possplit+2));
-			else echo('<span class="question3missing">'.substr($this->question->prepost,$possplit+2).'</span>');
+			if (!$ismissing) echo(substr($mainitem->prepost,0,$possplit));
+			else echo('<span class="question3missing">'.substr($mainitem->prepost,0,$possplit).'</span>');
+			echo('<input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			if (!$ismissing) echo(substr($mainitem->prepost,$possplit+2));
+			else echo('<span class="question3missing">'.substr($mainitem->prepost,$possplit+2).'</span>');
 			echo('</p>');
 		}
 	?>

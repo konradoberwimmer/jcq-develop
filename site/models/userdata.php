@@ -306,14 +306,13 @@ class JcqModelUserdata extends JModel
 		foreach ($questions as $question)
 		{
 			$items = $this->model_page->getItemsToQuestion($question->ID);
+			$mainitem = null;
+			if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
 			switch ($question->questtype)
 			{
 				case SINGLECHOICE:
 					{
-						$mainitem = null;
-						foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
 						if ($mainitem===null) JError::raiseError(500, "FATAL: corrupt question definition for '".$this->question->name."'");
-						
 						$intvarname = 'i'.$mainitem->ID.'_';
 						$response = JRequest::getVar($intvarname,null);
 						if ($response!=null && is_numeric($response)) $this->storeValue($intvarname, $response);
@@ -359,89 +358,44 @@ class JcqModelUserdata extends JModel
 					}
 				case TEXTFIELD:
 					{
+						if ($mainitem===null) JError::raiseError(500, "FATAL: corrupt question definition for '".$this->question->name."'");
+						$intvarname = 'i'.$mainitem->ID.'_';
+						$response = JRequest::getVar($intvarname,"");
 						//always store
-						$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."='".JRequest::getVar('p'.$page->ID.'q'.$question->ID)."' WHERE sessionID='".$this->sessionID."'";
-						$db->setQuery($sqlstore);
-						if (!$db->query())
-						{
-							$errorMessage = $this->getDBO()->getErrorMsg();
-							JError::raiseError(500, 'Error saving value: '.$errorMessage);
-						}
+						$this->storeValue($intvarname, $response,3);
 						//if mandatory and no value stored so far --> set missing
-						if ($question->mandatory==1)
-						{
-							$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-							$db->setQuery($sqlgetvalue);
-							$answer = $db->loadResult();
-							if ($answer==null || strlen($answer)<1) $hasmissings=true;
-						}
+						if ($mainitem->mandatory==1 && strlen($response)==0) $allthere=false;
 						//if data type does not match --> set missing
-						if ($question->datatype == 1 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !val_is_int(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
-						if ($question->datatype == 2 && JRequest::getVar('p'.$page->ID.'_q'.$question->ID.'_') != null && !is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID))) $hasmissings=true;
+						if ($mainitem->datatype == 1 && strlen($response)>0 && !val_is_int($response)) $allthere=false;
+						if ($mainitem->datatype == 2 && strlen($response)>0 && !is_numeric($response)) $allthere=false;
 						#TODO decimal seperator for locale
 						break;
 					}
 				case MATRIX_LEFT: case MATRIX_BOTH:
 					{
-						$items = $modelpage->getItemsToQuestion($question->ID);
+						if ($items===null) break;
 						foreach ($items as $item)
 						{
-							if (JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID,null)!=null && is_numeric(JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)))
-							{
-								//numeric value is posted --> store
-								$sqlstore = "UPDATE jcq_proj".$this->projectID." SET p".$page->ID."q".$question->ID."i".$item->ID."=".JRequest::getVar('p'.$page->ID.'q'.$question->ID.'i'.$item->ID)." WHERE sessionID='".$this->sessionID."'";
-								$db->setQuery($sqlstore);
-								if (!$db->query())
-								{
-									$errorMessage = $this->getDBO()->getErrorMsg();
-									JError::raiseError(500, 'Error saving value: '.$errorMessage);
-								}
-							}
-							else
-							{
-								//if mandatory and no value stored so far --> set missing
-								if ($item->mandatory==1)
-								{
-									$sqlgetvalue = "SELECT p".$page->ID."_q".$question->ID."_i".$item->ID."_ FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-									$db->setQuery($sqlgetvalue);
-									$answer = $db->loadResult();
-									if ($answer["p".$page->ID."q".$question->ID."i".$item->ID]==null) $hasmissings=true;
-								}
-							}
+							$intvarname = 'i'.$item->ID.'_';
+							$response = JRequest::getVar($intvarname,null);
+							if ($response!==null && is_numeric($response)) $this->storeValue($intvarname, $response);
+							elseif ($item->mandatory==1 && !$this->hasStoredValue($item->ID)) $allthere=false;
 						}
 						break;
 					}
 				case MULTISCALE:
 					{
-						$items = $modelpage->getItemsToQuestion($question->ID);
-						$scales = $modelpage->getScalesToQuestion($question->ID);
+						$scales = $this->model_page->getScalesToQuestion($question->ID);
+						if ($items===null) break;
 						foreach ($items as $item)
 						{
+							if ($scales===null) break;
 							foreach($scales as $scale)
 							{
-								$varname = 'p'.$page->ID.'_q'.$question->ID.'_i'.$item->ID.'_s'.$scale->ID.'_';
-								if (JRequest::getVar($varname,null)!=null && is_numeric(JRequest::getVar($varname)))
-								{
-									//numeric value is posted --> store
-									$sqlstore = "UPDATE jcq_proj".$this->projectID." SET $varname =".JRequest::getVar($varname)." WHERE sessionID='".$this->sessionID."'";
-									$db->setQuery($sqlstore);
-									if (!$db->query())
-									{
-										$errorMessage = $this->getDBO()->getErrorMsg();
-										JError::raiseError(500, 'Error saving value: '.$errorMessage);
-									}
-								}
-								else
-								{
-									//if mandatory and no value stored so far --> set missing
-									if ($item->mandatory==1 && $scale->mandatory==1)
-									{
-										$sqlgetvalue = "SELECT $varname FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'";
-										$db->setQuery($sqlgetvalue);
-										$answer = $db->loadResult();
-										if ($answer==null) $hasmissings=true;
-									}
-								}
+								$intvarname = 'i'.$item->ID.'_s'.$scale->ID.'_';
+								$response = JRequest::getVar($intvarname,null);
+								if ($response!==null && is_numeric($response)) $this->storeValue($intvarname, $response);
+								elseif ($item->mandatory==1 && $scale->mandatory==1 && !$this->hasStoredValue($item->ID,$scale->ID)) $allthere=false;
 							}
 						}
 						break;

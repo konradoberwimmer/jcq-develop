@@ -52,6 +52,7 @@ class JcqModelItems extends JModel {
 	function saveItem(array $item, array $scales=null)
 	{
 		if ($item['ID']<0) $item['ID']=0;
+		if (!isset($item['mandatory'])) $item['mandatory']=0;
 		$itemTableRow =& $this->getTable('items');
 		if (!$itemTableRow->bind($item)) JError::raiseError(500, 'Error binding data');
 		if (!$itemTableRow->check()) JError::raiseError(500, 'Invalid data');

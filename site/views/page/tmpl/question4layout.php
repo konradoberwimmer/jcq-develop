@@ -6,7 +6,7 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		$missings=false;
 		foreach ($items as $item)
 		{
-			if ($item->mandatory==1 && !$this->userdata->hasStoredValueItem($this->pageID,$this->question->ID,$item->ID))
+			if ($item->mandatory==1 && !$this->userdata->hasStoredValue($item->ID))
 			{
 				$missings=true;
 				break;
@@ -52,17 +52,17 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 		for ($k=0;$k<count($items);$k++)
 		{
 			echo("<tr>");
-			$prevanswer = $this->userdata->getStoredValueItem($this->pageID,$this->question->ID,$items[$k]->ID);
+			$prevanswer = $this->userdata->getStoredValue($items[$k]->ID);
 			if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question4itemAlt" style="'.$width_items.'">');
 			else echo('<td class="question4item" style="'.$width_items.'">');
-			if (!$this->markmissing || $prevanswer!=null || $items[$k]->mandatory==0) echo($items[$k]->textleft);
+			if (!$this->markmissing || $prevanswer!==null || $items[$k]->mandatory==0) echo($items[$k]->textleft);
 			else echo('<span class="question4itemmissing">'.$items[$k]->textleft.'</span>');
 			echo('</td>');
 			for ($j=0;$j<count($codes);$j++)
 			{
 				if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question4buttonAlt">');
 				else echo('<td class="question4button">');
-				echo('<input type="radio" name="p'.$this->pageID.'q'.$this->question->ID.'i'.$items[$k]->ID.'" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'/></td>');
+				echo('<input type="radio" name="i'.$items[$k]->ID.'_" value="'.$codes[$j]->code.'" '.($codes[$j]->code==$prevanswer?"checked":"").'/></td>');
 			}
 			echo("</tr>");
 		}
