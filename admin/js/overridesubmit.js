@@ -76,10 +76,10 @@ function submitbutton(pressbutton)
 
 function editProgramFile(id)
 {
-	var editImport = document.getElementById('editImport');
-	editImport.setAttribute("value",id);
+	var editProgramfile = document.getElementById('editProgramfile');
+	editProgramfile.setAttribute("value",id);
 	
-	submitbutton('editImport');
+	submitbutton('editProgramfile');
 }
 
 function checkproject()

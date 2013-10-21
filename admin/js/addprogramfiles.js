@@ -1,6 +1,6 @@
-function addImportfile() 
+function addProgramfile() 
 {
-	var table = document.getElementById("importstable");
+	var table = document.getElementById("programfilestable");
 	if (table.rows.length==0)
 	{
 		var header = table.insertRow(0);
@@ -21,19 +21,19 @@ function addImportfile()
 	var cellID = row.insertCell(0);
 	var inputID = document.createElement("input");
 	inputID.setAttribute("type","hidden");
-	inputID.setAttribute("name","importids[]");
+	inputID.setAttribute("name","programfileids[]");
 	inputID.setAttribute("value","0");
 	cellID.appendChild(inputID);
 	var inputOrd = document.createElement("input");
 	inputOrd.setAttribute("type","text");
-	inputOrd.setAttribute("name","importord[]");
+	inputOrd.setAttribute("name","programfileord[]");
 	inputOrd.setAttribute("value","0");
 	cellID.appendChild(inputOrd);
 	
 	var cellFilename = row.insertCell(1);
 	var inputFilename = document.createElement("input");
 	inputFilename.setAttribute("type","text");
-	inputFilename.setAttribute("name","importfilename[]");
+	inputFilename.setAttribute("name","programfilename[]");
 	inputFilename.setAttribute("value","");
 	cellFilename.appendChild(inputFilename);
 	
