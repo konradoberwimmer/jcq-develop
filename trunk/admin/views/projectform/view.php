@@ -11,9 +11,9 @@ class JcqViewProjectform extends JView
 		$project = $model->getProject($projectID);
 		$this->assignRef('project', $project);
 		$pages = $model->getPages($projectID);
-		$imports = $model->getImports($projectID);
+		$programfiles = $model->getProgramfiles($projectID);
 		$this->assignRef('pages', $pages);
-		$this->assignRef('imports', $imports);
+		$this->assignRef('programfiles', $programfiles);
 		$this->assignRef('usergroups', $this->getModel('usergroups'));
 		$this->assignRef('download',$download);
 		
@@ -35,7 +35,7 @@ class JcqViewProjectform extends JView
 		JHTML::script($path.$filename, true);
 		$filename = 'opendownload.js';
 		JHTML::script($path.$filename, true);
-		$filename = 'addimports.js';
+		$filename = 'addprogramfiles.js';
 		JHTML::script($path.$filename, true);
 		
 		JToolBarHelper::title('JCQ: Edit project');
@@ -43,6 +43,7 @@ class JcqViewProjectform extends JView
 		if ($model->getPageCount($projectID) > 0) JToolBarHelper::editList('editPage','Edit page');
 		JToolBarHelper::addNewX('addPage','New page');
 		JToolBarHelper::divider();
+		JToolBarHelper::customX("exportProject","archive.png",".png","Export project", false);
 		JToolBarHelper::custom("saveProject","save.png",".png","Save",false);
 		JToolBarHelper::cancel();
 		parent::display();

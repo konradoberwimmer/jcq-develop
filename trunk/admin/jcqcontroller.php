@@ -8,35 +8,6 @@ set_include_path(JPATH_COMPONENT.DS.'includes');
 include('PHPExcel'.DS.'PHPExcel.php');
 include('PHPExcel'.DS.'PHPExcel'.DS.'IOFactory.php');
 
-function jtableToXmlWithoutIDs ($jtable, $xmldoc, $xmlnode)
-{
-	foreach (get_object_vars($jtable) as $k => $v) //ok, here a scripting language makes everything simpler
-	{
-		if (is_array($v) or is_object($v) or $v === NULL) continue;
-		if ($k[0] == '_') continue;
-		if (strpos($k,"ID")!==false) continue;
-		$element = $xmldoc->createElement($k);
-		$cdata = $xmldoc->createCDATASection($v);
-		$element->appendChild($cdata);
-		$xmlnode->appendChild($element);
-	}
-}
-
-function xmlToJTable ($xmlelement, $jtable)
-{
-	foreach (get_object_vars($jtable) as $k => $v)
-	{
-		if ($k[0] == '_') continue;
-		if (strpos($k,"ID")!==false) continue;
-		$child = $xmlelement->getElementsByTagName($k);
-		if ($child->length>0)
-		{
-			$child=$child->item(0)->firstChild;
-			$jtable->$k = $child->textContent;
-		}
-	}
-}
-
 class JcqController extends JController
 {
 
@@ -107,24 +78,24 @@ class JcqController extends JController
 			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
 		}
 
-		//save the imports if project has any
-		if (isset($project['importids']))
+		//save the programfiles if project has any
+		if (isset($project['programfileids']))
 		{
-			//has to be in this order: 1. save imports 2. delete imports; otherwise errors for missing IDs
-			$importids = JRequest::getVar('importids', null, 'default', 'array' );
-			$importord = JRequest::getVar('importord', null, 'default', 'array' );
-			$importfilename = JRequest::getVar('importfilename', null, 'default', 'array' );
-			for ($i=0;$i<count($importids);$i++)
+			//has to be in this order: 1. save programfiles 2. delete programfiles; otherwise errors for missing IDs
+			$programfileids = JRequest::getVar('programfileids', null, 'default', 'array' );
+			$programfileord = JRequest::getVar('programfileord', null, 'default', 'array' );
+			$programfilename = JRequest::getVar('programfilename', null, 'default', 'array' );
+			for ($i=0;$i<count($programfileids);$i++)
 			{
-				$import = array();
-				$import['ID']=$importids[$i];
-				$import['ord']=$importord[$i];
-				$import['filename']=$importfilename[$i];
-				$import['projectID']=$project['ID'];
-				$model->saveImport($import);
+				$programfile = array();
+				$programfile['ID']=$programfileids[$i];
+				$programfile['ord']=$programfileord[$i];
+				$programfile['filename']=$programfilename[$i];
+				$programfile['projectID']=$project['ID'];
+				$model->saveProgramfile($programfile);
 			}
-			$importdelete = JRequest::getVar('importdelete', null, 'default', 'array' );
-			if ($importdelete!=null) $model->deleteImports($importdelete);
+			$programfiledeleteids = JRequest::getVar('programfiledelete', null, 'default', 'array' );
+			if ($programfiledeleteids!=null) foreach ($programfiledeleteids as $programfiledeleteid) $model->deleteProgramfile($programfiledeleteid);
 		}
 
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
@@ -150,22 +121,22 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
-	function editImport()
+	function editProgramfile()
 	{
-		$importID = JRequest::getVar('editImport', null); //Reads cid as an arra
-		if ($importID === null || !is_numeric($importID)) JError::raiseError(500, 'editImport parameter missing');
+		$programfileID = JRequest::getVar('editProgramfile', null); //Reads cid as an arra
+		if ($programfileID === null || !is_numeric($programfileID)) JError::raiseError(500, 'FATAL: editProgramfile parameter missing');
 		
-		$view = & $this->getView('editimport');
+		$view = & $this->getView('editprogramfile');
 		
-		if ($model = & $this->getModel('imports') && $modelproject = & $this->getModel('projects'))
+		if ($model = & $this->getModel('programfiles') && $modelproject = & $this->getModel('projects'))
 		{ 
 			$view->setModel($model, true);
 			$view->setModel($modelproject, false);
 		}
 		else JError::raiseError(500, 'Model not found');
 		
-		$view->setLayout('editimportlayout');
-		$view->display($importID);
+		$view->setLayout('editprogramfilelayout');
+		$view->display($programfileID);
 	}
 
 	function editCSS()
@@ -198,102 +169,36 @@ class JcqController extends JController
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
-	function saveEditedImport()
+	function saveEditedProgramfile()
 	{
-		$importID = JRequest::getVar('importID', null); //Reads cid as an arra
-		if ($importID === null || !is_numeric($importID)) JError::raiseError(500, 'editImport parameter missing');
+		$programfileID = JRequest::getVar('programfileID', null);
+		if ($programfileID === null || !is_numeric($programfileID)) JError::raiseError(500, 'FATAL: programfileID parameter missing');
 				
-		$model = & $this->getModel('imports');
-		$model->saveEditedImport($importID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
+		$model = & $this->getModel('programfiles');
+		$model->saveEditedProgramfile($programfileID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
 				
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editImport&editImport='.$importID,false);
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProgramfile&editProgramfile='.$programfileID,false);
 		$this->setRedirect($redirectTo, 'Program file saved!');	
 	}
 	
-	function cancelEditImport()
+	function cancelEditProgramfile()
 	{
-		$import = JRequest::get( 'POST' );
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$import['projectID'],false);
+		$programfile = JRequest::get( 'POST' );
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$programfile['projectID'],false);
 		$this->setRedirect($redirectTo, 'Cancelled ...');
 	}
 	
 	function exportProject()
 	{
-		$projectids = JRequest::getVar('cid', null, 'default', 'array' );
-		if($projectids === null) JError::raiseError(500, 'cid parameter missing');
-		$projectID = (int)$projectids[0]; //get the first id from the list (we can only export one project at a time)
-
-		//FIXME storing the xml-file in the usercode folder is totally insecure, but for now it is easier to achieve :-(
-
-		//create php-file for project with basic class definition if it does not yet exist
-		if (!is_dir(JPATH_COMPONENT_SITE.DS.'usercode')) mkdir(JPATH_COMPONENT_SITE.DS.'usercode');
-		$filehandle = fopen(JPATH_COMPONENT_SITE.DS.'usercode'.DS.'project'.$projectID.'.xml', 'w');
-		//I am doing the data access here because it does not really fit in any of the models
-		$xmldoc = new DOMDocument('1.0', 'utf-8');
-		$projectnode = $xmldoc->createElement("project");
-		//adding project settings
-		$tableProject =& $this->getModel("projects")->getTable("projects");
-		$tableProject->load($projectID);
-		jtableToXmlWithoutIDs($tableProject, $xmldoc, $projectnode);
-		//adding pages
-		$pages =& $this->getModel("projects")->getPages($projectID);
-		foreach ($pages as $page)
-		{
-			$pagenode=$xmldoc->createElement("page");
-			$tablePage =& $this->getModel("pages")->getTable("pages");
-			$tablePage->load($page->ID);
-			jtableToXmlWithoutIDs($tablePage, $xmldoc, $pagenode);
-			//adding questions
-			$questions =& $this->getModel("pages")->getQuestions($page->ID);
-			foreach ($questions as $question)
-			{
-				$questionnode=$xmldoc->createElement("question");
-				$tableQuestion =& $this->getModel("questions")->getTable("questions");
-				$tableQuestion->load($question->ID);
-				jtableToXmlWithoutIDs($tableQuestion, $xmldoc, $questionnode);
-				//adding items
-				$items =& $this->getModel("questions")->getItems($question->ID);
-				foreach ($items as $item)
-				{
-					$itemnode=$xmldoc->createElement("item");
-					$tableItem =& $this->getModel("items")->getTable("items");
-					$tableItem->load($item->ID);
-					jtableToXmlWithoutIDs($tableItem, $xmldoc, $itemnode);
-					//TODO scales from items
-					$questionnode->appendChild($itemnode);
-				}
-				//adding scale(s)
-				$scales =& $this->getModel("scales")->getScales($question->ID);
-				foreach ($scales as $scale)
-				{
-					$scalenode=$xmldoc->createElement("scale");
-					$tableScale =& $this->getModel("scales")->getTable("scales");
-					$tableScale->load($scale->ID);
-					jtableToXmlWithoutIDs($tableScale, $xmldoc, $scalenode);
-					//adding codes
-					$codes =& $this->getModel("scales")->getCodes($scale->ID);
-					foreach ($codes as $code)
-					{
-						$codenode=$xmldoc->createElement("code");
-						$tableCode =& $this->getModel("scales")->getTable("codes");
-						$tableCode->load($code->ID);
-						jtableToXmlWithoutIDs($tableCode, $xmldoc, $codenode);
-						$scalenode->appendChild($codenode);
-					}
-					$questionnode->appendChild($scalenode);
-				}
-				$pagenode->appendChild($questionnode);
-			}
-			$projectnode->appendChild($pagenode);
-		}
-		//finishing
-		$xmldoc->appendChild($projectnode);
-		fwrite($filehandle, $xmldoc->saveXML());
-		fclose($filehandle);
-
-		$view = & $this->getView('exportproject');
-		$view->setLayout('exportprojectlayout');
-		$view->display($projectID);
+		$project = JRequest::get( 'POST' );
+		$projectid = $project['ID'];
+		
+		$modelimportexport = & $this->getModel('importexport');
+		$filename = $modelimportexport->exportProject($projectid);
+		
+		$app = &JFactory::getApplication();
+		$app->enqueueMessage("Project exported ...");
+		$this->editProject($projectid, $filename);
 	}
 
 	function showImportProject()

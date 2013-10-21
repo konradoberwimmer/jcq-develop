@@ -38,7 +38,7 @@ if ($this->project->ID > 0) { ?>
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->project->ID; ?>"/>      
        <input type="hidden" name="task" value=""/>
-       <input type="hidden" id="editImport" name="editImport" value=""/>
+       <input type="hidden" id="editProgramfile" name="editProgramfile" value=""/>
 <?php if ($this->project->ID > 0) { ?>
 <fieldset>
              <legend>Pages:</legend>
@@ -196,34 +196,34 @@ if ($this->project->ID > 0) { ?>
 <fieldset>
 	<legend>Program files:</legend>
 	<?php 
-		if ($this->imports == null || count($this->imports)==0) echo("No files imported.<br/>");
+		if ($this->programfiles == null || count($this->programfiles)==0) echo("No program files for this project.<br/>");
 	?>
-	<table id="importstable" class="list">
+	<table id="programfilestable" class="list">
 		<?php 
-		if ($this->imports != null && count($this->imports)>0)
+		if ($this->programfiles != null && count($this->programfiles)>0)
 		{
 			?>
 			<thead><tr><th>Order</th><th>Filename</th><th>Delete</th><th/></tr></thead>
 			<?php 
 		}
-		foreach ($this->imports as $import)
+		foreach ($this->programfiles as $programfile)
 		{
 			?>
 			<tbody>
 			<tr>
-			<td><input type="hidden" name="importids[]" value="<?php echo $import->ID; ?>"/>
-			<input type="text" id="<?php echo("import".$import->ID."ord"); ?>" name="importord[]" value="<?php echo $import->ord; ?>"/>
+			<td><input type="hidden" name="programfileids[]" value="<?php echo $programfile->ID; ?>"/>
+			<input type="text" id="<?php echo("programfile".$programfile->ID."ord"); ?>" name="programfileord[]" value="<?php echo $programfile->ord; ?>"/>
 			</td>
-			<td><input type="text" id="<?php echo("import".$import->ID."filename"); ?>" name="importfilename[]" value="<?php echo $import->filename; ?>"/></td>
-			<td><input type="checkbox" id="<?php echo("import".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
-			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editProgramFile(<?php echo $import->ID; ?>)"/></td>
+			<td><input type="text" id="<?php echo("programfile".$programfile->ID."filename"); ?>" name="programfilename[]" value="<?php echo $programfile->filename; ?>"/></td>
+			<td><input type="checkbox" id="<?php echo("programfile".$programfile->ID."delete"); ?>" name="programfiledelete[]" value="<?php echo $programfile->ID; ?>"/></td>
+			<td><input type="button" name="<?php echo("programfile".$programfile->ID."edit"); ?>" value="Edit ..." onclick="editProgramFile(<?php echo $programfile->ID; ?>)"/></td>
 			</tr>
 			<tbody>
 			<?php 	
 		}
 		?>
 	</table>
-	<input type="button" name="addImport" value="Add program file" onclick="addImportfile()"/><br/>
+	<input type="button" name="addProgramfile" value="Add program file" onclick="addProgramfile()"/><br/>
 	<br/>
 	(TIP: Use getStoredValue(varname) in user defined functions to get participants answers.)
 </fieldset>

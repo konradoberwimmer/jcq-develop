@@ -111,60 +111,55 @@ class JcqModelProjects extends JModel {
 		if ($pages === null) JError::raiseError(500, 'Error reading db');
 		return $pages;
 	}
-	
+
 	function saveEditedCSS($projectID,$content)
 	{
 		$project = $this->getProject($projectID);
 		file_put_contents(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$project->cssfile,$content);
 	}
-	
-	function getImports($projectID)
+
+	function getProgramfiles($projectID)
 	{
-		$this->db->setQuery('SELECT * FROM jcq_import WHERE projectID = '.$projectID.' ORDER BY ord');
-		$imports = $this->db->loadObjectList();
-		if ($imports === null) JError::raiseError(500, 'Error reading db');
-		return $imports;
+		$this->db->setQuery('SELECT * FROM jcq_programfile WHERE projectID = '.$projectID.' ORDER BY ord');
+		$programfiles = $this->db->loadObjectList();
+		if ($programfiles === null) JError::raiseError(500, 'Error reading db');
+		return $programfiles;
 	}
-	
-	function saveImport(array $import)
+
+	function saveProgramfile(array $programfile)
 	{
-		$importTableRow =& $this->getTable('imports');
-		if (!$importTableRow->bind($import)) JError::raiseError(500, 'Error binding data');
-		if (!$importTableRow->check()) JError::raiseError(500, 'Invalid data');
-		if (!$importTableRow->store())
+		$programfileTableRow =& $this->getTable('programfiles');
+		if (!$programfileTableRow->bind($programfile)) JError::raiseError(500, 'Error binding data');
+		if (!$programfileTableRow->check()) JError::raiseError(500, 'Invalid data');
+		if (!$programfileTableRow->store())
 		{
-			$errorMessage = $importTableRow->getError();
+			$errorMessage = $programfileTableRow->getError();
 			JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 		}
 	}
-	
-	function deleteImports($arrayIDs)
+
+	function deleteProgramfile($ID)
 	{
-		$query = "DELETE FROM jcq_import WHERE ID IN (".implode(',', $arrayIDs).")";
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		if (!$db->query()){
-			$errorMessage = $this->getDBO()->getErrorMsg();
-			JError::raiseError(500, 'Error deleting imports: '.$errorMessage);
-		}
+		$this->db->setQuery("DELETE FROM jcq_programfile WHERE ID = $ID");
+		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
-	
+
 	function saveData($projectID,$usergroupids,$includeuserdata)
 	{
 		$modelusergroups = new JcqModelUsergroups();
 		$modelpages = new JcqModelPages();
-		
+
 		#FIXME just for now: create a file to write to
 		$filename = "data_proj$projectID"."_".time().".sps";
 		$file = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
 		$project = $this->getProject($projectID);
-	
+
 		//prepare a storage for the variables to be downloaded
 		$variables = $this->getVariableList($projectID);
 		$varcnt = count($variables);
-		
+
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "*** DATA FROM PROJECT '".$project->name."' at time ".strftime("%d.%m.%Y, %H:%M:%S",time())." ***.\n\n"));
-	
+
 		//Define Data.
 		fwrite($file,"DATA LIST LIST (\";\") / ");
 		for ($i=0;$i<$varcnt;$i++)
@@ -195,7 +190,7 @@ class JcqModelProjects extends JModel {
 		//write system variables
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "sys_user (A32767) sys_usergroup (F8.0) sys_finished (F8.0) sys_lastpage (A32767) sys_duration (F8.2)"));
 		fwrite($file,".\n");
-	
+
 		//Get Data.
 		fwrite($file,"BEGIN DATA\n");
 		if ($usergroupids==null || count($usergroupids)==0) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
@@ -299,7 +294,7 @@ class JcqModelProjects extends JModel {
 			fwrite($file,"\n");
 		}
 		fwrite($file,"END DATA.\n\n");
-	
+
 		//Set Variable Labels.
 		fwrite($file,"VARIABLE LABELS\n");
 		for ($i=0;$i<$varcnt;$i++)
@@ -324,7 +319,7 @@ class JcqModelProjects extends JModel {
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_lastpage 'Name of the last page reached by user'\n"));
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_duration 'Duration in minutes (up to last page reached)'\n"));
 		fwrite($file,".\n\n");
-	
+
 		//Set Value Labels.
 		fwrite($file,"VALUE LABELS\n");
 		$slashset = false;
@@ -350,7 +345,7 @@ class JcqModelProjects extends JModel {
 		fwrite($file,"\n");
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_finished 0 'no' 1 'yes'\n"));
 		fwrite($file,".\n\n");
-	
+
 		//Set Missing values.
 		fwrite($file,"MISSING VALUES\n");
 		$slashset = false;
@@ -372,9 +367,9 @@ class JcqModelProjects extends JModel {
 			fwrite($file,")\n");
 		}
 		fwrite($file,".\n\n");
-	
+
 		fclose($file);
-	
+
 		return $filename;
 	}
 
@@ -387,7 +382,7 @@ class JcqModelProjects extends JModel {
 		$model_pages = new JcqModelPages();
 		$model_questions = new JcqModelQuestions();
 		$model_scales = new JcqModelScales();
-		
+
 		$pages = $this->getPages($projectID);
 		if ($pages!==null) for ($i=0;$i<count($pages);$i++)
 		{
@@ -398,7 +393,9 @@ class JcqModelProjects extends JModel {
 				$question=$questions[$j];
 				$items = $model_questions->getItems($question->ID);
 				$mainitem = null;
-				if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
+				if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") {
+					$mainitem = $item; break;
+				}
 				$scales = $model_questions->getScales($question->ID);
 				$mainscale = null;
 				if ($scales!==null && count($scales)>0) $mainscale = $scales[0];
@@ -520,8 +517,8 @@ class JcqModelProjects extends JModel {
 				}
 			}
 		}
-	
-		
+
+
 		return $variables;
 	}
 }

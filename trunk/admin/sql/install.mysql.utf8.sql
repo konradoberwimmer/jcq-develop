@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS jcq_questionscales;
 DROP TABLE IF EXISTS jcq_item;
 DROP TABLE IF EXISTS jcq_question;
 DROP TABLE IF EXISTS jcq_page;
-DROP TABLE IF EXISTS jcq_import;
+DROP TABLE IF EXISTS jcq_programfile;
 DROP TABLE IF EXISTS jcq_project;
 DROP TABLE IF EXISTS jcq_code;
 DROP TABLE IF EXISTS jcq_scale;
@@ -40,7 +40,7 @@ CREATE TABLE jcq_project(
 		PRIMARY KEY (ID)
 ) ENGINE=InnoDB;
 
-CREATE TABLE jcq_import(
+CREATE TABLE jcq_programfile(
 		ID BIGINT NOT NULL AUTO_INCREMENT,	
 		ord INTEGER NOT NULL,
 		filename VARCHAR(255) NOT NULL,
