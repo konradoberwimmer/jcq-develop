@@ -27,7 +27,7 @@ function xmlToJTable ($xmlelement, $jtable)
 {
 	foreach (get_object_vars($jtable) as $k => $v)
 	{
-		if ($k[0] == '_') continue;
+		if ($k[0] == '_') continue; //exclude those fields
 		$child = $xmlelement->getElementsByTagName($k);
 		if ($child->length>0)
 		{
@@ -42,8 +42,7 @@ abstract class JCQImportExportNode
 	public $name;
 	public $dbtable;
 	public $jtable;
-	public $ownidfield;
-	public $parentidfield;
+	public $parentidfield = null;
 	public $childnodes = array();
 
 	function exportToXML($ID, $xmldoc, $parentnode=null)
@@ -66,6 +65,21 @@ abstract class JCQImportExportNode
 		$db = JFactory::getDbo();
 		$db->setQuery("SELECT ID FROM ".$childnode->dbtable." WHERE ".$childnode->parentidfield." = $myID");
 		return $db->loadObjectList();
+	}
+	
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		xmlToJTable($xmlnode, $this->jtable);
+		$this->jtable->ID = 0;
+		$parfieldname = $this->parentidfield;
+		if ($this->parentidfield!==null)  $this->jtable->$parfieldname = $parentID;
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+		foreach ($this->childnodes as $childnode)
+		{
+			$children = $xmlnode->getElementsByTagName($childnode->name);
+			if ($children!==null) foreach ($children as $child) $childnode->importFromXML($child, $myID);
+		}
 	}
 }
 
@@ -123,6 +137,22 @@ class JCQIENodeScale extends JCQImportExportNode
 		$this->jtable = new TableScales(JFactory::getDbo());
 		array_push($this->childnodes, new JCQIENodeCode());
 	}
+	
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		xmlToJTable($xmlnode, $this->jtable);
+		$this->jtable->ID = 0;
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+		$db = JFactory::getDbo();
+		$db->setQuery("INSERT INTO jcq_questionscales (questionID, scaleID) VALUES($parentID,$myID)");
+		if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+		foreach ($this->childnodes as $childnode)
+		{
+			$children = $xmlnode->getElementsByTagName($childnode->name);
+			if ($children!==null) foreach ($children as $child) $childnode->importFromXML($child, $myID);
+		}
+	}
 }
 
 class JCQIENodeItem extends JCQImportExportNode
@@ -179,7 +209,7 @@ class JCQIENodeProject extends JCQImportExportNode
 		$this->name = "project";
 		$this->dbtable = "jcq_project";
 		$this->jtable = new TableProjects(JFactory::getDbo());
-		array_push($this->childnodes, new JCQIENodePage());
+		//array_push($this->childnodes, new JCQIENodePage());
 		array_push($this->childnodes, new JCQIENodeUsergroup());
 		array_push($this->childnodes, new JCQIENodeProgramfile());
 	}
@@ -201,5 +231,14 @@ class JcqModelImportexport extends JModel
 		fclose($filehandle);
 
 		return $filename;
+	}
+	
+	function importProject($xmldoc)
+	{
+		$xmlnode = $xmldoc->getElementsByTagName('project');
+		if ($xmlnode===null || count($xmlnode)==0) return false;
+		$projectnode = new JCQIENodeProject();
+		$projectnode->importFromXML($xmlnode->item(0));
+		return true;
 	}
 }
