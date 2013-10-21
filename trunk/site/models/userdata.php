@@ -19,79 +19,40 @@ function getStoredValue ($varname)
 	$db =& JFactory::getDBO();
 	$db->setQuery('SELECT * FROM jcq_page WHERE isFinal = 0 AND projectID = '.$currentproject.' ORDER BY ord');
 	$pages = $db->loadObjectList();
-	if ($pages!=null)
+	if ($pages!==null) for ($i=0;$i<count($pages);$i++)
 	{
-		for ($i=0;$i<count($pages);$i++)
+		$page=$pages[$i];
+		$db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$page->ID.' ORDER BY ord');
+		$questions = $db->loadObjectList();
+		if ($questions!==null) for ($j=0;$j<count($questions);$j++)
 		{
-			$page=$pages[$i];
-			$db->setQuery('SELECT * FROM jcq_question WHERE pageID = '.$page->ID.' ORDER BY ord');
-			$questions = $db->loadObjectList();
-			if ($questions!=null)
+			$question=$questions[$j];
+			$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
+			$items = $db->loadObjectList();
+			if ($items!==null) for ($k=0;$k<count($items);$k++)
 			{
-				for ($j=0;$j<count($questions);$j++)
-				{
-					$question=$questions[$j];
-					switch ($question->questtype)
-					{
-						case SINGLECHOICE:
-							{
-								if ($question->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_";
-								//look for additional textfields
-								$db->setQuery('SELECT * FROM jcq_item WHERE questionID='.$question->ID);
-								$items = $db->loadObjectList();
-								for ($k=0;$k<count($items);$k++)
-								{
-									$item=$items[$k];
-									if ($item->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_i".$item->ID."_";
-								}
-								break;
-							}
-						case TEXTFIELD:
-							{
-								if ($question->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_";
-								break;
-							}
-						case MULTICHOICE: case MATRIX_LEFT: case MATRIX_BOTH:
-							{
-								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
-								$items = $db->loadObjectList();
-								for ($k=0;$k<count($items);$k++)
-								{
-									$item=$items[$k];
-									if ($item->varname==$varname) $intvarname="p".$page->ID."_q".$question->ID."_i".$item->ID."_";
-								}
-								break;
-							}
-						case MULTISCALE:
-							{
-								$db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
-								$scales = $db->loadObjectList();
-								$db->setQuery('SELECT * FROM jcq_item WHERE questionID = '.$question->ID.' ORDER BY ord');
-								$items = $db->loadObjectList();
-								for ($k=0;$k<count($items);$k++)
-								{
-									$item=$items[$k];
-									for ($l=0;$l<count($scales);$l++)
-									{
-										$scale=$scales[$l];
-										if ($item->varname."_s".$scale->ID==$varname) $intvarname = "p".$page->ID."_q".$question->ID."_i".$item->ID."_s".$scale->ID."_";
-									}
-								}
-								break;
-							}
-						case TEXTANDHTML: break;
-						default: JError::raiseError(500, 'FATAL: Code for accessing data from question of type '.$question->questtype.' is missing!!!');
-					}
-					if ($intvarname!=null) break;
+				$item=$items[$k];
+				if ($question->questtype!=MULTISCALE && $item->varname==$varname) {
+					$intvarname="i".$item->ID."_"; break;
 				}
+				else
+				{
+					$db->setQuery('SELECT * FROM jcq_scale, jcq_questionscales WHERE jcq_scale.ID = jcq_questionscales.scaleID AND questionID = '.$question->ID.' ORDER BY ord');
+					$scales = $db->loadObjectList();
+					if ($scales!==null) for ($l=0;$l<count($scales);$l++)
+					{
+						$scale=$scales[$l];
+						if ($item->varname."_s".$scale->ID."_"==$varname) $intvarname = "i".$item->ID."_s".$scale->ID."_";
+					}
+				}
+				if ($intvarname!=null) break;
 			}
 			if ($intvarname!=null) break;
 		}
 	}
 	if ($intvarname==null) return null;
 	//get the value from the database
-	$sqlgetvalue = "SELECT $intvarname FROM jcq_proj".$currentproject." WHERE sessionID='".$currentsession."'";
-	$db->setQuery($sqlgetvalue);
+	$db->setQuery("SELECT $intvarname FROM jcq_proj$currentproject WHERE sessionID='$currentsession'");
 	$answer = $db->loadResult();
 	return $answer;
 }
@@ -180,7 +141,7 @@ class JcqModelUserdata extends JModel
 				$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='$token'";
 				$db->setQuery($sqlsessions);
 				$sessions = $db->loadObjectList();
-					
+
 				//case 1a: no session exists for token or multiple answers are permitted --> create session
 				if ($sessions==null || $project->multiple==1)
 				{
@@ -208,7 +169,7 @@ class JcqModelUserdata extends JModel
 			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='".$user->username."'";
 			$db->setQuery($sqlsessions);
 			$sessions = $db->loadObjectList();
-				
+
 			//case 2a: no session exists for user or multiple answers are permitted --> create session
 			if ($sessions==null || $project->multiple==1)
 			{
@@ -293,9 +254,9 @@ class JcqModelUserdata extends JModel
 		else JError::raiseError(500, "FATAL: code for storing value of datatype $datatype is missing");
 		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param unknown_type $questions
 	 * @return boolean true if all mandatory items are answered
@@ -307,7 +268,9 @@ class JcqModelUserdata extends JModel
 		{
 			$items = $this->model_page->getItemsToQuestion($question->ID);
 			$mainitem = null;
-			if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") { $mainitem = $item; break; }
+			if ($items!==null) foreach ($items as $item) if ($item->bindingType=="QUESTION") {
+				$mainitem = $item; break;
+			}
 			switch ($question->questtype)
 			{
 				case SINGLECHOICE:
@@ -338,7 +301,9 @@ class JcqModelUserdata extends JModel
 							if ($item->bindingType!="QUESTION") continue;
 							$intvarname = 'i'.$item->ID.'_';
 							$response = 0;
-							if (JRequest::getVar($intvarname,null)!=null) { $response = 1; $foundchecked = true; }
+							if (JRequest::getVar($intvarname,null)!=null) {
+								$response = 1; $foundchecked = true;
+							}
 							$this->storeValue($intvarname, $response);
 						}
 						//if mandatory and no item checked --> set missing
@@ -427,7 +392,7 @@ class JcqModelUserdata extends JModel
 				$questions = $this->db->loadObjectList();
 
 				$hasmissings = !$this->storeResponses($questions);
-				
+
 				//go to next page if all mandatory questions/items answered
 				if (!$hasmissings)
 				{
