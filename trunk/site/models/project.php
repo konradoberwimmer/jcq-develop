@@ -13,11 +13,10 @@ class JcqModelProject extends JModel
 		return $db->loadObject()->cssfile;
 	}
 	
-	function getImports($projectID)
+	function getProgramfiles($projectID)
 	{
-		$sqlimports = "SELECT * FROM jcq_import WHERE projectID=$projectID";
 		$db = $this->getDBO();
-		$db->setQuery($sqlimports);
+		$db->setQuery("SELECT * FROM jcq_programfile WHERE projectID=$projectID");
 		return $db->loadObjectList();
 	}
 
