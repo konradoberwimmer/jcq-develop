@@ -210,9 +210,7 @@ class JcqController extends JController
 
 	function importProject()
 	{
-		$importwell=true;
-		//TODO has to be secured against many risks of false file
-		$xmldoc = new DOMDocument('1.0', 'utf-8');
+		//get the file
 		$file = JRequest::getVar('file_upload', null, 'files', 'array');
 		$src = $file['tmp_name'];
 		$filehandle = fopen($src,'r');
@@ -220,30 +218,9 @@ class JcqController extends JController
 		$xmldoc = new DOMDocument('1.0', 'utf-8');
 		$xmldoc->loadXML($content);
 		fclose($filehandle);
-		$projectDef = $xmldoc->getElementsByTagName('project');
-		if ($projectDef!=null)
-		{
-			$projectDef=$projectDef->item(0);
-			//import project definition
-			$tableProject =& $this->getModel('projects')->getTable('projects');
-			$tableProject->ID = 0;
-			xmlToJTable($projectDef, $tableProject);
-			$tableProject->store();
-			$projectID = $tableProject->ID;
-			//TODO add user table
-			$pages = $projectDef->getElementsByTagName('page');
-			foreach ($pages as $pageDef)
-			{
-				$tablePage =& $this->getModel('pages')->getTable('pages');
-				$tablePage->ID = 0;
-				$tablePage->projectID = $projectID;
-				xmlToJTable($pageDef, $tablePage);
-				$tablePage->store();
-				$pageID = $tablePage->ID;
-				//TODO alter user table
-				//TODO store questions
-			}
-		}
+		//do the import
+		$model = $this->getModel('importexport');
+		$importwell = $model->importProject($xmldoc);
 
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
 		$this->setRedirect($redirectTo, ($importwell?'Project imported ...':'Error importing ...'));
