@@ -216,7 +216,7 @@ if ($this->project->ID > 0) { ?>
 			</td>
 			<td><input type="text" id="<?php echo("import".$import->ID."filename"); ?>" name="importfilename[]" value="<?php echo $import->filename; ?>"/></td>
 			<td><input type="checkbox" id="<?php echo("import".$import->ID."delete"); ?>" name="importdelete[]" value="<?php echo $import->ID; ?>"/></td>
-			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editimport(<?php echo $import->ID; ?>)"/></td>
+			<td><input type="button" name="<?php echo("import".$import->ID."edit"); ?>" value="Edit ..." onclick="editProgramFile(<?php echo $import->ID; ?>)"/></td>
 			</tr>
 			<tbody>
 			<?php 	

@@ -8,7 +8,7 @@ Joomla.submitbutton = function(pressbutton)
 	submitform(pressbutton);
 }
 
-//function for nun-toolbar submitbuttons
+//function for non-toolbar submitbuttons
 function submitbutton(pressbutton)
 {
 	if (pressbutton=='previewPage')
@@ -74,7 +74,7 @@ function submitbutton(pressbutton)
 	submitform(pressbutton);
 }
 
-function editImport(id)
+function editProgramFile(id)
 {
 	var editImport = document.getElementById('editImport');
 	editImport.setAttribute("value",id);
