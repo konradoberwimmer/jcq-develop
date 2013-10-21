@@ -51,9 +51,9 @@ class JcqController extends JController
 			$document = JFactory::getDocument();
 			$document->addStyleSheet(JURI::root().'components/com_jcq/usercode/'.$cssfilename);
 		}
-		//add user imported code (if any)
-		$imports = $projectmodel->getImports($projectID);
-		foreach ($imports as $import) require_once(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$import->filename);
+		//add user program files (if any)
+		$programfiles = $projectmodel->getProgramfiles($projectID);
+		if ($programfiles!==null) foreach ($programfiles as $programfile) require_once(JPATH_COMPONENT_SITE.DS.'usercode'.DS.$programfile->filename);
 		
 		if ($loginsuccessful)
 		{

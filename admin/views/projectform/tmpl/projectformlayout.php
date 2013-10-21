@@ -223,7 +223,7 @@ if ($this->project->ID > 0) { ?>
 		}
 		?>
 	</table>
-	<input type="button" name="addProgramfile" value="Add program file" onclick="addProgramfile()"/><br/>
+	<input type="button" value="Add program file" onclick="addProgramfile()"/><br/>
 	<br/>
 	(TIP: Use getStoredValue(varname) in user defined functions to get participants answers.)
 </fieldset>
