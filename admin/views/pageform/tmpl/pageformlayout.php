@@ -42,9 +42,10 @@ addOnload(openPreview('<?php echo(JURI::root()."index.php?option=com_jcq"); ?>',
        <input type="hidden" name="isFinal" value="<?php echo $this->page->isFinal; ?>"/>
        <input type="hidden" name="projectID" value="<?php echo $this->page->projectID; ?>"/>
        <input type="hidden" name="task" value=""/>
-<?php if ($this->page->ID > 0 && $this->questions != null) { ?>
+<?php if ($this->page->ID > 0) { ?>
 <fieldset>
              <legend>Questions:</legend>
+<?php if ($this->questions != null) { ?>
 Page has <?php echo count($this->questions); ?> question(s).
        <table class="list">
              <thead>
@@ -95,13 +96,29 @@ Page has <?php echo count($this->questions); ?> question(s).
        </table>
        <input type="hidden" name="boxchecked" value="0"/>    
        <input type="hidden" name="hidemainmenu" value="0"/>  
-       </fieldset>
-<?php } else if ($this->page->ID > 0) { ?>
-<fieldset>
-             <legend>Questions:</legend>
+<?php } else { ?>
 Page has no questions.
-</fieldset>
 <?php } 
+	if (!$this->page->isFinal) {
+?>
+    <table>
+    	<tr style="border-top: 1px solid grey;"><td><input style="width: 150px;" type="button" name="copyQuestion" value="Copy question" onclick="submitbutton('copyQuestion')"/></td><td><label for="selCopyquestion">Question:&nbsp;</label>
+		<select name="selCopyquestion" id="selCopyquestion">
+			<option value="-1">--- SELECT ---</option>
+			<?php 
+			$allquestions=$this->getModel()->getAllQuestionsList();
+			if ($allquestions!==null)
+			{
+				foreach($allquestions as $onequestion) echo("<option value=\"".$onequestion->question_ID."\">".$onequestion->question_name." (Page '".$onequestion->page_name."', Project '".$onequestion->proj_name."')</option>");
+			}
+			?>
+		</select>
+		</td></tr>
+	</table>
+</fieldset>
+<?php
+	}
+}
 if ($this->page->ID > 0 && !$this->page->isFinal)
 {
 	$cntdisjunctions = 0;

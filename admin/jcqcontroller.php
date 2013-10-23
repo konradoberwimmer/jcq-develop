@@ -350,6 +350,17 @@ class JcqController extends JController
 		$view->displayAdd($pageID);
 	}
 
+	function copyQuestion()
+	{
+		$thepost=JRequest::get('POST' );
+	
+		$model = & $this->getModel('importexport');
+		$model->copyQuestion($thepost['selCopyquestion'],$thepost['ID']);
+	
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['ID'],false);
+		$this->setRedirect($redirectTo, 'Question copied ...');
+	}
+	
 	function saveQuestion()
 	{
 		$thepost = JRequest::get('POST',JREQUEST_ALLOWHTML|JREQUEST_ALLOWRAW);

@@ -178,5 +178,12 @@ class JcqModelPages extends JModel {
 		if ($questions === null) JError::raiseError(500, 'Error reading db');
 		else return $questions;
 	}
+	
+	function getAllQuestionsList()
+	{
+		$this->db->setQuery("SELECT jcq_question.ID AS question_ID, jcq_question.name AS question_name, jcq_page.name AS page_name, jcq_project.name AS proj_name FROM jcq_question, jcq_page, jcq_project WHERE jcq_question.pageID=jcq_page.ID AND jcq_page.projectID=jcq_project.ID ORDER BY jcq_project.name, jcq_page.isFinal, jcq_page.ord, jcq_question.ord");
+		$results = $this->db->loadObjectList();
+		return $results;
+	}
 
 }
