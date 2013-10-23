@@ -9,6 +9,9 @@ require_once(JPATH_COMPONENT.DS.'tables'.DS.'items.php');
 require_once(JPATH_COMPONENT.DS.'tables'.DS.'questions.php');
 require_once(JPATH_COMPONENT.DS.'tables'.DS.'pages.php');
 require_once(JPATH_COMPONENT.DS.'tables'.DS.'projects.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'projects.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'pages.php');
+require_once(JPATH_COMPONENT.DS.'models'.DS.'questions.php');
 
 function jtableToXml ($jtable, $xmldoc, $xmlnode)
 {
@@ -66,9 +69,10 @@ abstract class JCQImportExportNode
 		$db->setQuery("SELECT ID FROM ".$childnode->dbtable." WHERE ".$childnode->parentidfield." = $myID");
 		return $db->loadObjectList();
 	}
-	
+
 	function importFromXML($xmlnode, $parentID=null)
 	{
+		$this->jtable->reset();
 		xmlToJTable($xmlnode, $this->jtable);
 		$this->jtable->ID = 0;
 		$parfieldname = $this->parentidfield;
@@ -77,8 +81,8 @@ abstract class JCQImportExportNode
 		$myID=$this->jtable->ID;
 		foreach ($this->childnodes as $childnode)
 		{
-			$children = $xmlnode->getElementsByTagName($childnode->name);
-			if ($children!==null) foreach ($children as $child) $childnode->importFromXML($child, $myID);
+			$children = $xmlnode->childNodes;
+			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
 		}
 	}
 }
@@ -119,12 +123,36 @@ class JCQIENodeUsergroup extends JCQImportExportNode
 
 class JCQIENodeCode extends JCQImportExportNode
 {
+	static public $idtranslate = array();
+
 	function __construct()
 	{
 		$this->name = "code";
 		$this->dbtable = "jcq_code";
 		$this->jtable = new TableCodes(JFactory::getDbo());
 		$this->parentidfield = "scaleID";
+	}
+
+	/**
+	 * override to save ID translation
+	 * @see JCQImportExportNode::importFromXML()
+	 */
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		$this->jtable->reset();
+		xmlToJTable($xmlnode, $this->jtable);
+		$oldID = $this->jtable->ID;
+		$this->jtable->ID = 0;
+		$parfieldname = $this->parentidfield;
+		if ($this->parentidfield!==null)  $this->jtable->$parfieldname = $parentID;
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+		JCQIENodeCode::$idtranslate[$oldID]=$myID;
+		foreach ($this->childnodes as $childnode)
+		{
+			$children = $xmlnode->childNodes;
+			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
+		}
 	}
 }
 
@@ -137,7 +165,11 @@ class JCQIENodeScale extends JCQImportExportNode
 		$this->jtable = new TableScales(JFactory::getDbo());
 		array_push($this->childnodes, new JCQIENodeCode());
 	}
-	
+
+	/**
+	 * override because of the n:m relationship between scales and questions
+	 * @see JCQImportExportNode::importFromXML()
+	 */
 	function importFromXML($xmlnode, $parentID=null)
 	{
 		xmlToJTable($xmlnode, $this->jtable);
@@ -149,20 +181,64 @@ class JCQIENodeScale extends JCQImportExportNode
 		if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
 		foreach ($this->childnodes as $childnode)
 		{
-			$children = $xmlnode->getElementsByTagName($childnode->name);
-			if ($children!==null) foreach ($children as $child) $childnode->importFromXML($child, $myID);
+			$children = $xmlnode->childNodes;
+			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
 		}
 	}
 }
 
 class JCQIENodeItem extends JCQImportExportNode
 {
+	static public $idtranslate = array();
+
 	function __construct()
 	{
 		$this->name = "item";
 		$this->dbtable = "jcq_item";
 		$this->jtable = new TableItems(JFactory::getDbo());
 		$this->parentidfield = "questionID";
+	}
+
+	/**
+	 * override, because ID translation needs to be saved and bindingIDs set correct
+	 * adds the functionality to add the answer columns to the userdata table
+	 * @see JCQImportExportNode::importFromXML()
+	 */
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		$this->jtable->reset();
+		xmlToJTable($xmlnode, $this->jtable);
+		$oldID = $this->jtable->ID;
+		$this->jtable->ID = 0;
+		$parfieldname = $this->parentidfield;
+		if ($this->parentidfield!==null)  $this->jtable->$parfieldname = $parentID;
+		//special code for items: set the bindingID right (requires that codes and other items be loaded first)
+		if ($this->jtable->bindingType=="CODE") $this->jtable->bindingID = JCQIENodeCode::$idtranslate[$this->jtable->bindingID];
+		if ($this->jtable->bindingType=="ITEM") $this->jtable->bindingID = JCQIENodeItem::$idtranslate[$this->jtable->bindingID];
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+		JCQIENodeItem::$idtranslate[$oldID]=$myID;
+
+		$model_questions = new JcqModelQuestions();
+		$myquestion = $model_questions->getQuestion($parentID);
+		$mypage = $model_questions->getPageFromQuestion($parentID);
+		$myproject = $model_questions->getProjectFromPage($mypage->ID);
+		$db=JFactory::getDbo();
+		if ($myquestion->questtype!=MULTISCALE)
+		{
+			$fieldtype = "INT";
+			if ($this->jtable->datatype!=1 || $myquestion->questtype==TEXTFIELD || $this->jtable->bindingType!="QUESTION") $fieldtype = "TEXT";
+			$db->setQuery("ALTER TABLE jcq_proj".$myproject->ID." ADD COLUMN i".$this->jtable->ID."_ ".$fieldtype);
+			if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+		} else
+		{
+			$scales = $model_questions->getScales($myquestion->ID);
+			if ($scales!==null) foreach ($scales as $scale)
+			{
+				$db->setQuery("ALTER TABLE jcq_proj".$myproject->ID." ADD COLUMN i".$this->jtable->ID."_s".$scale->ID."_ INT");
+				if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+			}
+		}
 	}
 }
 
@@ -174,13 +250,24 @@ class JCQIENodeQuestion extends JCQImportExportNode
 		$this->dbtable = "jcq_question";
 		$this->jtable = new TableQuestions(JFactory::getDbo());
 		$this->parentidfield = "pageID";
-		array_push($this->childnodes, new JCQIENodeItem());
+		//the order of the childnodes is important here, because items may be bound to codes!!!
 		array_push($this->childnodes, new JCQIENodeScale());
+		array_push($this->childnodes, new JCQIENodeItem());
 	}
-	
+
+	/**
+	 * overridden, because scales and items for the question have to be retrieved in special ways
+	 * @see JCQImportExportNode::getChildrenIDs()
+	 */
 	function getChildrenIDs($myID, $childnode)
 	{
-		if ($childnode->name=="item") return parent::getChildrenIDs($myID, $childnode);
+		if ($childnode->name=="item")
+		{
+			$db = JFactory::getDbo();
+			//the order of items is important here because items with a bindingID may be bound to another item
+			$db->setQuery("SELECT ID FROM jcq_item WHERE questionID = $myID ORDER BY bindingID");
+			return $db->loadObjectList();
+		}
 		else
 		{
 			$db = JFactory::getDbo();
@@ -200,6 +287,34 @@ class JCQIENodePage extends JCQImportExportNode
 		$this->parentidfield = "projectID";
 		array_push($this->childnodes, new JCQIENodeQuestion());
 	}
+
+	/**
+	 * Adds the functionality to create the timestamp for the page in the user data table.
+	 * @see JCQImportExportNode::importFromXML()
+	 */
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		$this->jtable->reset();
+		xmlToJTable($xmlnode, $this->jtable);
+		$this->jtable->ID = 0;
+		$parfieldname = $this->parentidfield;
+		if ($this->parentidfield!==null)  $this->jtable->$parfieldname = $parentID;
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+
+		if (!$this->jtable->isFinal) //add the timestamp for the page
+		{
+			$db = JFactory::getDbo();
+			$db->setQuery("ALTER TABLE jcq_proj".$parentID." ADD COLUMN p".$this->jtable->ID."_timestamp BIGINT");
+			if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+		}
+
+		foreach ($this->childnodes as $childnode)
+		{
+			$children = $xmlnode->childNodes;
+			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
+		}
+	}
 }
 
 class JCQIENodeProject extends JCQImportExportNode
@@ -209,9 +324,34 @@ class JCQIENodeProject extends JCQImportExportNode
 		$this->name = "project";
 		$this->dbtable = "jcq_project";
 		$this->jtable = new TableProjects(JFactory::getDbo());
-		//array_push($this->childnodes, new JCQIENodePage());
+		array_push($this->childnodes, new JCQIENodePage());
 		array_push($this->childnodes, new JCQIENodeUsergroup());
 		array_push($this->childnodes, new JCQIENodeProgramfile());
+	}
+
+	/**
+	 * Adds the functionality to create the user data table.
+	 * @see JCQImportExportNode::importFromXML()
+	 */
+	function importFromXML($xmlnode, $parentID=null)
+	{
+		$this->jtable->reset();
+		xmlToJTable($xmlnode, $this->jtable);
+		$this->jtable->ID = 0;
+		$parfieldname = $this->parentidfield;
+		if ($this->parentidfield!==null)  $this->jtable->$parfieldname = $parentID;
+		$this->jtable->store();
+		$myID=$this->jtable->ID;
+
+		$db = JFactory::getDbo();
+		$db->setQuery("CREATE TABLE jcq_proj".$this->jtable->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), groupID BIGINT, sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
+		if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+
+		foreach ($this->childnodes as $childnode)
+		{
+			$children = $xmlnode->childNodes;
+			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
+		}
 	}
 }
 
@@ -222,23 +362,34 @@ class JcqModelImportexport extends JModel
 		#FIXME create file in unsave path for now
 		$filename = "project$ID"."_".time().".xml";
 		$filehandle = fopen(JPATH_COMPONENT.DS."userdata".DS.$filename,"w") or JError::raiseError(500, 'Error creating file');
-
+	
 		$xmldoc = new DOMDocument('1.0', 'utf-8');
 		$projectnode = new JCQIENodeProject();
 		$projectnode->exportToXML($ID, $xmldoc);
-		
+	
 		fwrite($filehandle, $xmldoc->saveXML());
 		fclose($filehandle);
-
+	
 		return $filename;
 	}
-	
+
 	function importProject($xmldoc)
 	{
 		$xmlnode = $xmldoc->getElementsByTagName('project');
 		if ($xmlnode===null || count($xmlnode)==0) return false;
 		$projectnode = new JCQIENodeProject();
 		$projectnode->importFromXML($xmlnode->item(0));
+		#TODO error handling
 		return true;
+	}
+
+	function copyQuestion($questionID,$targetPageID)
+	{
+		$xmldoc = new DOMDocument('1.0', 'utf-8');
+		$questionnode = new JCQIENodeQuestion();
+		$questionnode->exportToXML($questionID, $xmldoc);
+
+		$questionnodenew = new JCQIENodeQuestion();
+		$questionnodenew->importFromXML($xmldoc->getElementsByTagName('question')->item(0),$targetPageID);
 	}
 }
