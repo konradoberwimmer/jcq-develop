@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewProjectform extends JView
 {
-	function displayEdit($projectID, $download=null)
+	function displayEdit($projectID, $download=null, $previewSession=null)
 	{
 		$model = $this->getModel();
 		$project = $model->getProject($projectID);
@@ -16,6 +16,7 @@ class JcqViewProjectform extends JView
 		$this->assignRef('programfiles', $programfiles);
 		$this->assignRef('usergroups', $this->getModel('usergroups'));
 		$this->assignRef('download',$download);
+		if ($previewSession!==null) $this->assignRef('previewSession',$previewSession);
 		
 		$questioncounts = array();
 		$i=0;
@@ -34,6 +35,8 @@ class JcqViewProjectform extends JView
 		$filename = 'manageuglist.js';
 		JHTML::script($path.$filename, true);
 		$filename = 'opendownload.js';
+		JHTML::script($path.$filename, true);
+		$filename = 'openpreview.js';
 		JHTML::script($path.$filename, true);
 		$filename = 'addprogramfiles.js';
 		JHTML::script($path.$filename, true);

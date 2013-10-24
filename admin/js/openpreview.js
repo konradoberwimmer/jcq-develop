@@ -14,7 +14,7 @@ function addOnload(onloadFunc) {
 
 function openPreview(root,projectID,sessionID)
 {
-	var url = root + "&tmpl=component&projectID=" + projectID + "&sessionID=" + sessionID;
+	var url = root + "&projectID=" + projectID + "&sessionID=" + sessionID;
 	var win=window.open(url, '_blank');
 	win.focus();
 }

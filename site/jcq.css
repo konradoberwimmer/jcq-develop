@@ -4,6 +4,7 @@ div.alertlogin { margin-top: 5px; margin-bottom: 20px; border: 1px solid red; co
 table.pageheader { border-collapse: collapse; width: 100%; border: 0px; font-style: italic; margin-bottom: 5px; font-size: larger; }
 table.pageheader tr { border: 0px; }
 table.pageheader tr td { border-bottom: 1px solid #CCCCCC; padding-bottom: 3px; vertical-align: middle; }
+table.pageheader tr td span.preview { color: red; }
 
 div.questionalertmissing { margin-top: 5px; margin-bottom: 20px; border: 1px solid red; color: red; padding: 5px;}
 
