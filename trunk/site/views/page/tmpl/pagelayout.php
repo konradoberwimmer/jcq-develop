@@ -2,7 +2,12 @@
 defined('_JEXEC') or die('Restricted access'); ?>
 <table class="pageheader">
 	<tr>
-		<td><?php echo($this->pagemodel->getProjectName()); ?></td>
+		<td>
+		<?php 
+			if ($this->userdata->isPreview()) echo('<span class="preview">PREVIEW: </span>');
+			echo($this->pagemodel->getProjectName()); 
+		?>
+		</td>
 		<td align="right"><img src="<?php echo($this->getProgressbar($this->page->ID,$this->pagemodel->getPagePosition())); ?>" alt="<?php echo($this->pagemodel->getPagePosition()); ?>"/></td>
 	</tr>
 </table>

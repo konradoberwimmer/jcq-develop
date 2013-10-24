@@ -16,6 +16,11 @@ function submitbutton(pressbutton)
 		var previewPage = document.getElementById('previewPage');
 		previewPage.setAttribute("value","1");
 		pressbutton = "savePage";
+	} else if (pressbutton=='previewProject')
+	{
+		var previewProject = document.getElementById('previewProject');
+		previewProject.setAttribute("value","1");
+		pressbutton = "saveProject";
 	} else if (pressbutton=='uploadTokens')
 	{
 		document.adminForm.setAttribute('enctype','multipart/form-data');

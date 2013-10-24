@@ -54,7 +54,10 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model participants not found');
 			
 		$view->setLayout('projectformlayout');
-		$view->displayEdit($projectID, $download);
+		
+		$previewSession = JRequest::getVar('preview', null);
+		if ($previewSession!==null) $view->displayEdit($projectID,null,$previewSession);
+		else $view->displayEdit($projectID,$download);
 	}
 
 	function saveProject()
@@ -98,7 +101,22 @@ class JcqController extends JController
 			if ($programfiledeleteids!=null) foreach ($programfiledeleteids as $programfiledeleteid) $model->deleteProgramfile($programfiledeleteid);
 		}
 
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
+		if ($project['previewProject']==1)
+		{
+			$sessionID = uniqid('', true);
+			$pages = $model->getPages($projectid);
+			if ($pages===null || count($pages)==1) $pageID=-1;
+			else $pageID=$pages[0]->ID;
+			$sqlnewsession = "INSERT INTO jcq_proj$projectid (preview, sessionID, curpage, timestampBegin) VALUES (1,'$sessionID',$pageID,".time().")";
+			$db =& JFactory::getDBO();
+			$db->setQuery($sqlnewsession);
+			if (!$db->query()) JError::raiseError(500, 'Error inserting new session: '.$this->getDBO()->getErrorMsg());
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid.'&preview='.$sessionID,false);
+		}
+		else
+		{
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid,false);
+		}
 		$this->setRedirect($redirectTo, 'Project saved!');
 	}
 

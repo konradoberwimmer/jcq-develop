@@ -469,6 +469,12 @@ class JcqModelUserdata extends JModel
 	{
 		return $this->sessionID;
 	}
+	
+	function isPreview()
+	{
+		$this->db->setQuery("SELECT preview FROM jcq_proj".$this->projectID." WHERE sessionID='".$this->sessionID."'");
+		return ($this->db->loadResult()?true:false);
+	}
 
 	function hasStoredValueVariable($varname)
 	{

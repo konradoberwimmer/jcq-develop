@@ -145,11 +145,10 @@ class JcqModelQuestions extends JModel {
 		//first remove the user data column(s)
 		$pageID = $this->getPageFromQuestion($questionID)->ID;
 		$projectID = $this->getProjectFromPage($pageID)->ID;
-		$this->db->setQuery("SELECT CONCAT('ALTER TABLE jcq_proj$projectID ', GROUP_CONCAT('DROP COLUMN ',column_name)) AS statement FROM information_schema.columns WHERE table_name = 'jcq_proj$projectID' AND column_name LIKE 'i%_s".$scaleID."_';");
-		$sqlresult = $this->db->loadResult();
-		if ($sqlresult!=null)
+		$items = $this->getItems($questionID);
+		if ($items!==null) foreach ($items as $item)
 		{
-			$this->db->setQuery($sqlresult);
+			$this->db->setQuery("ALTER TABLE jcq_proj$projectID DROP COLUMN i".$item->ID."_s".$scaleID."_';");
 			if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 		}
 		//then delete the attached scale from question

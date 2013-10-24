@@ -12,6 +12,14 @@ addOnload(openDownload('components/com_jcq/userdata','<?php echo($this->download
 </script>
 <?php 
 }
+if (isset($this->previewSession)) { ?>
+<script type="text/javascript">
+<!--
+addOnload(openPreview('<?php echo(JURI::root()."index.php?option=com_jcq"); ?>','<?php echo($this->project->ID); ?>','<?php echo($this->previewSession); ?>'));
+//-->
+</script>
+<?php 
+}
 if ($this->project->ID > 0) { ?>
 <p class="breadcrumbs">
 <a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a>&nbsp;&gt;&nbsp;
@@ -22,7 +30,11 @@ if ($this->project->ID > 0) { ?>
        <fieldset>
              <legend>Project definition:</legend>
              <table class="settings">
-                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->project->name; ?>" /></td></tr>
+                    <tr><td>Name</td><td><input type="text" name="name" id="name" size="32" maxlength="250" value="<?php echo $this->project->name; ?>" /></td>
+                    <?php if ($this->project->ID > 0) { ?>
+                    	<td><input type="button" name="previewProject" value="Preview" onclick="submitbutton('previewProject')"/></td>
+                    <?php } ?>
+                    </tr>
                     <tr><td>CSS-File (optional)</td><td><input type="text" name="cssfile" id="cssfile" size="32" maxlength="250" value="<?php echo $this->project->cssfile; ?>" />
                     <?php if ($this->project->ID > 0 && strlen($this->project->cssfile)>0) { ?>
                     	<input style="width: 150px;" type="button" name="editCSS" value="Edit CSS" onclick="submitbutton('editCSS')"/>
@@ -38,6 +50,7 @@ if ($this->project->ID > 0) { ?>
        <input type="hidden" name="option" value="<?php echo JRequest::getVar( 'option' );?>"/>
        <input type="hidden" name="ID" value="<?php echo $this->project->ID; ?>"/>      
        <input type="hidden" name="task" value=""/>
+       <input type="hidden" name="previewProject" id="previewProject" value="0"/>
        <input type="hidden" id="editProgramfile" name="editProgramfile" value=""/>
 <?php if ($this->project->ID > 0) { ?>
 <fieldset>
