@@ -5,7 +5,6 @@ defined('_JEXEC') or die('Restricted access'); ?>
        <fieldset>
              <legend>Question definition:</legend>
              <table class="settings">
-                    <tr><td>Name</td><td><input type="text" name="_question_name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>" autofocus="autofocus"/></td></tr>
                     <tr><td>Type</td>
                     <td><select name="_question_questtype">
                     <?php 
@@ -18,6 +17,15 @@ defined('_JEXEC') or die('Restricted access'); ?>
                     ?>
                     </select>
                     </td></tr>
+             		<tr><td>Name</td><td><input type="text" name="_question_name" size="32" maxlength="250" value="<?php echo $this->question->name; ?>"
+                    <?php
+                    		if ($this->question->ID == 0) 
+                    		{  
+                    			echo(' autofocus="autofocus"');
+                    			echo(' onkeyup="if (event.keyCode == 13) { submitbutton(\'saveQuestion\'); } return false;"');
+                    		}
+                    ?>
+                    /></td></tr>
              </table>
        </fieldset>
 

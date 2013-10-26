@@ -50,6 +50,7 @@ foreach ($this->items as $oneitem) if ($oneitem->bindingType=='QUESTION') {	$mai
 	   <fieldset>
              <legend>Layout:</legend>
              <table class="settings">
+                    <tr><td>Number of rows</td><td><input type="text" name="_item_<?php echo($mainitem->ID); ?>_rows" size="8" maxlength="250" value="<?php echo $mainitem->rows; ?>" /></td></tr>
                     <tr><td>Width of textfield</td><td><input type="text" name="_question_width_items" size="8" maxlength="250" value="<?php echo $this->question->width_items; ?>" /></td></tr>
              </table>
        </fieldset>
