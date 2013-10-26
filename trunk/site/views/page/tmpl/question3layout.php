@@ -33,7 +33,9 @@ $prevanswer = $this->userdata->getStoredValue($mainitem->ID);
 		$possplit = strpos($mainitem->prepost, '%s');
 		if ($possplit===false)
 		{ 
-			echo('<p><input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			echo('<p>');
+			if ($mainitem->rows==1) echo('<input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			else echo('<textarea name="i'.$mainitem->ID.'_" rows="'.$mainitem->rows.'" style="width: '.$width.'px;">'.$prevanswer.'</textarea>');
 			if (!$ismissing) echo($mainitem->prepost);
 			else echo('<span class="question3missing">'.$mainitem->prepost.'</span>');
 			echo('</p>');
@@ -43,7 +45,8 @@ $prevanswer = $this->userdata->getStoredValue($mainitem->ID);
 			echo('<p>');
 			if (!$ismissing) echo(substr($mainitem->prepost,0,$possplit));
 			else echo('<span class="question3missing">'.substr($mainitem->prepost,0,$possplit).'</span>');
-			echo('<input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			if ($mainitem->rows==1) echo('<input type="text" name="i'.$mainitem->ID.'_" value="'.$prevanswer.'" style="width: '.$width.'px;"/>');
+			else echo('<textarea name="i'.$mainitem->ID.'_" rows="'.$mainitem->rows.'" style="width: '.$width.'px;">'.$prevanswer.'</textarea>');
 			if (!$ismissing) echo(substr($mainitem->prepost,$possplit+2));
 			else echo('<span class="question3missing">'.substr($mainitem->prepost,$possplit+2).'</span>');
 			echo('</p>');
