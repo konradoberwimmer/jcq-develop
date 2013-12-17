@@ -119,7 +119,7 @@ CREATE TABLE jcq_usergroup(
 
 CREATE TABLE jcq_token(
 		ID BIGINT NOT NULL AUTO_INCREMENT,
-		token VARCHAR(16),
+		token VARCHAR(64),
 		email TEXT,
 		name TEXT,
 		firstname TEXT,
