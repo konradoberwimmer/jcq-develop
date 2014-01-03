@@ -29,3 +29,4 @@ $controller->redirect();
 #TODO project-specific alerts (mandatory questions, incorrect answer format, ...)
 #TODO make it work with the browsers back button
 #TODO layout-settings: header, footer, title, icon progress bar
+#TODO allow return value of user defined functions to be used in filters
