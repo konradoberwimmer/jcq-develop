@@ -223,7 +223,7 @@ class JcqModelProjects extends JModel {
 						}
 					case 3:
 						{
-							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", str_replace(";","",$row[$variables[$i]->intvarname])));
+							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", trim(preg_replace('/\s+/', ' ', str_replace(";","",$row[$variables[$i]->intvarname])))));
 							break;
 						}
 					default: JError::raiseError(500,"FATAL: code for saving data of type ".$variables[$i]->datatype." is missing!!!");
