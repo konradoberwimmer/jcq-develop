@@ -11,7 +11,7 @@ include('PHPExcel'.DS.'PHPExcel'.DS.'IOFactory.php');
 class JcqController extends JController
 {
 
-	function display()
+	function display($cachable = false, $urlparams = false)
 	{
 		$viewName    = JRequest::getVar( 'view', 'projectlist' );
 		$viewLayout  = JRequest::getVar( 'layout', 'projectlistlayout' );
@@ -233,9 +233,23 @@ class JcqController extends JController
 		$src = $file['tmp_name'];
 		$filehandle = fopen($src,'r');
 		$content = fread($filehandle, filesize($src));
+		fclose($filehandle);
 		$xmldoc = new DOMDocument('1.0', 'utf-8');
 		$xmldoc->loadXML($content);
-		fclose($filehandle);
+		//get xslt if necessary and parse with XSLTProcessor
+		if (JRequest::getVar('usexslt',null)!==null)
+		{
+			$xsltfile = JRequest::getVar('xslt_upload', null, 'files', 'array');
+			$src = $xsltfile['tmp_name'];
+			$xsltfilehandle = fopen($src,'r');
+			$xsltcontent = fread($xsltfilehandle, filesize($src));
+			fclose($xsltfilehandle);
+			$xsltdoc = new DOMDocument('1.0', 'utf-8');
+			$xsltdoc->loadXML($xsltcontent);
+			$proc = new XSLTProcessor();
+			$proc->importStylesheet($xsltdoc);
+			$xmldoc = $proc->transformToDoc($xmldoc);
+		}
 		//do the import
 		$model = $this->getModel('importexport');
 		$importwell = $model->importProject($xmldoc);

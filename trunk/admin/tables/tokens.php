@@ -11,7 +11,7 @@ class TableTokens extends JTable {
 	public $note = null;
 	public $usergroupID = null;
 	
-	function TableTokens(&$db)
+	function TableTokens($db)
 	{
 		parent::__construct('jcq_token', 'ID', $db);
 	}

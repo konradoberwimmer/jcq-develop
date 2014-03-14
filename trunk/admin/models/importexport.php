@@ -376,7 +376,7 @@ class JcqModelImportexport extends JModel
 	function importProject($xmldoc)
 	{
 		$xmlnode = $xmldoc->getElementsByTagName('project');
-		if ($xmlnode===null || count($xmlnode)==0) return false;
+		if ($xmlnode->length==0) return false;
 		$projectnode = new JCQIENodeProject();
 		$projectnode->importFromXML($xmlnode->item(0));
 		#TODO error handling
