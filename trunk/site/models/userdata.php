@@ -110,36 +110,24 @@ class JcqModelUserdata extends JModel
 
 		if ($project==null) JError::raiseError(500, 'Project with ID '.$projectID.' not found!');
 
-		$user =& JFactory::getUser();
+		$user = JFactory::getUser();
 
 		//case 1: a token is in the httprequest
-		if (($token = JRequest::getVar('token', null))!==null)
+		if (($tokenname = JRequest::getVar('token', null))!==null)
 		{
-			$foundvalidtoken = false;
-			$tokenusergroup = -1;
-			$db->setQuery("SELECT * FROM jcq_usergroup WHERE projectID=$projectID");
-			$usergroups = $db->loadObjectList();
-			foreach ($usergroups as $usergroup)
+			$token = null;
+			$db->setQuery("SELECT ID FROM jcq_usergroup WHERE projectID=$projectID");
+			$usergroups = $db->loadColumn();
+			if (count($usergroups)>0)
 			{
-				$db->setQuery("SELECT * FROM jcq_token WHERE usergroupID=".$usergroup->ID);
-				$tokens = $db->loadObjectList();
-				foreach ($tokens as $onetoken)
-				{
-					if ($onetoken->token==$token)
-					{
-						$foundvalidtoken = true;
-						$tokenusergroup = $usergroup->val;
-						break;
-					}
-				}
-				if ($foundvalidtoken) break;
+				$db->setQuery("SELECT * FROM jcq_token WHERE usergroupID IN (".implode(',',$usergroups).") AND token='$tokenname'");
+				$token = $db->loadObject();
 			}
 			//not a valid token --> return false (error)
-			if (!$foundvalidtoken) return false;
+			if ($token==null) return false;
 			else
 			{
-				$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='$token'";
-				$db->setQuery($sqlsessions);
+				$db->setQuery("SELECT * FROM jcq_proj".$projectID." WHERE tokenID=".$token->ID);
 				$sessions = $db->loadObjectList();
 
 				//case 1a: no session exists for token or multiple answers are permitted --> create session
@@ -147,7 +135,7 @@ class JcqModelUserdata extends JModel
 				{
 					$this->setSessionID(uniqid('', true));
 					$this->setProjectID($projectID);
-					$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, groupID, sessionID, curpage, timestampBegin) VALUES ('$token',$tokenusergroup,'".$this->sessionID."',0,".time().")";
+					$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (groupID, tokenID, sessionID, curpage, timestampBegin) VALUES (".$token->usergroupID.",".$token->ID.",'".$this->sessionID."',0,".time().")";
 					$db->setQuery($sqlnewsession);
 					if (!$db->query())
 					{
@@ -166,7 +154,7 @@ class JcqModelUserdata extends JModel
 		//case 2: a joomla user is logged in and joomla users are allowed
 		else if ($user->id!=0 && $project->allowjoomla==1)
 		{
-			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE userID='".$user->username."'";
+			$sqlsessions = "SELECT * FROM jcq_proj".$projectID." WHERE joomlaUser='".$user->username."'";
 			$db->setQuery($sqlsessions);
 			$sessions = $db->loadObjectList();
 
@@ -175,7 +163,7 @@ class JcqModelUserdata extends JModel
 			{
 				$this->setSessionID(uniqid('', true));
 				$this->setProjectID($projectID);
-				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (userID, groupID, sessionID, curpage, timestampBegin) VALUES ('".$user->username."',0,'".$this->sessionID."',0,".time().")";
+				$sqlnewsession = "INSERT INTO jcq_proj".$projectID." (groupID,joomlaUser, sessionID, curpage, timestampBegin) VALUES (0,'".$user->username."','".$this->sessionID."',0,".time().")";
 				$db->setQuery($sqlnewsession);
 				if (!$db->query())
 				{

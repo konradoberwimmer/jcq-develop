@@ -14,7 +14,7 @@ class JcqViewPage extends JView
 		
 		$modelpage = $this->getModel();
 		$modelpage->setPage($pageID);
-		$this->assignRef('page',$modelpage->getPage());
+		$this->assign('page',$modelpage->getPage());
 		$this->assignRef('pagemodel', $modelpage);
 		$modeluserdata = $this->getModel('userdata');
 		$this->assignRef('userdata', $modeluserdata);

@@ -154,7 +154,7 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model not found');
 		
 		$view->setLayout('editprogramfilelayout');
-		$view->display($programfileID);
+		$view->displayEdit($programfileID);
 	}
 
 	function editCSS()
@@ -166,7 +166,7 @@ class JcqController extends JController
 		else JError::raiseError(500, 'Model not found');
 	
 		$view->setLayout('editcsslayout');
-		$view->display($projectID);
+		$view->displayEdit($projectID);
 	}
 	
 	function saveEditedCSS()

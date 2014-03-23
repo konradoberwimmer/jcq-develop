@@ -5,7 +5,7 @@ jimport('joomla.application.component.controller');
 
 class JcqController extends JController
 {
-	function display()
+	function display($cachable = false, $urlparams = false)
 	{
 		//front-end can not be accessed without a given project ID
 		$projectID = JRequest::getVar('projectID');
@@ -14,13 +14,13 @@ class JcqController extends JController
 		//get view and layout - could all be fixated in the future (what other view is there?), but for now I copy code ;-)
 		$viewName    = JRequest::getVar( 'view', 'page' );
 		$viewLayout  = JRequest::getVar( 'layout', 'pagelayout' );
-		$view = & $this->getView($viewName);
+		$view = $this->getView($viewName);
 		$view->setLayout($viewLayout);
-		
+			
 		//get the data models
 		$markmissing = false;
 		if (JRequest::getVar('markmissing')!=null) $markmissing = true;	
-		if ($model = & $this->getModel('page') && $modeluserdata = & $this->getModel('userdata') )
+		if (($model = $this->getModel('page')) && ($modeluserdata = $this->getModel('userdata')))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modeluserdata);
@@ -44,7 +44,7 @@ class JcqController extends JController
 		//the userdata model is now linked to the participant's answers
 		
 		//add user css if any
-		$projectmodel = & $this->getModel('project');
+		$projectmodel = $this->getModel('project');
 		$cssfilename = $projectmodel->getCSSfilename($projectID);
 		if (isset($cssfilename)&&strlen($cssfilename)>0)
 		{
@@ -65,7 +65,7 @@ class JcqController extends JController
 		{
 			//display the login form
 			#TODO ban IPs that attempt to break through
-			$view = & $this->getView('loginform');
+			$view = $this->getView('loginform');
 			$view->setLayout('loginformlayout');
 			$view->display();
 		}

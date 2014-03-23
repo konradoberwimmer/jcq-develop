@@ -84,7 +84,7 @@ class JcqModelProjects extends JModel {
 		{
 			$this->db->setQuery("INSERT INTO jcq_page (name, ord, projectID, isFinal) VALUES ('Final page',0,".$projectTableRow->ID.",1)");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating final page entry: '.$this->getDBO()->getErrorMsg());
-			$this->db->setQuery("CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), groupID BIGINT, sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
+			$this->db->setQuery("CREATE TABLE jcq_proj".$projectTableRow->ID." (preview BOOLEAN DEFAULT 0, groupID BIGINT, tokenID BIGINT, joomlaUser VARCHAR(50), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
 			if (!$this->db->query()) JError::raiseError(500, 'Error creating user data database: '.$this->getDBO()->getErrorMsg());
 		}
 		return $projectTableRow->ID;
@@ -186,26 +186,15 @@ class JcqModelProjects extends JModel {
 			}
 		}
 		//write user info variables
-		if ($includeuserdata) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "user_email (A32767) user_name (A32767) user_firstname (A32767) user_salutation (A32767) user_note (A32767)"));
+		if ($includeuserdata) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "user_token (A32767) user_email (A32767) user_name (A32767) user_firstname (A32767) user_salutation (A32767) user_note (A32767)"));
 		//write system variables
-		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "sys_user (A32767) sys_usergroup (F8.0) sys_finished (F8.0) sys_lastpage (A32767) sys_duration (F8.2)"));
+		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "sys_usergroup (F8.0) sys_finished (F8.0) sys_lastpage (A32767) sys_duration (F8.2)"));
 		fwrite($file,".\n");
 
 		//Get Data.
 		fwrite($file,"BEGIN DATA\n");
-		if ($usergroupids==null || count($usergroupids)==0) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
-		else
-		{
-			//translate usergroupids into usergroupvalues
-			$usergroupvals = array();
-			foreach ($usergroupids as $oneugID)
-			{
-				if ($oneugID==-1) array_push($usergroupvals,-1); //handle anonymous
-				else if ($oneugID==0) array_push($usergroupvals,0); //handle joomla users
-				else array_push($usergroupvals,$modelusergroups->getUsergroup($oneugID)->val);
-			}
-			$this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 AND groupID IN (".implode($usergroupvals,",").") ORDER BY timestampBegin");
-		}
+		if ($usergroupids===null || count($usergroupids)==0) $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 ORDER BY timestampBegin");
+		else $this->db->setQuery("SELECT * FROM jcq_proj$projectID WHERE preview=0 AND groupID IN (".implode($usergroupids,",").") ORDER BY timestampBegin");
 		#FIXME perhaps this is not the most memory efficient procedure
 		$data = $this->db->loadAssocList();
 		#TODO set user-defined-missings if value is missing
@@ -232,42 +221,46 @@ class JcqModelProjects extends JModel {
 			//write user info
 			if ($includeuserdata)
 			{
-				if ($row['groupID']<0) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+				if ($row['groupID']<0) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;;"));
 				else if ($row['groupID']==0)
 				{
 					//get user data from Joomla
 					$table = JUser::getTable();
 					$tablename = $table->getTableName();
-					$this->db->setQuery("SELECT * FROM $tablename WHERE username LIKE '".$row['userID']."'");
+					$this->db->setQuery("SELECT * FROM $tablename WHERE username='".$row['joomlaUser']."'");
 					if (($user = $this->db->loadObject())!==null)
 					{
-						fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$user->email.";".$user->name.";;;"));
+						fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;".$user->email.";".$user->name.";;;"));
 					}
 					//if user cannot be found anymore
-					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;;"));
 				}
 				else
 				{
 					//get user data from token
-					$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE val=".$row['groupID']." AND projectID=".$project->ID);
+					$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE ID=".$row['groupID']." AND projectID=".$project->ID);
 					if (($ug = $this->db->loadObject())!==null)
 					{
-						$this->db->setQuery("SELECT * FROM jcq_token WHERE token LIKE '".$row['userID']."' AND usergroupID=".$ug->ID);
+						$this->db->setQuery("SELECT * FROM jcq_token WHERE ID=".$row['tokenID']);
 						if (($token = $this->db->loadObject())!==null)
 						{
-							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$token->email.";".$token->name.";".$token->firstname.";".$token->salutation.";".$token->note));
+							fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$token->token.";".$token->email.";".$token->name.";".$token->firstname.";".$token->salutation.";".$token->note));
 						}
 						//if token cannot be found anymore
-						else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+						else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;;"));
 					}
 					//if user group cannot be found anymore
-					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;"));
+					else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";;;;;;"));
 				}
 			}
-			//write UserID
-			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['userID'])));
-			//write GroupID
-			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['groupID'])));
+			//write GroupVal
+			if ($row['groupID']<=0) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['groupID'])));
+			else 
+			{
+				$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE ID=".$row['groupID']." AND projectID=".$project->ID);
+				if (($ug = $this->db->loadObject())!==null) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['groupID'])));
+				else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";"));
+			}
 			//write if finished
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".$row['finished']));
 			//write last page
@@ -306,6 +299,7 @@ class JcqModelProjects extends JModel {
 		//set labels for user info variables
 		if ($includeuserdata)
 		{
+			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_token 'Token'\n"));
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_email 'User email'\n"));
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_name 'User name (whole name of Joomla users)'\n"));
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_firstname 'User first name'\n"));
@@ -313,7 +307,6 @@ class JcqModelProjects extends JModel {
 			fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ user_note 'User note'\n"));
 		}
 		//set labels for system variables
-		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_user 'Token or Joomla user name (or empty if anonymous)'\n"));
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_usergroup 'User group'\n"));
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_finished 'Was questionnaire finished?'\n"));
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_lastpage 'Name of the last page reached by user'\n"));
@@ -338,7 +331,7 @@ class JcqModelProjects extends JModel {
 		//set value labels for system variables
 		fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", "/ sys_usergroup -1 'anonymous' 0 'Joomla' "));
 		$usergroups = $modelusergroups->getUsergroups($projectID);
-		if ($usergroups!=null && count($usergroups)>0)
+		if ($usergroups!==null && count($usergroups)>0)
 		{
 			foreach ($usergroups as $usergroup) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", $usergroup->val." '".$usergroup->name."'"));
 		}

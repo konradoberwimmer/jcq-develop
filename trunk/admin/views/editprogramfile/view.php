@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewEditprogramfile extends JView
 {
-	function display($programfileID)
+	function displayEdit($programfileID)
 	{
 		JToolBarHelper::title('JCQ: Edit program file', 'generic.png');
 		JToolBarHelper::save("saveEditedProgramfile","Save");
