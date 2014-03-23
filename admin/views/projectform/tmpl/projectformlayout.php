@@ -120,7 +120,10 @@ if ($this->project->ID > 0) { ?>
     	<tbody>
     	<!-- Anonymous answers -->
     	<tr>
-    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,-1); ?>
+    		<?php 
+    			$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,-1); 
+    			$usersfinished = $this->usergroups->getParticipantsFinished($this->project->ID,-1); 
+    		?>
     		<td><input type="checkbox" name="ugchk[]" value="-1"/></td>
     		<td>Anonymous</td>
     		<td>-1</td>
@@ -128,23 +131,26 @@ if ($this->project->ID > 0) { ?>
     		<td><?php echo $usersbegun;?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,-1);?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,-1);?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,-1)));?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,-1)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,-1)));?></td>
     	</tr>
     	<!-- Joomla users -->
     	<tr>
-    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,0); ?>
-    		<td><input type="checkbox" name="ugchk[]" value="0"/></td>
+    		<?php 
+    			$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,0); 
+    			$usersfinished = $this->usergroups->getParticipantsFinished($this->project->ID,0); 
+    		?>
+       		<td><input type="checkbox" name="ugchk[]" value="0"/></td>
     		<td>Joomla</td>
     		<td>0</td>
     		<td><?php #TODO echo user count ?></td>
     		<td><?php echo $usersbegun;?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,0);?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,0);?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,0)));?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,0)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,0)));?></td>
     	</tr>
     	<!-- User groups -->
     	<?php 
@@ -153,19 +159,20 @@ if ($this->project->ID > 0) { ?>
     		{
     			foreach ($projusergroups as $usergroup)
     			{
-    				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->val);
-    				?>
+    				$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID,$usergroup->ID); 
+    				$usersfinished = $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->ID); 
+		?>
     	<tr>	
     		<td><input type="checkbox" name="ugchk[]" value="<?php echo $usergroup->ID; ?>"/></td>
     		<td><a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup->ID,false);?>"><?php echo $usergroup->name; ?></a></td>
     		<td><?php echo $usergroup->val; ?></td>
     		<td><?php echo $this->usergroups->getTokenCount($usergroup->ID); ?></td>
     		<td><?php echo $usersbegun;?></td>
-    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,$usergroup->val);?></td>
-    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->val);?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->val)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->val)));?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID,$usergroup->ID);?></td>
+    		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID,$usergroup->ID);?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID,$usergroup->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID,$usergroup->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID,$usergroup->ID)));?></td>
     	</tr>
     				<?php 
     			}
@@ -173,17 +180,20 @@ if ($this->project->ID > 0) { ?>
     	?>
     	<!-- All -->
     	<tr style="border-top: 1px solid black;">
-    		<?php $usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID); ?>
-    		<td><input type="checkbox" id="ug_all" name="ug_all" onclick="changeAllUGstate()"/></td>
+    		<?php 
+    			$usersbegun = $this->usergroups->getParticipantsBegun($this->project->ID); 
+    			$usersfinished = $this->usergroups->getParticipantsFinished($this->project->ID); 
+    		?>
+       		<td><input type="checkbox" id="ug_all" name="ug_all" onclick="changeAllUGstate()"/></td>
     		<td>All</td>
     		<td>-</td>
     		<td>-</td>
     		<td><?php echo $usersbegun?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinishedFirst($this->project->ID);?></td>
     		<td><?php if ($usersbegun>0) echo $this->usergroups->getParticipantsFinished($this->project->ID);?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
-    		<td><?php if ($usersbegun>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID)));?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getAverageDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (number_format($this->usergroups->getMediumDurationFinished($this->project->ID)/60.0,2)." min.");?></td>
+    		<td><?php if ($usersbegun>0 && $usersfinished>0) echo (strftime("%a, %d.%m.%Y, %H:%M:%S",$this->usergroups->getLastFinished($this->project->ID)));?></td>
     	</tr>
     	</tbody>
     </table>

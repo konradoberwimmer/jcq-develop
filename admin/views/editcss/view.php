@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewEditCSS extends JView
 {
-	function display($projectID)
+	function displayEdit($projectID)
 	{
 		JToolBarHelper::title('JCQ: Edit CSS file', 'generic.png');
 		JToolBarHelper::save("saveEditedCSS","Save");

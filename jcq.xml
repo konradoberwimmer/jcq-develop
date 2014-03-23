@@ -2,13 +2,12 @@
 <extension type="component" version="2.5.9" method="upgrade">
 	<name>JCQ</name>
 	<description>Joomla Complex Questionnaires: Component for creating and handling complex questionnaires with an API to calculate and work with the acquired data.</description>
-	<author>Konrad Daemon, Daniela Staritzbichler</author>
-	<authorEmail>konrad.daemon@sbg.ac.at</authorEmail>
-	<authorURL>http://www.uni-salzburg.at/</authorURL>
+	<author>Konrad Dämon</author>
+	<authorEmail>konrad.oberwimmer@gmail.com</authorEmail>
 	<creationDate>December 2011</creationDate>
-	<copyright>(C) 2011 Konrad Daemon, Daniela Staritzbichler</copyright>
+	<copyright>(C) 2011 Konrad Dämon</copyright>
 	<license>http://www.gnu.org/copyleft/gpl.html</license>
-	<version>0.0.1</version>
+	<version>0.0.4</version>
 	
 	<scriptfile>script.php</scriptfile>
 	        

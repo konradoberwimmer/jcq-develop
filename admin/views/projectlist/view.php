@@ -6,7 +6,7 @@ jimport( 'joomla.application.component.view');
 class JcqViewProjectlist extends JView
 {
 	
-	function display()
+	function display($tpl = NULL)
 	{
 		$model = $this->getModel();
 		$projects = $model->getProjects();

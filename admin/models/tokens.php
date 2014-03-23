@@ -44,7 +44,7 @@ class JcqModelTokens extends JModel {
 				$usergroup = $this->getUsergroupFromToken($oneID);
 				$project = $this->getProjectFromUsergroup($usergroup->ID);
 			
-				$this->db->setQuery("DELETE FROM jcq_proj".$project->ID." WHERE UserID='".$token->token."'");
+				$this->db->setQuery("DELETE FROM jcq_proj".$project->ID." WHERE tokenID=".$token->ID);
 				if (!$this->db->query()) JError::raiseError(500, 'Error deleting answers: '.$this->db->getErrorMsg());
 			}
 		}
@@ -114,6 +114,13 @@ class JcqModelTokens extends JModel {
 	{
 		$this->db->setQuery("SELECT * FROM jcq_token WHERE usergroupID=$usergroupID");
 		$results = $this->db->loadObjectList();
+		return $results;
+	}
+	
+	function getTokenIDs($usergroupID)
+	{
+		$this->db->setQuery("SELECT ID FROM jcq_token WHERE usergroupID=$usergroupID");
+		$results = $this->db->loadColumn();
 		return $results;
 	}
 	

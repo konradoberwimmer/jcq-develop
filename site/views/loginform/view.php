@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewLoginform extends JView
 {
-	function display()
+	function display($tpl = NULL)
 	{
 		parent::display();
 	}
