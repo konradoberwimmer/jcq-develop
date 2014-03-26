@@ -344,7 +344,7 @@ class JCQIENodeProject extends JCQImportExportNode
 		$myID=$this->jtable->ID;
 
 		$db = JFactory::getDbo();
-		$db->setQuery("CREATE TABLE jcq_proj".$this->jtable->ID." (preview BOOLEAN DEFAULT 0, userID VARCHAR(255), groupID BIGINT, sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
+		$db->setQuery("CREATE TABLE jcq_proj".$this->jtable->ID." (preview BOOLEAN DEFAULT 0, groupID BIGINT, tokenID BIGINT, joomlaUser VARCHAR(50), sessionID VARCHAR(50) NOT NULL, curpage BIGINT NOT NULL, finished BOOLEAN DEFAULT 0 NOT NULL, timestampBegin BIGINT, timestampEnd BIGINT, PRIMARY KEY (sessionID))");
 		if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
 
 		foreach ($this->childnodes as $childnode)
