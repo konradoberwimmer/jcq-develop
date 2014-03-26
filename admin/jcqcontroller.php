@@ -15,11 +15,11 @@ class JcqController extends JController
 	{
 		$viewName    = JRequest::getVar( 'view', 'projectlist' );
 		$viewLayout  = JRequest::getVar( 'layout', 'projectlistlayout' );
-		$view = & $this->getView($viewName);
+		$view = $this->getView($viewName);
 			
-		if ($model = & $this->getModel('projects')) $view->setModel($model, true);
+		if ($model = $this->getModel('projects')) $view->setModel($model, true);
 		else JError::raiseError(500, 'Model projects not found');
-		if ($modelscales = & $this->getModel('scales')) $view->setModel($modelscales, false);
+		if ($modelscales = $this->getModel('scales')) $view->setModel($modelscales, false);
 		else JError::raiseError(500, 'Model scales not found');
 
 		$view->setLayout($viewLayout);
@@ -28,8 +28,8 @@ class JcqController extends JController
 
 	function addProject()
 	{
-		$view = & $this->getView('projectform');
-		$model = & $this->getModel('projects');
+		$view = $this->getView('projectform');
+		$model = $this->getModel('projects');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
 		$view->setLayout('projectformlayout');
@@ -46,11 +46,11 @@ class JcqController extends JController
 			$projectID = (int)$projectids[0];
 		}
 
-		$view = & $this->getView('projectform');
+		$view = $this->getView('projectform');
 
-		if ($model = & $this->getModel('projects'))	$view->setModel($model, true);
+		if ($model = $this->getModel('projects')) $view->setModel($model, true);
 		else JError::raiseError(500, 'Model projects not found');
-		if ($modelusergroups = & $this->getModel('usergroups'))	$view->setModel($modelusergroups, false);
+		if ($modelusergroups = $this->getModel('usergroups')) $view->setModel($modelusergroups, false);
 		else JError::raiseError(500, 'Model participants not found');
 			
 		$view->setLayout('projectformlayout');
@@ -64,7 +64,7 @@ class JcqController extends JController
 	{
 		$project = JRequest::get( 'POST' );
 			
-		$model = & $this->getModel('projects');
+		$model = $this->getModel('projects');
 		$projectid = $model->saveProject($project);
 
 		//create usercode path and css-file for project if it does not yet exist
@@ -77,7 +77,7 @@ class JcqController extends JController
 		//set page order if edited
 		if (isset($project['pageord']))
 		{
-			$pagemodel = & $this->getModel('pages');
+			$pagemodel = $this->getModel('pages');
 			$pagemodel->setPageOrder($project['pageids'],$project['pageord']);
 		}
 
@@ -108,7 +108,7 @@ class JcqController extends JController
 			if ($pages===null || count($pages)==1) $pageID=-1;
 			else $pageID=$pages[0]->ID;
 			$sqlnewsession = "INSERT INTO jcq_proj$projectid (preview, sessionID, curpage, timestampBegin) VALUES (1,'$sessionID',$pageID,".time().")";
-			$db =& JFactory::getDBO();
+			$db = JFactory::getDBO();
 			$db->setQuery($sqlnewsession);
 			if (!$db->query()) JError::raiseError(500, 'Error inserting new session: '.$this->getDBO()->getErrorMsg());
 			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$projectid.'&preview='.$sessionID,false);
@@ -126,7 +126,7 @@ class JcqController extends JController
 			
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
-		$model = & $this->getModel('projects');
+		$model = $this->getModel('projects');
 		foreach ($arrayIDs as $oneID) $model->deleteProject($oneID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option'));
@@ -144,9 +144,9 @@ class JcqController extends JController
 		$programfileID = JRequest::getVar('editProgramfile', null); //Reads cid as an arra
 		if ($programfileID === null || !is_numeric($programfileID)) JError::raiseError(500, 'FATAL: editProgramfile parameter missing');
 		
-		$view = & $this->getView('editprogramfile');
+		$view = $this->getView('editprogramfile');
 		
-		if ($model = & $this->getModel('programfiles') && $modelproject = & $this->getModel('projects'))
+		if (($model = $this->getModel('programfiles')) && ($modelproject = $this->getModel('projects')))
 		{ 
 			$view->setModel($model, true);
 			$view->setModel($modelproject, false);
@@ -161,8 +161,8 @@ class JcqController extends JController
 	{
 		if (($projectID = JRequest::getVar('ID',null))===null) JError::raiseError(500, 'Project ID missing');
 		
-		$view = & $this->getView('editcss');
-		if ($model =& $this->getModel('projects')) $view->setModel($model, true);
+		$view = $this->getView('editcss');
+		if ($model = $this->getModel('projects')) $view->setModel($model, true);
 		else JError::raiseError(500, 'Model not found');
 	
 		$view->setLayout('editcsslayout');
@@ -173,7 +173,7 @@ class JcqController extends JController
 	{
 		if (($projectID = JRequest::getVar('ID',null))===null) JError::raiseError(500, 'Project ID missing');
 		
-		$model = & $this->getModel('projects');
+		$model = $this->getModel('projects');
 		$model->saveEditedCSS($projectID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
 	
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editCSS&ID='.$projectID,false);
@@ -192,7 +192,7 @@ class JcqController extends JController
 		$programfileID = JRequest::getVar('programfileID', null);
 		if ($programfileID === null || !is_numeric($programfileID)) JError::raiseError(500, 'FATAL: programfileID parameter missing');
 				
-		$model = & $this->getModel('programfiles');
+		$model = $this->getModel('programfiles');
 		$model->saveEditedProgramfile($programfileID,JRequest::getVar('filecontent',null,'post',null,JREQUEST_ALLOWHTML | JREQUEST_ALLOWRAW));
 				
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProgramfile&editProgramfile='.$programfileID,false);
@@ -211,17 +211,17 @@ class JcqController extends JController
 		$project = JRequest::get( 'POST' );
 		$projectid = $project['ID'];
 		
-		$modelimportexport = & $this->getModel('importexport');
+		$modelimportexport = $this->getModel('importexport');
 		$filename = $modelimportexport->exportProject($projectid);
 		
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		$app->enqueueMessage("Project exported ...");
 		$this->editProject($projectid, $filename);
 	}
 
 	function showImportProject()
 	{
-		$view = & $this->getView('importproject');
+		$view = $this->getView('importproject');
 		$view->setLayout('importprojectlayout');
 		$view->display();
 	}
@@ -264,9 +264,9 @@ class JcqController extends JController
 		if($pageids === null) JError::raiseError(500, 'cid parameter missing');
 		$pageID = (int)$pageids[0];
 
-		$view = & $this->getView('pageform');
+		$view = $this->getView('pageform');
 			
-		if ($model = & $this->getModel('pages') && $modelquestions = & $this->getModel('questions') && $modelprojects = & $this->getModel('projects'))
+		if (($model = $this->getModel('pages')) && ($modelquestions = $this->getModel('questions')) && ($modelprojects = $this->getModel('projects')))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modelquestions, false);
@@ -285,8 +285,8 @@ class JcqController extends JController
 	{
 		$projectID = JRequest::getVar('ID');
 		if($projectID === null) JError::raiseError(500, 'project id parameter missing');
-		$view = & $this->getView('pageform');
-		$model = & $this->getModel('pages');
+		$view = $this->getView('pageform');
+		$model = $this->getModel('pages');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
 		$view->setLayout('pageformlayout');
@@ -297,12 +297,12 @@ class JcqController extends JController
 	{
 		$page = JRequest::get( 'POST' );
 			
-		$model = & $this->getModel('pages');
+		$model = $this->getModel('pages');
 		$pageid = $model->savePage($page);
 
 		if (isset($page['questionord']))
 		{
-			$questionmodel = & $this->getModel('questions');
+			$questionmodel = $this->getModel('questions');
 			$questionmodel->setQuestionOrder($page['questionids'],$page['questionord']);
 		}
 
@@ -311,7 +311,7 @@ class JcqController extends JController
 			$sessionID = uniqid('', true);
 			$projectID = $model->getProjectFromPage($pageid)->ID;
 			$sqlnewsession = "INSERT INTO jcq_proj$projectID (preview, sessionID, curpage, timestampBegin) VALUES (1,'$sessionID',$pageid,".time().")";
-			$db =& JFactory::getDBO();
+			$db = JFactory::getDBO();
 			$db->setQuery($sqlnewsession);
 			if (!$db->query()) JError::raiseError(500, 'Error inserting new session: '.$this->getDBO()->getErrorMsg());
 			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$pageid.'&preview='.$sessionID,false);
@@ -330,7 +330,7 @@ class JcqController extends JController
 			
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
-		$model = & $this->getModel('pages');
+		$model = $this->getModel('pages');
 		foreach ($arrayIDs as $pageID) $model->deletePage($pageID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$project['ID'],false);
@@ -352,9 +352,9 @@ class JcqController extends JController
 			
 		$questionID = (int)$questionids[0]; //get the first id from the list (we can only edit one greeting at a time)
 
-		$view = & $this->getView('questionform');
+		$view = $this->getView('questionform');
 			
-		if ($model = & $this->getModel('questions') && $modelscales = & $this->getModel('scales') && $modelitems = & $this->getModel('items'))
+		if (($model = $this->getModel('questions')) && ($modelscales = $this->getModel('scales')) && ($modelitems = $this->getModel('items')))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modelscales);
@@ -371,11 +371,11 @@ class JcqController extends JController
 	{
 		$pageID = JRequest::getVar('ID');
 		if($pageID === null) JError::raiseError(500, 'page id parameter missing');
-		$view = & $this->getView('questionform');
-		$model = & $this->getModel('questions');
+		$view = $this->getView('questionform');
+		$model = $this->getModel('questions');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
-		$modelpage = & $this->getModel('pages');
+		$modelpage = $this->getModel('pages');
 		if (!$modelpage) JError::raiseError(500, 'Model not found');
 		$view->setModel($modelpage, false);
 		$view->setLayout('questionformlayout');
@@ -386,7 +386,7 @@ class JcqController extends JController
 	{
 		$thepost=JRequest::get('POST' );
 	
-		$model = & $this->getModel('importexport');
+		$model = $this->getModel('importexport');
 		$model->copyQuestion($thepost['selCopyquestion'],$thepost['ID']);
 	
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['ID'],false);
@@ -435,11 +435,11 @@ class JcqController extends JController
 		}
 		
 		//save question itself
-		$modelquestions = & $this->getModel('questions');
+		$modelquestions = $this->getModel('questions');
 		$questionid = $modelquestions->saveQuestion($post_question);
 		
 		//save items
-		$modelitems = & $this->getModel('items');
+		$modelitems = $this->getModel('items');
 		foreach ($post_items as $post_item)
 		{
 			if ($post_question['questtype']!=MULTISCALE) $itemid = $modelitems->saveItem($post_item);
@@ -460,7 +460,7 @@ class JcqController extends JController
 		if ($itemdeleteids!==null) foreach ($itemdeleteids as $itemdeleteid) $modelitems->deleteItem($itemdeleteid);
 		
 		//save codes
-		$modelscales = & $this->getModel('scales');
+		$modelscales = $this->getModel('scales');
 		foreach ($post_codes as $post_code) $codeid = $modelscales->saveCode($post_code);
 
 		//add/remove textfields for codes
@@ -495,7 +495,7 @@ class JcqController extends JController
 			
 		if($arrayIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
-		$model = & $this->getModel('questions');
+		$model = $this->getModel('questions');
 		foreach ($arrayIDs as $questionID) $model->deleteQuestion($questionID);
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$page['ID'],false);
@@ -515,9 +515,9 @@ class JcqController extends JController
 		$scaleid = JRequest::getVar('scaleid',null);
 		if($scaleid == null) JError::raiseError(500, 'scaleid parameter missing');
 			
-		$view = & $this->getView('scaleform');
+		$view = $this->getView('scaleform');
 			
-		if ($model = & $this->getModel('scales')) $view->setModel($model, true);
+		if ($model = $this->getModel('scales')) $view->setModel($model, true);
 		else JError::raiseError(500, 'Model not found');
 			
 		$view->setLayout('scaleformlayout');
@@ -526,8 +526,8 @@ class JcqController extends JController
 
 	function addScale()
 	{
-		$view = & $this->getView('scaleform');
-		$model = & $this->getModel('scales');
+		$view = $this->getView('scaleform');
+		$model = $this->getModel('scales');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
 		$view->setLayout('scaleformlayout');
@@ -557,11 +557,11 @@ class JcqController extends JController
 		}
 		
 		//save scale itself
-		$modelscales = & $this->getModel('scales');
+		$modelscales = $this->getModel('scales');
 		$scaleid = $modelscales->saveScale($post_scale);
 
 		//save codes
-		$modelscales = & $this->getModel('scales');
+		$modelscales = $this->getModel('scales');
 		foreach ($post_codes as $post_code) $codeid = $modelscales->saveCode($post_code);
 		
 		//delete codes
@@ -577,7 +577,7 @@ class JcqController extends JController
 		$scaleIDs = JRequest::getVar('scaledelid', null, 'default', 'array' );
 		if($scaleIDs === null) JError::raiseError(500, 'scaledelid parameter missing');
 			
-		$model = & $this->getModel('scales');
+		$model = $this->getModel('scales');
 		$cntremoved = 0;
 		foreach ($scaleIDs as $scaleID)
 		{
@@ -604,8 +604,8 @@ class JcqController extends JController
 	{
 		$projectID = JRequest::getVar('ID');
 		if($projectID === null) JError::raiseError(500, 'project id parameter missing');
-		$view = & $this->getView('usergroupform');
-		$model = & $this->getModel('usergroups');
+		$view = $this->getView('usergroupform');
+		$model = $this->getModel('usergroups');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
 		$view->setLayout('usergroupformlayout');
@@ -616,7 +616,7 @@ class JcqController extends JController
 	{
 		$thepost=JRequest::get('POST' );
 		
-		$model = & $this->getModel('usergroups');
+		$model = $this->getModel('usergroups');
 		$model->copyUsergroup($thepost['ID'],$thepost['selUsergroup']);
 		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$thepost['ID'],false);
@@ -629,9 +629,9 @@ class JcqController extends JController
 		if($usergroupids === null) JError::raiseError(500, 'cid parameter missing');
 		$usergroupID = (int)$usergroupids[0];
 	
-		$view = & $this->getView('usergroupform');
+		$view = $this->getView('usergroupform');
 			
-		if ($model = & $this->getModel('usergroups') && $modelprojects = & $this->getModel('projects'))
+		if (($model = $this->getModel('usergroups')) && ($modelprojects = $this->getModel('projects')))
 		{
 			$view->setModel($model, true);
 			$view->setModel($modelprojects, false);
@@ -670,7 +670,7 @@ class JcqController extends JController
 		
 		if (count($ugIDs)>0)
 		{
-			$model = & $this->getModel('usergroups');
+			$model = $this->getModel('usergroups');
 			$model->removeUsergroups($ugIDs,(isset($thepost['deleteanswers'])?true:false));
 		}
 	
@@ -682,7 +682,7 @@ class JcqController extends JController
 	{
 		$usergroup = JRequest::get( 'POST' );
 			
-		$model = & $this->getModel('usergroups');
+		$model = $this->getModel('usergroups');
 		$usergroupid = $model->saveUsergroup($usergroup);
 	
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroupid,false);
@@ -693,8 +693,8 @@ class JcqController extends JController
 	{
 		$usergroupID = JRequest::getVar('ID');
 		if($usergroupID === null) JError::raiseError(500, 'user group id parameter missing');
-		$view = & $this->getView('tokenform');
-		$model = & $this->getModel('tokens');
+		$view = $this->getView('tokenform');
+		$model = $this->getModel('tokens');
 		if (!$model) JError::raiseError(500, 'Model not found');
 		$view->setModel($model, true);
 		$view->setLayout('tokenformlayout');
@@ -707,9 +707,9 @@ class JcqController extends JController
 		if($tokenids === null) JError::raiseError(500, 'cid parameter missing');
 		$tokenID = (int)$tokenids[0];
 		
-		$view = & $this->getView('tokenform');
+		$view = $this->getView('tokenform');
 			
-		if ($model = & $this->getModel('tokens')) $view->setModel($model, true);
+		if ($model = $this->getModel('tokens')) $view->setModel($model, true);
 		else JError::raiseError(500, 'Model not found');
 			
 		$view->setLayout('tokenformlayout');
@@ -720,7 +720,7 @@ class JcqController extends JController
 	{
 		$thepost = JRequest::get( 'POST' );
 			
-		$model = & $this->getModel('tokens');
+		$model = $this->getModel('tokens');
 		$tokenid = $model->saveToken($thepost);
 	
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editToken&cid[]='.$tokenid,false);
@@ -737,7 +737,7 @@ class JcqController extends JController
 	function addRandomTokens()
 	{
 		$usergroup = JRequest::get( 'POST' );
-		$model = & $this->getModel('usergroups');
+		$model = $this->getModel('usergroups');
 		$model->addTokens($usergroup);
 		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$usergroup['ID'],false);
@@ -765,9 +765,9 @@ class JcqController extends JController
 			$objPHPExcel = PHPExcel_IOFactory::load(JPATH_COMPONENT.DS."userdata".DS.$filename);
 			#FIXME should allow other sheets as well
 			$sheetData = $objPHPExcel->getActiveSheet()->toArray(null,true,true,true);
-			$view = & $this->getView('uploadtokensform');
+			$view = $this->getView('uploadtokensform');
 			$view->setLayout('uploadtokensformlayout');
-			$model = & $this->getModel('usergroups');
+			$model = $this->getModel('usergroups');
 			$view->setModel($model,true);
 			$view->display($usergroup, $sheetData, $filename);
 		}
@@ -780,7 +780,7 @@ class JcqController extends JController
 		$tokenIDs = JRequest::getVar('cid', null, 'default', 'array' );
 		if($tokenIDs === null) JError::raiseError(500, 'cid parameter missing');
 			
-		$model = & $this->getModel('tokens');
+		$model = $this->getModel('tokens');
 		$model->removeTokens($tokenIDs,(isset($thepost['deleteanswers'])?true:false));
 		
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editUsergroup&cid[]='.$thepost['ID'],false);
@@ -790,7 +790,7 @@ class JcqController extends JController
 	function insertUploadedTokens()
 	{
 		$thepost = JRequest::get('POST');
-		$model = & $this->getModel('usergroups');
+		$model = $this->getModel('usergroups');
 		
 		# ATTENTION: uses PHPExcel by Mark Baker - many thanks!!!
 		$objPHPExcel = PHPExcel_IOFactory::load(JPATH_COMPONENT.DS."userdata".DS.$thepost['filename']);
@@ -831,8 +831,8 @@ class JcqController extends JController
 	function sendEmails()
 	{
 		$thepost = JRequest::get('POST');
-		$tokenmodel =& $this->getModel('tokens');
-		$app = &JFactory::getApplication();
+		$tokenmodel = $this->getModel('tokens');
+		$app = JFactory::getApplication();
 		
 		$tokenIDs = JRequest::getVar('cid', null, 'default', 'array' );
 		if($tokenIDs === null) JError::raiseError(500, 'cid parameter missing');
@@ -889,10 +889,10 @@ class JcqController extends JController
 		$usergroupids = JRequest::getVar('ugchk', null, 'default', 'array' );
 		$includeuserdata = isset($_POST['includeuserdata']);
 		
-		$model = & $this->getModel('projects');
+		$model = $this->getModel('projects');
 		$filename = $model->saveData($projectid,$usergroupids,$includeuserdata);
 
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		$app->enqueueMessage("Data saved ...");
 		$this->editProject($projectid, $filename);
 	}

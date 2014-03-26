@@ -9,7 +9,7 @@ class TablePages extends JTable {
 	public $filter = null;
 	public $isFinal = 0;
 	
-	function TablePages(&$db)
+	function TablePages($db)
 	{
 		parent::__construct('jcq_page', 'ID', $db);
 	}

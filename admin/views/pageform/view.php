@@ -13,7 +13,7 @@ class JcqViewPageform extends JView
 		$this->assignRef('project', $project);
 		$questions = $model->getQuestions($pageID);
 		$this->assignRef('questions', $questions);
-		$this->assignRef('variables', $this->getModel('projects')->getVariableList($project->ID));
+		$this->assign('variables', $this->getModel('projects')->getVariableList($project->ID));
 		if ($previewSession!==null) $this->assignRef('previewSession',$previewSession);
 		
 		$path = 'administrator/components/com_jcq/js/';

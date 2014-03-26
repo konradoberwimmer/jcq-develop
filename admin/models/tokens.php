@@ -92,7 +92,7 @@ class JcqModelTokens extends JModel {
 	
 	function getNewToken($usergroupID)
 	{
-		$tokenTableRow =& $this->getTable();
+		$tokenTableRow = $this->getTable();
 		$tokenTableRow->ID = 0;
 		$tokenTableRow->token = RandomString(8);
 		$tokenTableRow->usergroupID = $usergroupID;
@@ -101,7 +101,7 @@ class JcqModelTokens extends JModel {
 
 	function saveToken($token)
 	{
-		$tokenTableRow =& $this->getTable();
+		$tokenTableRow = $this->getTable();
 		
 		if (!$tokenTableRow->bind($token)) JError::raiseError(500, 'Error binding data');
 		if (!$tokenTableRow->check()) JError::raiseError(500, 'Invalid data');

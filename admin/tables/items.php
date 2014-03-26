@@ -19,7 +19,7 @@ class TableItems extends JTable {
 	public $bindingType = "QUESTION";
 	public $bindingID = null;
 	
-	function TableItems(&$db)
+	function TableItems($db)
 	{
 		parent::__construct('jcq_item', 'ID', $db);
 	}

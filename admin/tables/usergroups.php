@@ -7,7 +7,7 @@ class TableUsergroups extends JTable {
 	public $val = null;
 	public $projectID = null;
 	
-	function TableUsergroups(&$db)
+	function TableUsergroups($db)
 	{
 		parent::__construct('jcq_usergroup', 'ID', $db);
 	}

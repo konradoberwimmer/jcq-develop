@@ -33,7 +33,7 @@ class JcqModelItems extends JModel {
 
 	function buildNewItem($questionID,$datatype,$scales=null)
 	{
-		$itemTableRow =& $this->getTable();
+		$itemTableRow = $this->getTable();
 		$itemTableRow->questionID = $questionID;
 		$itemTableRow->datatype = $datatype;
 		$this->db->setQuery("SELECT ord FROM jcq_item WHERE questionID=$questionID ORDER BY ord DESC");
@@ -53,7 +53,7 @@ class JcqModelItems extends JModel {
 	{
 		if ($item['ID']<0) $item['ID']=0;
 		if (!isset($item['mandatory'])) $item['mandatory']=0;
-		$itemTableRow =& $this->getTable('items');
+		$itemTableRow = $this->getTable('items');
 		if (!$itemTableRow->bind($item)) JError::raiseError(500, 'Error binding data');
 		if (!$itemTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$itemTableRow->store())

@@ -9,7 +9,7 @@ class TableCodes extends JTable {
 	public $missval = false;
 	public $scaleID = null;
 	
-	function TableCodes(&$db)
+	function TableCodes($db)
 	{
 		parent::__construct('jcq_code', 'ID', $db);
 	}

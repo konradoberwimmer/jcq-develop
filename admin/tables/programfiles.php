@@ -7,7 +7,7 @@ class TableProgramfiles extends JTable {
 	public $filename = null;
 	public $projectID = null;
 	
-	function TableProgramfiles(&$db)
+	function TableProgramfiles($db)
 	{
 		parent::__construct('jcq_programfile', 'ID', $db);
 	}

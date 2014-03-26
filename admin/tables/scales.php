@@ -8,7 +8,7 @@ class TableScales extends JTable {
 	public $defval = null;
 	public $predefined = 0;
 	
-	function TableScales(&$db)
+	function TableScales($db)
 	{
 		parent::__construct('jcq_scale', 'ID', $db);
 	}
