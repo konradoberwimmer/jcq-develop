@@ -14,7 +14,7 @@ class JcqViewProjectform extends JView
 		$programfiles = $model->getProgramfiles($projectID);
 		$this->assignRef('pages', $pages);
 		$this->assignRef('programfiles', $programfiles);
-		$this->assignRef('usergroups', $this->getModel('usergroups'));
+		$this->assign('usergroups', $this->getModel('usergroups'));
 		$this->assignRef('download',$download);
 		if ($previewSession!==null) $this->assignRef('previewSession',$previewSession);
 		

@@ -158,7 +158,7 @@ class JcqModelQuestions extends JModel {
 	
 	function getNewQuestion($pageID)
 	{
-		$questionTableRow =& $this->getTable('questions');
+		$questionTableRow = $this->getTable('questions');
 		$questionTableRow->ID = 0;
 		$questionTableRow->name = '';
 		$this->db->setQuery("SELECT ord FROM jcq_question WHERE pageID=$pageID ORDER BY ord DESC");
@@ -171,7 +171,7 @@ class JcqModelQuestions extends JModel {
 
 	function saveQuestion($question)
 	{
-		$questionTableRow =& $this->getTable();
+		$questionTableRow = $this->getTable();
 		if (!$questionTableRow->bind($question)) JError::raiseError(500, 'Error binding data');
 		if (!$questionTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$questionTableRow->store())
@@ -297,7 +297,7 @@ class JcqModelQuestions extends JModel {
 
 	function buildScalePrototype($questionID)
 	{
-		$newscale =& $this->getTable('scales');
+		$newscale = $this->getTable('scales');
 		$newscale->name = 'question'.$questionID.'scale';
 		if (!$newscale->store())
 		{
@@ -306,7 +306,7 @@ class JcqModelQuestions extends JModel {
 		}
 		for ($i=1;$i<=5;$i++)
 		{
-			$newcode =& $this->getTable('codes');
+			$newcode = $this->getTable('codes');
 			$newcode->scaleID = $newscale->ID;
 			$newcode->ord = $i;
 			$newcode->code = $i;

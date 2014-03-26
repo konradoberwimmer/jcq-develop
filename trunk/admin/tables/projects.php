@@ -10,7 +10,7 @@ class TableProjects extends JTable {
 	public $allowjoomla = false;
 	public $multiple = false;
 	
-	function TableProjects(&$db)
+	function TableProjects($db)
 	{
 		parent::__construct('jcq_project', 'ID', $db);
 	}

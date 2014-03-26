@@ -16,7 +16,7 @@ class TableQuestions extends JTable {
 	public $pageID = null;
 	public $filter = null;
 	
-	function TableQuestions(&$db)
+	function TableQuestions($db)
 	{
 		parent::__construct('jcq_question', 'ID', $db);
 	}

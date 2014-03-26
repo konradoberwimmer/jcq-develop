@@ -64,7 +64,7 @@ class JcqModelProjects extends JModel {
 
 	function getNewProject()
 	{
-		$projectTableRow =& $this->getTable('projects');
+		$projectTableRow = $this->getTable('projects');
 		$projectTableRow->ID = 0;
 		$projectTableRow->name = '';
 		$projectTableRow->allowjoomla = true;
@@ -74,7 +74,7 @@ class JcqModelProjects extends JModel {
 	function saveProject($project)
 	{
 		//TODO: secure against insertion
-		$projectTableRow =& $this->getTable();
+		$projectTableRow = $this->getTable();
 		if (!$projectTableRow->bind($project)) JError::raiseError(500, 'Error binding data');
 		if (!$projectTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$projectTableRow->store())	JError::raiseError(500, 'Error inserting data: '.$projectTableRow->getError());
@@ -128,7 +128,7 @@ class JcqModelProjects extends JModel {
 
 	function saveProgramfile(array $programfile)
 	{
-		$programfileTableRow =& $this->getTable('programfiles');
+		$programfileTableRow = $this->getTable('programfiles');
 		if (!$programfileTableRow->bind($programfile)) JError::raiseError(500, 'Error binding data');
 		if (!$programfileTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$programfileTableRow->store())

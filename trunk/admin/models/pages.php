@@ -60,7 +60,7 @@ class JcqModelPages extends JModel {
 
 	function getNewPage($projectID)
 	{
-		$pageTableRow =& $this->getTable('pages');
+		$pageTableRow = $this->getTable('pages');
 		$pageTableRow->ID = 0;
 		$pageTableRow->name = '';
 		$this->db->setQuery("SELECT ord FROM jcq_page WHERE projectID=$projectID AND isFinal=0 ORDER BY ord DESC");
@@ -74,7 +74,7 @@ class JcqModelPages extends JModel {
 
 	function savePage($page)
 	{
-		$pageTableRow =& $this->getTable();
+		$pageTableRow = $this->getTable();
 			
 		// Bind the form fields to the greetings table
 		if (!$pageTableRow->bind($page)) JError::raiseError(500, 'Error binding data');

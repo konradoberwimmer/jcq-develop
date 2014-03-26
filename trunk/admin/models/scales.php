@@ -47,7 +47,7 @@ class JcqModelScales extends JModel {
 	
 	function getNewPredefinedScale()
 	{
-		$scaleTableRow =& $this->getTable('scales');
+		$scaleTableRow = $this->getTable('scales');
 		$scaleTableRow->ID = 0;
 		$scaleTableRow->name = '';
 		$scaleTableRow->prepost = '%i';
@@ -79,7 +79,7 @@ class JcqModelScales extends JModel {
 		
 		//TODO: secure against insertion
 		
-		$scaleTableRow =& $this->getTable();
+		$scaleTableRow = $this->getTable();
 			
 		// Bind the form fields to the greetings table
 		if (!$scaleTableRow->bind($scale)) JError::raiseError(500, 'Error binding data');
@@ -98,7 +98,7 @@ class JcqModelScales extends JModel {
 		{
 			for ($i=1;$i<=5;$i++)
 			{
-				$newcode =& $this->getTable('codes');
+				$newcode = $this->getTable('codes');
 				$newcode->scaleID = $scaleTableRow->ID;
 				$newcode->ord = $i;
 				$newcode->code = $i;
@@ -116,7 +116,7 @@ class JcqModelScales extends JModel {
 	function saveCode(array $code)
 	{
 		if ($code['ID']<0) $code['ID']=0;
-		$codeTableRow =& $this->getTable('codes');
+		$codeTableRow = $this->getTable('codes');
 		if (!$codeTableRow->bind($code)) JError::raiseError(500, 'Error binding data');
 		if (!$codeTableRow->check()) JError::raiseError(500, 'Invalid data');
 		if (!$codeTableRow->store())

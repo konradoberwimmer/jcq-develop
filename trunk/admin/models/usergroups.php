@@ -58,7 +58,7 @@ class JcqModelUsergroups extends JModel {
 
 	function getNewUsergroup($projectID)
 	{
-		$usergroupTableRow =& $this->getTable('usergroups');
+		$usergroupTableRow = $this->getTable('usergroups');
 		$usergroupTableRow->ID = 0;
 		$usergroupTableRow->name = '';
 		$usergroupTableRow->val = 1; //FIXME should be set to highest value for this project
@@ -69,7 +69,7 @@ class JcqModelUsergroups extends JModel {
 	function copyUsergroup($projectID,$usergroupID)
 	{
 		$ugtocopy = $this->getUsergroup($usergroupID);
-		$usergroupTableRow =& $this->getTable('usergroups');
+		$usergroupTableRow = $this->getTable('usergroups');
 		$usergroupTableRow->ID = 0;
 		$usergroupTableRow->name = $ugtocopy->name;
 		$usergroupTableRow->val = $ugtocopy->val;
@@ -82,7 +82,7 @@ class JcqModelUsergroups extends JModel {
 		{
 			foreach ($tokenstocopy as $onetoken)
 			{
-				$tokenTableRow =& $this->getTable('tokens');
+				$tokenTableRow = $this->getTable('tokens');
 				if (!$tokenTableRow->bind($onetoken)) JError::raiseError(500, 'Error binding data');
 				$tokenTableRow->ID=0;
 				$tokenTableRow->usergroupID=$usergroupTableRow->ID;
@@ -94,7 +94,7 @@ class JcqModelUsergroups extends JModel {
 
 	function saveUsergroup($usergoup)
 	{
-		$usergroupTableRow =& $this->getTable();
+		$usergroupTableRow = $this->getTable();
 
 		if (!$usergroupTableRow->bind($usergoup)) JError::raiseError(500, 'Error binding data');
 		if (!$usergroupTableRow->check()) JError::raiseError(500, 'Invalid data');
@@ -143,7 +143,7 @@ class JcqModelUsergroups extends JModel {
 		require_once(JPATH_COMPONENT.DS.'models'.DS.'tokens.php');
 		$modeltokens = new JcqModelTokens();
 
-		$tokenTableRow =& $this->getTable('tokens');
+		$tokenTableRow = $this->getTable('tokens');
 		if (!$tokenTableRow->bind($token)) JError::raiseError(500, 'Error binding data');
 		if ($tokenTableRow->token==null || strlen($tokenTableRow->token)==0) $tokenTableRow->token = RandomString(8);
 		$tokenTableRow->usergroupID = $usergroupID;

@@ -102,7 +102,7 @@ class JcqViewQuestionform extends JView
 		$modelpage = $this->getModel('pages');;
 		$question = $model->getNewQuestion($pageID);
 		$this->assignRef('question', $question);
-		$this->assignRef('page',$modelpage->getPage($pageID));
+		$this->assign('page',$modelpage->getPage($pageID));
 
 		JToolBarHelper::title('JCQ: New question');
 		JToolBarHelper::save("saveQuestion","Save");

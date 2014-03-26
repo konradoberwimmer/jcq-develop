@@ -352,6 +352,8 @@ class JCQIENodeProject extends JCQImportExportNode
 			$children = $xmlnode->childNodes;
 			if ($children!==null) foreach ($children as $child)	if ($child->nodeName==$childnode->name) $childnode->importFromXML($child, $myID);
 		}
+		
+		return $myID;
 	}
 }
 
@@ -378,9 +380,8 @@ class JcqModelImportexport extends JModel
 		$xmlnode = $xmldoc->getElementsByTagName('project');
 		if ($xmlnode->length==0) return false;
 		$projectnode = new JCQIENodeProject();
-		$projectnode->importFromXML($xmlnode->item(0));
+		return ($projectnode->importFromXML($xmlnode->item(0)));
 		#TODO error handling
-		return true;
 	}
 
 	function copyQuestion($questionID,$targetPageID)
