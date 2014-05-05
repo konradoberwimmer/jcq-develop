@@ -43,6 +43,14 @@ function submitbutton(pressbutton)
 			return;
 		}
 		if (!confirm('Do you really want to remove the selected tokens?')) return;
+	} else if (pressbutton=='copyQuestion')
+	{
+		var selCopyquestion = document.getElementById('selCopyquestion');
+		if (selCopyquestion.options[selCopyquestion.selectedIndex].value==-1)
+		{
+			alert("Please select a question first!");
+			return;
+		}
 	} else if (pressbutton=='copyUsergroup')
 	{
 		var selUsergroup = document.getElementById('selUsergroup');

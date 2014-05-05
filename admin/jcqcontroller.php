@@ -387,10 +387,16 @@ class JcqController extends JController
 		$thepost=JRequest::get('POST' );
 	
 		$model = $this->getModel('importexport');
-		$model->copyQuestion($thepost['selCopyquestion'],$thepost['ID']);
-	
-		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['ID'],false);
-		$this->setRedirect($redirectTo, 'Question copied ...');
+		if (isset($thepost['selCopyquestion']) && $thepost['selCopyquestion'] > -1)
+		{
+			$model->copyQuestion($thepost['selCopyquestion'],$thepost['ID']);
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['ID'],false);
+			$this->setRedirect($redirectTo, 'Question copied ...');
+		} else
+		{
+			$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$thepost['ID'],false);
+			$this->setRedirect($redirectTo, 'No question selected ...');
+		}
 	}
 	
 	function saveQuestion()
