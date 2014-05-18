@@ -5,7 +5,7 @@ jimport( 'joomla.application.component.view');
 
 class JcqViewImportproject extends JView
 {
-	function display()
+	function display($tpl = NULL)
 	{
 		JToolBarHelper::title('JCQ: Import project', 'generic.png');
 		JToolBarHelper::cancel();

@@ -14,6 +14,23 @@ class JcqModelScales extends JModel {
 		$this->db = $this->getDBO();
 	}
 
+	static function getScaleLayouts ()
+	{
+		$layouts = array();
+		$layouts[LAYOUT_RADIOHORIZON]='Radiobuttons: horizontal';
+		$layouts[LAYOUT_RADIOVERTICAL]='Radiobuttons: vertical';
+		$layouts[LAYOUT_SELECTBOX]='Selectbox';
+		return $layouts;
+	}
+	
+	static function getScaleRelativePositions ()
+	{
+		$relpos = array();
+		$relpos[RELPOS_RIGHT]='right';
+		$relpos[RELPOS_BELOW]='below';
+		return $relpos;
+	}
+	
 	function getScale($scaleID)
 	{
 		$query = 'SELECT * FROM jcq_scale WHERE jcq_scale.ID = '.$scaleID;
