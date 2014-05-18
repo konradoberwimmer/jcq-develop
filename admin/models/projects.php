@@ -258,7 +258,7 @@ class JcqModelProjects extends JModel {
 			else 
 			{
 				$this->db->setQuery("SELECT * FROM jcq_usergroup WHERE ID=".$row['groupID']." AND projectID=".$project->ID);
-				if (($ug = $this->db->loadObject())!==null) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$row['groupID'])));
+				if (($ug = $this->db->loadObject())!==null) fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";".str_replace(";","",$ug->val)));
 				else fwrite($file,iconv("UTF-8", "ISO-8859-1//TRANSLIT", ";"));
 			}
 			//write if finished

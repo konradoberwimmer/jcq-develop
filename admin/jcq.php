@@ -9,6 +9,13 @@ define("MATRIX_BOTH",5);
 define("MULTISCALE",6);
 define("TEXTANDHTML",7);
 
+define("LAYOUT_RADIOHORIZON",1);
+define("LAYOUT_RADIOVERTICAL",2);
+define("LAYOUT_SELECTBOX",3);
+
+define("RELPOS_RIGHT",1);
+define("RELPOS_BELOW",2);
+
 // Set component style sheet
 $document = JFactory::getDocument();
 $document->addStyleSheet(JURI::root().'administrator/components/com_jcq/jcq.css');

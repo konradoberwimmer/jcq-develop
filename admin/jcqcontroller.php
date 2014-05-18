@@ -362,8 +362,7 @@ class JcqController extends JController
 		}
 		else JError::raiseError(500, 'Model not found');
 			
-		$questtype = $model->getTypeFromQuestion($questionID);
-		$view->setLayout('questionformlayout'.$questtype);
+		$view->setLayout('questionformlayout');
 		$view->displayEdit($questionID);
 	}
 

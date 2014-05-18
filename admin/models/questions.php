@@ -297,6 +297,7 @@ class JcqModelQuestions extends JModel {
 
 	function buildScalePrototype($questionID)
 	{
+		$question = $this->getQuestion($questionID);
 		$newscale = $this->getTable('scales');
 		$newscale->name = 'question'.$questionID.'scale';
 		if (!$newscale->store())
@@ -316,7 +317,8 @@ class JcqModelQuestions extends JModel {
 				JError::raiseError(500, 'Error inserting data: '.$errorMessage);
 			}
 		}
-		$query = "INSERT INTO jcq_questionscales (questionID, scaleID) VALUES (".$questionID.",".$newscale->ID.")";
+		$layout = ($question->questtype==SINGLECHOICE?LAYOUT_RADIOVERTICAL:LAYOUT_RADIOHORIZON);
+		$query = "INSERT INTO jcq_questionscales (questionID, scaleID, layout) VALUES ($questionID,".$newscale->ID.",$layout)";
 		$this->db->setQuery($query);
 		if (!$this->db->query()){
 			$errorMessage = $this->getDBO()->getErrorMsg();

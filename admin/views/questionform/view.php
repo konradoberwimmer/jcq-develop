@@ -18,81 +18,33 @@ class JcqViewQuestionform extends JView
 		JToolBarHelper::save("saveQuestion","Save");
 		JToolBarHelper::cancel("cancelAddQuestion","Cancel");
 		
-		//doing the breadcrumbs here so no code replication for different layouts (question types)
-		if ($this->question->ID > 0) { ?>
-		<p class="breadcrumbs">
-		<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=display',false);?>">JCQ</a>&nbsp;&gt;&nbsp;
-		<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editProject&cid[]='.$this->project->ID,false);?>">Project &quot;<?php echo $this->project->name; ?>&quot;</a>&nbsp;&gt;&nbsp;
-		<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editPage&cid[]='.$this->page->ID,false);?>">Page &quot;<?php echo $this->page->name; ?>&quot;</a>&nbsp;&gt;&nbsp;
-		<a href="<?php echo JRoute::_( 'index.php?option='.JRequest::getVar('option').'&task=editQuestion&cid[]='.$this->question->ID,false);?>">Question &quot;<?php echo $this->question->name; ?>&quot;</a>
-		</p>
-		<?php }
-		
-		//attach scale(s) according to questiontype
-		switch ($this->question->questtype)
-		{
-			case SINGLECHOICE: case MATRIX_LEFT: case MATRIX_BOTH:
-				{
-					$scale = $this->getModel('scales')->getScales($this->question->ID);
-					if ($scale==null) JError::raiseError(500, 'Error: No scale for question of type '.SINGLECHOICE.', '.MATRIX_LEFT.' or '.MATRIX_BOTH);
-					else
-					{
-						$scale=$scale[0]; //only one scale for this type of question
-						$this->assignRef('scale', $scale);
-						$codes = $this->getModel('scales')->getCodes($this->scale->ID);
-						$this->assignRef('codes', $codes);
-					}
-					break;
-				}
-			case MULTISCALE:
-				{
-					$attachedscales = $this->getModel('scales')->getScales($this->question->ID);
-					$predefscales = $this->getModel('scales')->getPredefinedScales();
-					$this->assignRef('attachedscales', $attachedscales);
-					$this->assignRef('predefscales', $predefscales);
-					break;
-				}			
-			case MULTICHOICE: case TEXTFIELD: case TEXTANDHTML: break; //necessary to prevent fatal error warning when code has not been written for this questtype!
-			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
-		}
+		//attach scale(s)
+		$scales = $this->getModel('scales')->getScales($this->question->ID);
+		$predefscales = $this->getModel('scales')->getPredefinedScales();
+		$mainscale = null;
+		if ($scales!==null && count($scales)>0) $mainscale = $scales[0];
+		$mainscalecodes = null;
+		if ($mainscale!==null) $mainscalecodes = $this->getModel('scales')->getCodes($mainscale->ID);
+		$this->assignRef("scales", $scales);
+		$this->assignRef("predefscales", $predefscales);
+		$this->assignRef("mainscale", $mainscale);
+		$this->assignRef("mainscalecodes", $mainscalecodes);
 		
 		//attach item(s)
 		$items = $this->getModel()->getItems($this->question->ID);
+		$mainitem = null;
+		if ($items!==null && count($items)>0) foreach ($items as $oneitem) if ($oneitem->bindingType=='QUESTION') { $mainitem = $oneitem; break; }
 		$this->assignRef('items', $items);
+		$this->assignRef('mainitem', $mainitem);
 		
-		//add javascript functionality according to questtype
-		$path = 'administrator/components/com_jcq/js/';
-		$filenames=array();
-		switch ($this->question->questtype)
-		{
-			case SINGLECHOICE:
-				{
-					$filenames[0] = 'addcodes.js';
-					break;
-				}
-			case MULTICHOICE:
-				{
-					$filenames[0] = 'additems.js';
-					break;
-				}
-			case MATRIX_LEFT: case MATRIX_BOTH:
-				{
-					$filenames[0] = 'addcodes.js';
-					$filenames[1] = 'additems.js';
-					break;
-				}
-			case MULTISCALE:
-				{
-					$filenames[0] = 'addscales.js';
-					$filenames[1] = 'additems.js';
-					break;
-				}
-			case TEXTFIELD: case TEXTANDHTML: break;
-			default: JError::raiseError(500, 'FATAL: Code for viewing question of type '.$this->question->questtype.' is missing!!!');
-		}
-		foreach ($filenames as $filename) JHTML::script($path.$filename, true);
-		$filename = 'overridesubmit.js';
-		JHTML::script($path.$filename, true);
+		//add javascript functionality
+		$parser = JFactory::getXMLParser('Simple');
+		$parser->loadFile(JPATH_ADMINISTRATOR .'/components/com_jcq/jcq.xml');
+		$version = $parser->document->getElementByPath('version')->data();
+		$path = 'components/com_jcq/js/';
+		$filenames=array('overridesubmit.js','additems.js','addscales.js','addcodes.js','addfilter.js');
+		$document = JFactory::getDocument();
+		foreach ($filenames as $filename) $document->addScript($path.$filename.'?version='.$version,'text/javascript',true);
 		
 		parent::display();
 	}
