@@ -42,25 +42,28 @@ function xmlToJTable ($xmlelement, $jtable)
 
 abstract class JCQImportExportNode
 {
+	public $id;
 	public $name;
 	public $dbtable;
 	public $jtable;
 	public $parentidfield = null;
 	public $childnodes = array();
+	public $node;
 
-	function exportToXML($ID, $xmldoc, $parentnode=null)
+	function exportToXML($ID, $xmldoc, $parent=null)
 	{
-		$mynode = $xmldoc->createElement($this->name);
+		$this->node = $xmldoc->createElement($this->name);
 		$this->jtable->load($ID);
-		jtableToXml($this->jtable, $xmldoc, $mynode);
+		$this->id = $ID;
+		jtableToXml($this->jtable, $xmldoc, $this->node);
 		//recursively save childnodes
 		foreach ($this->childnodes as $childnode)
 		{
 			$childrenIDs = $this->getChildrenIDs($ID, $childnode);
-			if ($childrenIDs!==null) foreach ($childrenIDs as $childID) $childnode->exportToXML($childID->ID, $xmldoc, $mynode);
+			if ($childrenIDs!==null) foreach ($childrenIDs as $childID) $childnode->exportToXML($childID->ID, $xmldoc, $this);
 		}
-		if ($parentnode!==null) $parentnode->appendChild($mynode);
-		else $xmldoc->appendChild($mynode);
+		if ($parent!==null) $parent->node->appendChild($this->node);
+		else $xmldoc->appendChild($this->node);
 	}
 
 	function getChildrenIDs($myID, $childnode)
@@ -158,6 +161,8 @@ class JCQIENodeCode extends JCQImportExportNode
 
 class JCQIENodeScale extends JCQImportExportNode
 {
+	private $relationfields = array('ord','mandatory','layout','relpos');
+	
 	function __construct()
 	{
 		$this->name = "scale";
@@ -166,6 +171,21 @@ class JCQIENodeScale extends JCQImportExportNode
 		array_push($this->childnodes, new JCQIENodeCode());
 	}
 
+	/**
+	 * override because of the n:m relationship between scales and questions
+	 */
+	function exportToXML($ID, $xmldoc, $parent=null)
+	{
+		parent::exportToXML($ID, $xmldoc, $parent);
+		$db = JFactory::getDbo();
+		$db->setQuery("SELECT * FROM jcq_questionscales WHERE scaleID=$ID AND questionID=".$parent->id);
+		$questionscale = $db->loadAssoc();
+		foreach ($this->relationfields as $relfield) if (isset($questionscale[$relfield]))
+		{
+			$this->node->setAttribute($relfield,$questionscale[$relfield]);
+		}
+	}
+	
 	/**
 	 * override because of the n:m relationship between scales and questions
 	 * @see JCQImportExportNode::importFromXML()
@@ -179,6 +199,11 @@ class JCQIENodeScale extends JCQImportExportNode
 		$db = JFactory::getDbo();
 		$db->setQuery("INSERT INTO jcq_questionscales (questionID, scaleID) VALUES($parentID,$myID)");
 		if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+		foreach ($this->relationfields as $relfield) if ($xmlnode->getAttribute($relfield)!="")
+		{
+			$db->setQuery("UPDATE jcq_questionscales SET $relfield=".$xmlnode->getAttribute($relfield)." WHERE questionID=$parentID AND scaleID=$myID");
+			if (!$db->query()) JError::raiseError(500, "FATAL: ".$db->getErrorMsg());
+		}
 		foreach ($this->childnodes as $childnode)
 		{
 			$children = $xmlnode->childNodes;

@@ -30,7 +30,12 @@ class com_jcqInstallerScript
 	
 	function update($parent)
 	{
-	
+		//delete the old versions of questionformlayout
+		for ($i=1;$i<=7;$i++)
+		{
+			$filename = JPATH_ADMINISTRATOR.DS.'components'.DS.'com_jcq'.DS.'views'.DS.'questionform'.DS.'tmpl'.DS.'questionformlayout'.$i.'.php';
+			if (file_exists($filename)) unlink($filename);
+		}
 	}
 
 	function preflight($type, $parent)

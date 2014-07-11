@@ -16,7 +16,9 @@ function addScale()
 	var newTDord = newTR.insertCell(0);
 	var newTDid = newTR.insertCell(1);
 	var newTDmandatory = newTR.insertCell(2);
-	var newTDdelete = newTR.insertCell(3);
+	var newTDlayout = newTR.insertCell(3);
+	var newTDrelpos = newTR.insertCell(4);
+	var newTDdelete = newTR.insertCell(5);
 	
 	//create field for order
 	var newINPUTscaleord = document.createElement("input");
@@ -26,7 +28,7 @@ function addScale()
 	newINPUTscaleord.setAttribute("class","orderfield");
 	newTDord.appendChild(newINPUTscaleord);
 		
-	//create selector with select box
+	//create selector for scaleID
 	var newINPUTscaleselect = document.getElementById("scaleidTEMPLATE").cloneNode(true);
 	newINPUTscaleselect.setAttribute("name","_scale_"+tmpscaleid+"_ID");
 	newINPUTscaleselect.removeAttribute("ID");
@@ -39,4 +41,18 @@ function addScale()
 	newINPUTscalemandatory.setAttribute("name","_scale_"+tmpscaleid+"_mandatory");
 	newINPUTscalemandatory.setAttribute("value",1);
 	newTDmandatory.appendChild(newINPUTscalemandatory);
+	
+	//create selector with layout
+	var newINPUTlayoutselect = document.getElementById("layoutTEMPLATE").cloneNode(true);
+	newINPUTlayoutselect.setAttribute("name","_scale_"+tmpscaleid+"_layout");
+	newINPUTlayoutselect.removeAttribute("ID");
+	newINPUTlayoutselect.removeAttribute("style");
+	newTDlayout.appendChild(newINPUTlayoutselect);
+	
+	//create selector with relpos
+	var newINPUTrelposselect = document.getElementById("relposTEMPLATE").cloneNode(true);
+	newINPUTrelposselect.setAttribute("name","_scale_"+tmpscaleid+"_relpos");
+	newINPUTrelposselect.removeAttribute("ID");
+	newINPUTrelposselect.removeAttribute("style");
+	newTDrelpos.appendChild(newINPUTrelposselect);
 }

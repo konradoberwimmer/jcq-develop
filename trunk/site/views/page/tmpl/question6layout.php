@@ -38,10 +38,10 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 			echo("<tr>");
 			$itemmissing=false;
 			$prevanswers=array();
-			for ($i=0;$i<count($scales);$i++)
+			for ($j=0;$j<count($scales);$j++)
 			{
-				$prevanswers[$i]=$this->userdata->getStoredValue($items[$k]->ID,$scales[$i]->ID);
-				if ($this->markmissing && $items[$k]->mandatory==1 && $scales[$i]->mandatory==1 && !$this->userdata->hasStoredValue($items[$k]->ID,$scales[$i]->ID)) $itemmissing=true;
+				$prevanswers[$j]=$this->userdata->getStoredValue($items[$k]->ID,$scales[$j]->ID);
+				if ($this->markmissing && $items[$k]->mandatory==1 && $scales[$j]->mandatory==1 && !$this->userdata->hasStoredValue($items[$k]->ID,$scales[$j]->ID)) $itemmissing=true;
 			}
 			if ($k%2==1 && $this->question->alternate_bg) echo('<td class="question6itemAlt" style="'.$width_items.'">');
 			else echo('<td class="question6item" style="'.$width_items.'">');
@@ -59,9 +59,9 @@ defined('_JEXEC') or die( 'Restricted access' ); ?>
 				echo('<select name="i'.$items[$k]->ID.'_s'.$scales[$j]->ID.'_">');
 				if ($scales[$j]->defval==null) echo('<option></option>');
 				$codes = $this->pagemodel->getCodesToScale($scales[$j]->ID);
-				for ($i=0;$i<count($codes);$i++)
+				for ($l=0;$l<count($codes);$l++)
 				{
-					echo('<option value="'.$codes[$i]->code.'" '.($codes[$i]->code==$prevanswers[$j]||($prevanswers[$j]==null&&$scales[$j]->defval==$codes[$i]->code)?"selected":"").'>'.$codes[$i]->label.'</option>');
+					echo('<option value="'.$codes[$l]->code.'" '.($codes[$l]->code==$prevanswers[$j]||($prevanswers[$j]==null&&$scales[$j]->defval==$codes[$l]->code)?"selected":"").'>'.$codes[$l]->label.'</option>');
 				}
 				echo('</select>');
 				if ($possplit!==false) echo(substr($scales[$j]->prepost,$possplit+2));
