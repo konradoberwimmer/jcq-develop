@@ -54,7 +54,7 @@ class JcqModelQuestions extends JModel {
 		$this->db->setQuery($query);
 		$question = $this->db->loadObject();
 			
-		if ($question === null) JError::raiseError(500, 'Question with ID: '.$ID.' not found.');
+		if ($question === null) JError::raiseError(500, 'Function getQuestion($ID): Question with ID: '.$ID.' not found.');
 		else return $question;
 	}
 
@@ -64,7 +64,7 @@ class JcqModelQuestions extends JModel {
 		$this->db->setQuery($query);
 		$question = $this->db->loadObject();
 			
-		if ($question === null) JError::raiseError(500, 'Question with ID: '.$ID.' not found.');
+		if ($question === null) JError::raiseError(500, 'Function getTypeFromQuestion($ID): Question with ID: '.$ID.' not found.');
 		else return $question->questtype;
 	}
 	
@@ -120,13 +120,18 @@ class JcqModelQuestions extends JModel {
 	}
 	
 	
-	function addAttachedScale($questionID,$scaleID,$ord,$mandatory)
+	function addAttachedScale($questionID,$scale)
 	{
 		//first make sure that scale is not already attached
-		$scales = $this->getScales($questionID);
-		if ($scales!==null) foreach ($scales as $scale) if ($scale->scaleID == $scaleID) return null;
+		$attachedscales = $this->getScales($questionID);
+		if ($attachedscales!==null) foreach ($attachedscales as $attachedscale) if ($attachedscale->scaleID == $scale['ID']) return null;
 		//then add the attached scale
-		$this->db->setQuery("INSERT INTO jcq_questionscales (questionID, scaleID, ord, mandatory) VALUES ($questionID,$scaleID,$ord,".($mandatory?"1":"0").")");
+		$scaleID=$scale['ID'];
+		$ord=$scale['ord'];
+		$mandatory=(isset($scale['mandatory'])?1:0);
+		$layout=$scale['layout'];
+		$relpos=$scale['relpos'];
+		$this->db->setQuery("INSERT INTO jcq_questionscales (questionID, scaleID, ord, mandatory, layout, relpos) VALUES ($questionID,$scaleID,$ord,$mandatory,$layout,$relpos)");
 		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 		//also insert user data columns for all items
 		$model_items = new JcqModelItems();
@@ -134,9 +139,14 @@ class JcqModelQuestions extends JModel {
 		if ($items!==null) foreach ($items as $item) $model_items->addUserDataColumn(1, $item->ID, $scaleID);
 	}
 	
-	function saveAttachedScale($questionID,$scaleID,$ord,$mandatory)
+	function saveAttachedScale($questionID,$scale)
 	{
-		$this->db->setQuery("UPDATE jcq_questionscales SET ord = $ord, mandatory = $mandatory WHERE questionID = $questionID AND scaleID = $scaleID");
+		$scaleID=$scale['ID'];
+		$ord=$scale['ord'];
+		$mandatory=(isset($scale['mandatory'])?1:0);
+		$layout=$scale['layout'];
+		$relpos=$scale['relpos'];
+		$this->db->setQuery("UPDATE jcq_questionscales SET ord = $ord, mandatory = $mandatory, layout = $layout, relpos = $relpos WHERE questionID = $questionID AND scaleID = $scaleID");
 		if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 	}
 	
@@ -148,7 +158,7 @@ class JcqModelQuestions extends JModel {
 		$items = $this->getItems($questionID);
 		if ($items!==null) foreach ($items as $item)
 		{
-			$this->db->setQuery("ALTER TABLE jcq_proj$projectID DROP COLUMN i".$item->ID."_s".$scaleID."_';");
+			$this->db->setQuery("ALTER TABLE jcq_proj$projectID DROP COLUMN i".$item->ID."_s".$scaleID."_;");
 			if (!$this->db->query()) JError::raiseError(500, 'FATAL: '.$this->db->getErrorMsg());
 		}
 		//then delete the attached scale from question
@@ -236,10 +246,10 @@ class JcqModelQuestions extends JModel {
 		//then remove all but predefined scales of this question
 		$model_scales = new JcqModelScales();
 		$scales = $this->getScales($ID);
-		if ($scales!==null) foreach ($scales as $scale) if (!$scale->predefined)
+		if ($scales!==null) foreach ($scales as $scale)
 		{
 			$this->detachScale($ID,$scale->ID);
-			$model_scales->deleteScale($scale->ID);
+			if (!$scale->predefined) $model_scales->deleteScale($scale->ID);
 		}
 		//delete the question itself
 		$this->db->setQuery("DELETE FROM jcq_question WHERE ID = $ID");
@@ -265,7 +275,7 @@ class JcqModelQuestions extends JModel {
 		$this->db->setQuery($query);
 		$question = $this->db->loadObject();
 			
-		if ($question === null) JError::raiseError(500, 'Question with ID: '.$questionID.' not found.');
+		if ($question === null) JError::raiseError(500, 'Function getPageFromQuestion($questionID): Question with ID: '.$questionID.' not found.');
 		else
 		{
 			$query = 'SELECT * FROM jcq_page WHERE ID = '.$question->pageID;

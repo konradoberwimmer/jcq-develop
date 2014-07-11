@@ -32,10 +32,14 @@ class JcqViewProjectlist extends JView
 		}
 		$this->assignRef('codecounts', $codecounts);
 		
-		//add javascript functionality for custom buttons
-		$path = 'administrator/components/com_jcq/js/';
-		$filename = 'overridesubmit.js';
-		JHTML::script($path.$filename, true);
+		//add javascript functionality
+		$parser = JFactory::getXMLParser('Simple');
+		$parser->loadFile(JPATH_ADMINISTRATOR .'/components/com_jcq/jcq.xml');
+		$version = $parser->document->getElementByPath('version')->data();
+		$path = 'components/com_jcq/js/';
+		$filenames=array('overridesubmit.js');
+		$document = JFactory::getDocument();
+		foreach ($filenames as $filename) $document->addScript($path.$filename.'?version='.$version,'text/javascript',true);
 		
 		JToolBarHelper::title('JCQ: Projects', 'generic.png');
 		if ($projects != null) JToolBarHelper::deleteList("Do you really want to delete the selected projects?",'removeProject','Remove');

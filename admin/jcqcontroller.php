@@ -480,9 +480,9 @@ class JcqController extends JController
 		foreach ($post_scales as $key=>$scale)
 		{
 			//add attached scale
-			if ($key<0) $modelquestions->addAttachedScale($questionid,$scale['ID'],$scale['ord'],(isset($scale['mandatory'])?1:0));
+			if ($key<0) $modelquestions->addAttachedScale($questionid,$scale);
 			//update attached scale
-			else $modelquestions->saveAttachedScale($questionid,$scale['ID'],$scale['ord'],(isset($scale['mandatory'])?1:0));
+			else $modelquestions->saveAttachedScale($questionid,$scale);
 		}
 		
 		//delete attached scales
@@ -596,6 +596,15 @@ class JcqController extends JController
 			
 		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
 		$this->setRedirect($redirectTo, 'Removed '.$cntremoved.' scale(s)');
+	}
+	
+	function cleanUpscales()
+	{
+		$model = $this->getModel('scales');
+		$duplscaleids = $model->removeDuplicateScales();
+		
+		$redirectTo = JRoute::_('index.php?option='.JRequest::getVar('option').'&task=display',false);
+		$this->setRedirect($redirectTo, 'Removed '.($duplscaleids!==null?count($duplscaleids):'0').' duplicate scale(s)');
 	}
 
 	function cancelAddScale()

@@ -63,6 +63,7 @@ JCQ component has <?php echo count($this->scales); ?> predefined scale(s).
                     <tr>
                            <th>Name</th>
                            <th>Codes</th>
+                           <th>In use</th>
                            <th>Delete</th>
                     </tr>               
              </thead>
@@ -75,6 +76,7 @@ JCQ component has <?php echo count($this->scales); ?> predefined scale(s).
                     <tr>
                             <td><a href="<?php echo $link;?>"><?php echo $row->name;?></a></td>
                             <td><?php echo $this->codecounts[$i]; ?></td>
+                            <td><input type="checkbox" disabled <?php if ($this->getModel('scales')->checkScaleUsed($row->ID)) echo("checked"); ?>/></td>
                             <td><input type="checkbox" name="scaledelid[]" value="<?php echo $row->ID;?>"/></td>
                     </tr>
                     <?php
@@ -85,6 +87,7 @@ JCQ component has <?php echo count($this->scales); ?> predefined scale(s).
        </table>
 	<input type="button" value="New Scale" onclick="javascript: submitbutton('addScale')"/>
 	<input type="button" value="Remove Scale(s)" onclick="javascript: submitbutton('removeScale')"/>
+	<input type="button" value="Clean up" onclick="javascript: submitbutton('cleanupScales')" title="Clean up will remove duplicate predefined scales. A duplicate is defined by having the same scale definition (name, default value, ...) and having the same set of codes (order, value, label, ...)"/>
 </fieldset>
 <?php } else { ?>
 <fieldset>

@@ -74,6 +74,8 @@ class JcqModelItems extends JModel {
 	{
 		//first remove user data column(s)
 		$model_questions = new JcqModelQuestions();
+		$item = $this->getItem($ID);
+		if ($item===null) return false;
 		$questionID = $this->getItem($ID)->questionID;
 		$pageID = $model_questions->getPageFromQuestion($questionID)->ID;
 		$projectID = $model_questions->getProjectFromPage($pageID)->ID;

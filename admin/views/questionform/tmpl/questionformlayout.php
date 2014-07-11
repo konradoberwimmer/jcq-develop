@@ -274,11 +274,25 @@ if (!$isnewquestion && in_array($this->question->questtype, array(MULTICHOICE,MA
 for ($j=0; $j<count($this->predefscales); $j++) echo '<option value="'.$this->predefscales[$j]->ID.'">'.$this->predefscales[$j]->name.'</option>';
 ?>
 		</select>
+		<select id="layoutTEMPLATE" name="" style="display: none;">
+<?php 
+$scalelayouts = $this->getModel('scales')->getScaleLayouts();
+foreach ($scalelayouts as $layoutnum => $layoutname) echo '<option value="'.$layoutnum.'">'.$layoutname.'</option>';
+?>
+		</select>
+		<select id="relposTEMPLATE" name="" style="display: none;">
+<?php 
+$scalerelpos = $this->getModel('scales')->getScaleRelativePositions();
+foreach ($scalerelpos as $relposnum => $relposname) echo '<option value="'.$relposnum.'">'.$relposname.'</option>';
+?>
+		</select>
 		<table class="list">
 		<thead><tr>
 			<th>Order</th>
 			<th>Scale</th>
 			<th>Mandatory</th>
+			<th>Layout</th>
+			<th>Position</th>
 			<th>Delete</th>
 		</tr></thead>
 		<tbody id="listscalesbody">
@@ -290,6 +304,20 @@ foreach ($this->scales as $row) {
 				<input type="hidden" name="_scale_<?php echo($row->ID); ?>_ID" value="<?php echo($row->ID); ?>"/></td>
 			<td><?php for ($j=0; $j<count($this->predefscales); $j++) if ($row->ID==$this->predefscales[$j]->ID) echo($this->predefscales[$j]->name); ?></td>
 			<td><input type="checkbox" name="_scale_<?php echo($row->ID); ?>_mandatory" value="1" <?php if ($row->mandatory) echo("checked"); ?>/></td>
+			<td><select name="_scale_<?php echo($row->ID); ?>_layout">
+<?php 
+$scalelayouts = $this->getModel('scales')->getScaleLayouts();
+foreach ($scalelayouts as $layoutnum => $layoutname) echo '<option value="'.$layoutnum.'" '.($row->layout==$layoutnum?'selected':'').'>'.$layoutname.'</option>';
+?>
+				</select>
+				</td>
+			<td><select name="_scale_<?php echo($row->ID); ?>_relpos">
+<?php 
+$scalerelpos = $this->getModel('scales')->getScaleRelativePositions();
+foreach ($scalerelpos as $relposnum => $relposname) echo '<option value="'.$relposnum.'" '.($row->relpos==$relposnum?'selected':'').'>'.$relposname.'</option>';
+?>
+				</select>
+				</td>
 			<td><input type="checkbox" name="scaledelete[]" value="<?php echo($row->ID); ?>"/></td>
 		</tr>
 <?php 

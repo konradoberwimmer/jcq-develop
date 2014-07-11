@@ -57,9 +57,8 @@ class JcqModelScales extends JModel {
 	function getPredefinedScales()
 	{
 		$query = 'SELECT * FROM jcq_scale WHERE jcq_scale.predefined = 1';
-		$db = $this->getDBO();
-		$db->setQuery($query);
-		return $db->loadObjectList();
+		$this->db->setQuery($query);
+		return $this->db->loadObjectList();
 	}
 	
 	function getNewPredefinedScale()
@@ -70,6 +69,84 @@ class JcqModelScales extends JModel {
 		$scaleTableRow->prepost = '%i';
 		$scaleTableRow->predefined = 1;
 		return $scaleTableRow;
+	}
+	
+	function removeDuplicateScales()
+	{
+		$this->db->setQuery('SELECT ID FROM jcq_scale WHERE jcq_scale.predefined = 1');
+		$predefscales = $this->db->loadColumn();
+		if ($predefscales===null) return array();
+		
+		$duplscales = array();
+		for ($i=0; $i<count($predefscales);$i++)
+		{
+			if (isset($duplscales[$predefscales[$i]])) continue; //scale is already identified as duplicate
+			for ($j=$i+1; $j<count($predefscales);$j++)
+			{
+				if ($this->isDuplicateScale($predefscales[$i],$predefscales[$j])) $duplscales[$predefscales[$j]]=$predefscales[$i];
+			}
+		}
+		$this->db->setQuery('SELECT ID FROM jcq_project');
+		$projects = $this->db->loadColumn();
+		foreach ($duplscales as $key=>$value)
+		{
+			$this->db->setQuery('UPDATE jcq_questionscales SET scaleID='.$value.' WHERE scaleID='.$key);
+			$this->db->query();
+			//this is not efficient, but so all columns in user data tables will be surely renamed
+			foreach ($projects as $project)
+			{
+				$this->db->setQuery("SELECT column_name FROM information_schema.columns WHERE table_name = 'jcq_proj$project' AND column_name LIKE '%_s".$key."_';");
+				$columnstorename = $this->db->loadColumn();
+				foreach ($columnstorename as $columntorename)
+				{
+					$this->db->setQuery("ALTER TABLE jcq_proj$project CHANGE $columntorename ".str_replace("s".$key."_", "s".$value."_", $columntorename)." INT");
+					$this->db->query();
+				}
+			}
+			$this->db->setQuery('DELETE FROM jcq_scale WHERE ID='.$key);
+			$this->db->query();
+		}
+		return $duplscales;
+	}
+
+	function isDuplicateScale($id1, $id2)
+	{
+		//check if both scales exist
+		$scale1 = $this->getTable('scales');
+		if (!$scale1->load($id1)) return false;
+		$scale2 = $this->getTable('scales');
+		if (!$scale2->load($id2)) return false;
+		//check if scale definitions match
+		foreach (get_object_vars($scale1) as $k => $v)
+		{
+			if ($k=='ID') continue;
+			if ($scale2->$k!=$v) return false;
+		}
+		//check if number of codes match
+		$codes1 = $this->getCodes($id1);
+		$codes2 = $this->getCodes($id2);
+		if (count($codes1)!=count($codes2)) return false;
+		//check if individual codes match
+		for ($i=0;$i<count($codes1);$i++) if (!$this->isDuplicateCode($codes1[$i]->ID, $codes2[$i]->ID)) return false;
+		//if no difference so far, it is a duplicate
+		return true;
+	}
+	
+	function isDuplicateCode($id1,$id2)
+	{
+		//check if both codes exist
+		$code1 = $this->getTable('codes');
+		if (!$code1->load($id1)) return false;
+		$code2 = $this->getTable('codes');
+		if (!$code2->load($id2)) return false;
+		//check if code definitions match
+		foreach (get_object_vars($code1) as $k => $v)
+		{
+			if ($k=='ID' || $k=='ord' || $k=='scaleID') continue;
+			if ($code2->$k!=$v) return false;
+		}
+		//if no difference so far, it is a duplicate
+		return true;
 	}
 	
 	function getCodes($scaleID)
