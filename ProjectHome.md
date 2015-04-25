@@ -1,0 +1,1 @@
+A Joomla component for handling questionnaires. It allows for complex questionnaires by (a) setting filters for pages depending on previous responses and (b) adding user defined PHP functions for presentation of respondents results.
