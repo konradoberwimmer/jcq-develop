@@ -37,3 +37,10 @@ $controller->redirect();
 #TODO make it work with the browsers back button
 #TODO layout-settings: header, footer, title, icon progress bar
 #TODO allow return value of user defined functions to be used in filters
+#TODO text fields with all question types
+#TODO multi-scale with different layouts
+#TODO start and end points for projects
+#TODO filter on questions and items
+
+
+
